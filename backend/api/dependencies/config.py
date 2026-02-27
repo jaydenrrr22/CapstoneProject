@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 load_dotenv()
 
@@ -11,3 +12,8 @@ class conf:
     db_password = os.getenv("DB_PASSWORD")
     app_host = "0.0.0.0"
     app_port = 8000
+
+class Settings(BaseModel):
+    secret_key: str = os.getenv("SECRET_KEY", "dev-only-change-me")
+
+config = Settings()

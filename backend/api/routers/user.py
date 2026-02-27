@@ -5,7 +5,7 @@ from backend.api.dependencies.database import get_db
 from backend.api.models.user import User
 from backend.api.schemas.user import UserResponse, UserCreate, Token, UserLogin
 
-router = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/auth", tags=["User"])
 
 @router.post("/register", response_model=UserResponse,
              status_code = status.HTTP_201_CREATED)
