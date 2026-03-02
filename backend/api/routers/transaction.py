@@ -54,3 +54,29 @@ def create_transaction(
     db.refresh(new_transaction)
 
     return new_transaction
+
+@router.delete("/delete/{transaction_id}", status_code=status.HTTP_200_OK)
+def delete_transaction(
+        transaction_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    transaction = (
+        db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found",
+        )
+
+    if transaction.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to delete this transaction",
+        )
+
+    db.delete(transaction)
+    db.commit()
+    return {f"Successfully deleted transaction {transaction.id}"}
