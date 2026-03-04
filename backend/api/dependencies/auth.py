@@ -3,7 +3,7 @@ import jwt
 from jwt import PyJWTError
 from datetime import timezone, datetime, timedelta
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from backend.api.dependencies.config import config
@@ -14,7 +14,7 @@ SECRET_KEY = config.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+security = HTTPBearer()
 
 def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -33,7 +33,7 @@ def create_access_token(data: dict) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def get_current_user(
-        token: str = Depends(oauth2_scheme),
+        credentials: HTTPAuthorizationCredentials = Depends(security),
         db: Session = Depends(get_db)
 )->User:
     credentials_exception = HTTPException(
@@ -41,6 +41,8 @@ def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    token = credentials.credentials
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
