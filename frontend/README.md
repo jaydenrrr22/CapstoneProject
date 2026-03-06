@@ -23,6 +23,10 @@ npm install
 
 This will install all required dependencies including Axios.
 
+Install React Router:
+
+npm install react-router-dom
+
 ---
 
 ### 2. Start Development Server
