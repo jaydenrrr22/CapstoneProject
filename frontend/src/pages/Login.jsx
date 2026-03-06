@@ -4,12 +4,16 @@ import { useState } from "react";
 // Import login function from our Service 
 // This function handles the API call to FastAPI backend
 import { loginUser } from "../services/authService";
+//Router link for navigation
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import "./Login.css";
 
 function Login() {
 
-  
+  const navigate = useNavigate();
+
   // Local state for form inputs
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +32,7 @@ function Login() {
       localStorage.setItem("token", data.access_token);
 
       console.log("Login successful:", data);
-      alert("Login successful!");
+      navigate("/dashboard");
 
       // TODO (Future):
       // Redirect to Dashboard after login
@@ -44,17 +48,6 @@ function Login() {
     }
   };
 
-
-  // Handle Logout
-  const handleLogout = () => {
-    // Remove JWT token from browser
-    localStorage.removeItem("token");
-
-    alert("Logged out");
-
-    // TODO (Future):
-    // Redirect to login screen or clear user state
-  };
 
   // Simple login form UI (temporarl for testing purpose)
   return (
@@ -83,15 +76,13 @@ function Login() {
         />
 
         <button type="submit">Login</button>
+
+        <p style={{ marginTop: "15px", textAlign: "center" }}>
+          Don't have an account?{" "}
+          <Link to="/signup">Create one</Link>
+        </p>  
       </form>
 
-      {/* Temporary logout button for testing JWT removal */}
-      <button
-        onClick={handleLogout}
-        style={{ marginTop: "10px" }}
-      >
-        Logout
-      </button>
     </div>
   );
 }
