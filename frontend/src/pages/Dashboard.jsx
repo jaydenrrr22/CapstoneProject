@@ -1,11 +1,15 @@
-import "./Login.css";
+import FinancialHealthChart from "../components/FinancialHealthChart";
 
 function Dashboard() {
 
+  const mockScore = 71; // Temporary mock score for testing
+
   return (
-    <div className="login-container">
-      <h2>Dashboard</h2>
-      <p>Welcome to your financial dashboard.</p>
+    <div>
+      <h1>Dashboard</h1>
+
+      <FinancialHealthChart score={mockScore} />
+
     </div>
   );
 }
