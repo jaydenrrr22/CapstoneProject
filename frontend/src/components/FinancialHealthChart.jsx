@@ -7,29 +7,33 @@ function FinancialHealthChart({ score }) {
     { name: "remaining", value: 100 - score }
   ];
 
-  // Determine color based on score
   let scoreColor;
 
+  // Color coding based on score thresholds
   if (score <= 40) {
-    scoreColor = "#ef4444"; // red
+    scoreColor = "#ef4444";
   } else if (score <= 70) {
-    scoreColor = "#f59e0b"; // yellow
+    scoreColor = "#f59e0b";
   } else {
-    scoreColor = "#22c55e"; // green
+    scoreColor = "#22c55e";
   }
 
-  const COLORS = [scoreColor, "#e5e7eb"]; // second slice gray
+  const COLORS = [scoreColor, "#e5e7eb"];
 
   return (
-    <div style={{ textAlign: "center", position: "relative", width: "250px" }}>
+    <div style={{
+      position: "relative",
+      width: "260px",
+      margin: "0 auto"
+    }}>
 
-      <PieChart width={250} height={150}>
+      <PieChart width={260} height={160}>
         <Pie
           data={data}
           startAngle={180}
           endAngle={0}
-          innerRadius={60}
-          outerRadius={80}
+          innerRadius={70}
+          outerRadius={90}
           dataKey="value"
         >
           {data.map((entry, index) => (
@@ -38,15 +42,16 @@ function FinancialHealthChart({ score }) {
         </Pie>
       </PieChart>
 
-      {/* score text */}
+      {/* Center score */}
       <div
         style={{
           position: "absolute",
-          top: "65%",
+          top: "70%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          fontSize: "24px",
-          fontWeight: "bold"
+          fontSize: "28px",
+          fontWeight: "bold",
+          color: scoreColor
         }}
       >
         {score}
