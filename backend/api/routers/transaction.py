@@ -9,6 +9,19 @@ from backend.api.models.user import User
 from backend.api.schemas.transaction import TransactionResponse, TransactionCreate
 from backend.api.models.transaction import Transaction
 
+# having this temporary --> create budget table and insert them in db and possibly into seed.py?
+MERCHANT_CATEGORIES = {
+    "netflix": "Entertainment",
+    "spotify": "Entertainment",
+    "target": "Groceries",
+    "walmart": "Groceries",
+    "shell": "Gas",
+    "exxon": "Gas",
+    "uber": "Transportation",
+    "mcdonalds": "Dining",
+    "starbucks": "Dining"
+}
+
 router = APIRouter(prefix="/transaction", tags=["Transaction"])
 
 @router.get("/get", response_model=List[TransactionResponse])
@@ -41,11 +54,16 @@ def create_transaction(
         db: Session = Depends(get_db),
         current_user = Depends(get_current_user)
 ):
+    final_category = transaction.category
+    if not final_category:
+        normalized_merchant = transaction.store_name.strip().lower()
+        final_category = MERCHANT_CATEGORIES.get(normalized_merchant, "Other")
+
     new_transaction = Transaction(
         cost = transaction.cost,
         date = transaction.date,
         store_name = transaction.store_name,
-        category = transaction.category,
+        category = final_category,
         user_id = current_user.id,
     )
 
