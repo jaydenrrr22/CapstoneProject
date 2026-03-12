@@ -9,7 +9,6 @@ from backend.api.models.user import User
 from backend.api.schemas.transaction import TransactionResponse, TransactionCreate
 from backend.api.models.transaction import Transaction
 
-# having this temporary --> create budget table and insert them in db and possibly into seed.py?
 MERCHANT_CATEGORIES = {
     "netflix": "Entertainment",
     "spotify": "Entertainment",
@@ -55,7 +54,7 @@ def create_transaction(
         current_user = Depends(get_current_user)
 ):
     final_category = transaction.category
-    if not final_category:
+    if not final_category or final_category.strip().lower() == "other":
         normalized_merchant = transaction.store_name.strip().lower()
         final_category = MERCHANT_CATEGORIES.get(normalized_merchant, "Other")
 
