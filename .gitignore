@@ -7,3 +7,5 @@ node_modules/
 frontend/node_modules/
 
 .env
+.last_deploy_commit
+deploy.log
