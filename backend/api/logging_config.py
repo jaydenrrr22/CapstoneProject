@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 from datetime import datetime
 
 
@@ -21,7 +22,12 @@ def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    file_handler = logging.FileHandler("/home/ubuntu/trace-backend.log")
+    if os.name == "nt":
+        log_path = "trace-backend.log"
+    else:
+        log_path = "/home/ubuntu/trace-backend.log"
+
+    file_handler = logging.FileHandler(log_path)
 
     formatter = JsonFormatter()
     file_handler.setFormatter(formatter)
