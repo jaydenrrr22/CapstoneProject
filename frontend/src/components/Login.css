@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+
+/* Container for the whole login form */
+.login-container {
+  height: 100vh;                  /* Full viewport height */
+  display: flex;                  
+  flex-direction: column;         /* Stack heading, form, logout vertically */
+  justify-content: center;        /* Vertical center */
+  align-items: center;            /* Horizontal center */
+  background-color: #4A4E69;      /* Light neutral background */
+  font-family: Arial, sans-serif;
+}
+
+/* Heading */
+.login-container h2 {
+  width: 320px;
+  padding: 15px, 20px;
+  background-color: #F2E9E4;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+
+  text-align: center;
+  margin-bottom: 20px;
+
+  font-family: 'Itim', cursive;
+}
+
+/* Form styling */
+.login-container form {
+  display: flex;
+  flex-direction: column;         /* Stack inputs vertically */
+  width: 320px;
+  padding: 30px;
+  background-color: #F2E9E4;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Inputs styling */
+.login-container input {
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+/* Input focus effect */
+.login-container input:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 5px rgba(100, 108, 255, 0.3);
+}
+
+/* Submit button styling */
+.login-container button[type="submit"] {
+  padding: 12px;
+  background-color: #22223B;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+/* Submit hover effect */
+.login-container button[type="submit"]:hover {
+  background-color: #535bf2;
+}
+
+/* Logout button styling (temporary) */
+.login-container button[style] {
+  padding: 10px 12px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-container button[style]:hover {
+  background-color: #d32f2f;
+}
