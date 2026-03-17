@@ -1,11 +1,26 @@
-import Login from "./components/Login";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Login from "./pages/Login";
+import CreateAccount from "./pages/CreateAccount";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
+
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1>Financial ML App</h1>
-      <Login />
-    </div>
+    <BrowserRouter>
+
+      <Routes>
+
+        {/* Default route */}
+        <Route path="/" element={<Login />} />
+
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<CreateAccount />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
+      </Routes>
+
+    </BrowserRouter>
   );
 }
 

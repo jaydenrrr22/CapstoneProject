@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+
+/* Container for the whole login form */
+.login-container {
+  height: 100vh;                  /* Full viewport height */
+  display: flex;                  
+  flex-direction: column;         /* Stack heading, form, logout vertically */
+  justify-content: center;        /* Vertical center */
+  align-items: center;            /* Horizontal center */
+  background-color: #4A4E69;      /* Light neutral background */
+  font-family: Arial, sans-serif;
+
+  /* gradient background for visual interest */
+  background: linear-gradient(
+    135deg,
+    #22223b 0%,
+    #22223b 40%,
+    #4A4E69 60%,
+    #4A4E69 100%
+  );
+}
+
+/* Heading */
+.login-container h2 {
+  width: 320px;
+  padding: 15px 20px;
+  background-color: #C9ADA7;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+
+  text-align: center;
+  margin-bottom: 20px;
+
+  font-family: 'Itim', cursive;
+}
+
+/* Form styling */
+.login-container form {
+  display: flex;
+  flex-direction: column;         /* Stack inputs vertically */
+  width: 320px;
+  padding: 35px;
+  background-color: #C9ADA7;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* Inputs styling */
+.login-container input {
+  padding: 12px;
+  margin-bottom: 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e9e9ef;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+/* Input focus effect */
+.login-container input:focus {
+  outline: none;
+  border-color: #646cff;
+  box-shadow: 0 0 2px rgba(100, 108, 255, 0.3);
+}
+
+/* Submit button styling */
+.login-container button[type="submit"] {
+  padding: 12px;
+  background-color: #22223B;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Submit hover effect */
+.login-container button[type="submit"]:hover {
+  background-color: #4A4E69;
+  transform: translateY(-2px);
+}
+
+/* Logout button styling (temporary) */
+.login-container button[style] {
+  padding: 10px 12px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-container button[style]:hover {
+  background-color: #d32f2f;
+}
