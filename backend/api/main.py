@@ -3,13 +3,12 @@ import os
 import time
 import logging
 import uuid
-
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 
-from backend.api.dependencies.database import get_db
+from .dependencies.database import get_db
 from .models import model_loader
 from .routers import index as indexRoute
 from .dependencies.config import conf
