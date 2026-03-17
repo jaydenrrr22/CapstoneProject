@@ -1,9 +1,15 @@
+import { useEffect, useState } from "react";
 import FinancialHealthChart from "../components/FinancialHealthChart";
 import "./Dashboard.css";
 
 function Dashboard() {
 
-  const mockScore = 71; // Temporary mock score for testing
+  // TODO (Launch):
+  // Replace automatic current-month period with user-selected period (dropdown or date picker).
+  // Also handle cases where no budget exists for the current month (fallback or prompt user to create one).
+
+  const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const mockTransactions = [
     { id: 1, name: "Groceries", amount: -150 },
@@ -11,19 +17,43 @@ function Dashboard() {
     { id: 3, name: "Utilities", amount: -120 },
   ];
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    const today = new Date();
+    const period = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+
+    fetch(`http://127.0.0.1:8000/analytics/financial-health/${period}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch financial health");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setScore(data.score);
+      })
+      .catch((error) => {
+        console.error("Financial health fetch error:", error.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
+
   return (
     <div className="dashboard-container">
-
-      {/* Inner container constrained to 320px */}
       <div className="dashboard-inner">
 
-        {/* Header */}
         <div className="dashboard-header">
           <h1>Dashboard</h1>
           <button className="notification-btn">Notifications</button>
         </div>
 
-        {/* Budget Summary */}
         <div className="budget-summary">
           <div className="budget-card">
             <p>Total Budget</p>
@@ -35,12 +65,10 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Financial Health Chart */}
         <div className="chart-wrapper card">
-          <FinancialHealthChart score={mockScore} />
+          {loading ? <p>Loading...</p> : <FinancialHealthChart score={score} />}
         </div>
 
-        {/* Transactions */}
         <div className="transactions-section card">
           <h3>Recent Transactions</h3>
           {mockTransactions.map(tx => (
@@ -53,7 +81,6 @@ function Dashboard() {
           ))}
         </div>
 
-        {/* Bottom Navigation — now part of inner container */}
         <nav className="bottom-nav">
           <button>Home</button>
           <button>Transactions</button>
@@ -63,7 +90,6 @@ function Dashboard() {
         </nav>
 
       </div>
-
     </div>
   );
 }
