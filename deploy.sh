@@ -4,6 +4,7 @@ set -e
 
 APP_DIR="$HOME/CapstoneProject"
 BACKEND_DIR="$APP_DIR/backend/api"
+REQUIREMENTS_FILE="$APP_DIR/requirements.txt"
 SERVICE_NAME="trace-backend.service"
 BRANCH="main"
 LOG_FILE="$APP_DIR/deploy.log"
@@ -36,10 +37,10 @@ git pull origin "$BRANCH" | tee -a "$LOG_FILE"
 
 source "$VENV_PATH/bin/activate"
 
-if [ -f "$BACKEND_DIR/requirements.txt" ]; then
-    pip install -r "$BACKEND_DIR/requirements.txt" | tee -a "$LOG_FILE"
+if [ -f "$REQUIREMENTS_FILE" ]; then
+    pip install -r "$REQUIREMENTS_FILE" | tee -a "$LOG_FILE"
 else
-    echo "No requirements.txt found in $BACKEND_DIR, skipping pip install." | tee -a "$LOG_FILE"
+    echo "No requirements.txt found at $REQUIREMENTS_FILE, skipping pip install." | tee -a "$LOG_FILE"
 fi
 
 deactivate

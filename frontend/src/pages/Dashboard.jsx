@@ -1,7 +1,10 @@
 import FinancialHealthChart from "../components/FinancialHealthChart";
+import { Link } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 import "./Dashboard.css";
 
 function Dashboard() {
+  const { logout } = useAuth();
 
   const mockScore = 71; // Temporary mock score for testing
 
@@ -20,7 +23,9 @@ function Dashboard() {
         {/* Header */}
         <div className="dashboard-header">
           <h1>Dashboard</h1>
-          <button className="notification-btn">Notifications</button>
+          <button className="notification-btn" onClick={() => logout()}>
+            Logout
+          </button>
         </div>
 
         {/* Budget Summary */}
@@ -55,11 +60,11 @@ function Dashboard() {
 
         {/* Bottom Navigation — now part of inner container */}
         <nav className="bottom-nav">
-          <button>Home</button>
-          <button>Transactions</button>
-          <button>Subscriptions</button>
-          <button>Recommendations</button>
-          <button>About Us</button>
+          <Link to="/dashboard">Home</Link>
+          <Link to="/transactions">Transactions</Link>
+          <Link to="/subscriptions">Subscriptions</Link>
+          <Link to="/budgets">Budgets</Link>
+          <button onClick={() => logout()}>Sign Out</button>
         </nav>
 
       </div>
