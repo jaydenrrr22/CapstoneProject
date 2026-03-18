@@ -7,6 +7,8 @@ import { loginUser } from "../services/authService";
 //Router link for navigation
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 
 
 import "./Login.css";
@@ -14,6 +16,8 @@ import "./Login.css";
 function Login() {
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
   // Local state for form inputs
   const [email, setEmail] = useState("");
@@ -30,10 +34,11 @@ function Login() {
 
       // Save JWT token in browser localStorage
       // This allows authenticated requests later
-      localStorage.setItem("token", data.access_token);
+      login(data.access_token);
 
       console.log("Login successful:", data);
-      navigate("/dashboard");
+      const destination = location.state?.from?.pathname || "/dashboard";
+      navigate(destination, { replace: true });
 
       // TODO (Future):
       // Redirect to Dashboard after login

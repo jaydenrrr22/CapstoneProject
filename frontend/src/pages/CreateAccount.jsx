@@ -24,7 +24,7 @@ function CreateAccount() {
             name, email, password 
         });
         alert("Account created successfully!");
-        navigate("/dashboard");
+        navigate("/login", { replace: true });
     } catch (error) {
         console.error(
             "Registration error:",
