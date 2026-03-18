@@ -9,6 +9,7 @@ import Budgets from "./pages/Budgets";
 import { AuthProvider } from "./context/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
+import TransactionPage from "./pages/transaction";
 
 function App() {
 
@@ -85,6 +86,10 @@ function App() {
             </ProtectedRoute>
           )}
         />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<CreateAccount />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/transaction" element={<TransactionPage />} />
 
       </Routes>
 
