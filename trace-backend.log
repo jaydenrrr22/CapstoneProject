@@ -18,3 +18,17 @@
 {"timestamp": "2026-03-17T19:25:04.845580", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/docs", "request_id": "da76ed3d-6a89-4548-88e4-c69075f20506"}
 {"timestamp": "2026-03-17T19:25:04.986110", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/openapi.json", "request_id": "2cd8a6d2-8fd1-4936-b91b-bae31b550da5"}
 {"timestamp": "2026-03-17T19:25:05.017953", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/openapi.json", "request_id": "2cd8a6d2-8fd1-4936-b91b-bae31b550da5"}
+{"timestamp": "2026-03-17T19:29:24.431782", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/auth/login", "request_id": "8ec30565-69ef-4c3c-b351-3f6ffb5b9255"}
+{"timestamp": "2026-03-17T19:29:24.444706", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/auth/login", "request_id": "8ec30565-69ef-4c3c-b351-3f6ffb5b9255"}
+{"timestamp": "2026-03-17T19:30:46.675178", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/auth/login", "request_id": "e987fd17-916e-4a4a-92cb-33aca30c1664"}
+{"timestamp": "2026-03-17T19:30:46.678542", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/auth/login", "request_id": "e987fd17-916e-4a4a-92cb-33aca30c1664"}
+{"timestamp": "2026-03-17T19:31:21.721311", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/auth/login", "request_id": "cd662af8-e833-467e-8ad1-71a351b3d873"}
+{"timestamp": "2026-03-17T19:31:21.920699", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/auth/login", "request_id": "cd662af8-e833-467e-8ad1-71a351b3d873"}
+{"timestamp": "2026-03-17T19:32:47.986451", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/budget/create", "request_id": "8e63c51b-14f9-40ea-90bb-61f9b42662f5"}
+{"timestamp": "2026-03-17T19:32:48.003915", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/budget/create", "request_id": "8e63c51b-14f9-40ea-90bb-61f9b42662f5"}
+{"timestamp": "2026-03-17T19:33:14.777171", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "77a72a25-289b-4bf1-9654-78bfbed95cf9"}
+{"timestamp": "2026-03-17T19:33:14.786548", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "77a72a25-289b-4bf1-9654-78bfbed95cf9"}
+{"timestamp": "2026-03-17T19:45:05.287126", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "99876aae-0b6b-4e65-912c-07caad9c4a12"}
+{"timestamp": "2026-03-17T19:45:05.287338", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "99876aae-0b6b-4e65-912c-07caad9c4a12"}
+{"timestamp": "2026-03-17T19:45:05.288724", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "3992ca46-80f4-4d68-ab9d-7e3fe3e4d941"}
+{"timestamp": "2026-03-17T19:45:05.289853", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "3992ca46-80f4-4d68-ab9d-7e3fe3e4d941"}

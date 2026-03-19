@@ -1,21 +1,17 @@
-import axios from "axios";
+import apiClient from "../api/client";
 
-const API_URL = "http://127.0.0.1:8000";
-
+// Login
 export const loginUser = async (credentials) => {
-  const response = await axios.post(
-    `${API_URL}/auth/login`,
-    credentials
-  );
+  const response = await apiClient.post("/auth/login", credentials);
+
+  // save token automatically on successful login
+  localStorage.setItem("token", response.data.access_token);
 
   return response.data;
 };
 
+// Register
 export const registerUser = async (userData) => {
-  const response = await axios.post(
-    "http://127.0.0.1:8000/auth/register",
-    userData
-  );
-
+  const response = await apiClient.post("/auth/register", userData);
   return response.data;
 };
