@@ -39,10 +39,10 @@ else
 fi
 
 if [ -f "$REQUIREMENTS_FILE" ]; then
-    echo "📦 Installing backend dependencies..." | tee -a "$LOG_FILE"
+    echo "📦 Installing backend dependencies from $REQUIREMENTS_FILE..." | tee -a "$LOG_FILE"
     pip install -r "$REQUIREMENTS_FILE" | tee -a "$LOG_FILE"
 else
-    echo "No requirements.txt found, skipping pip install." | tee -a "$LOG_FILE"
+    echo "⚠️ No requirements.txt found at $REQUIREMENTS_FILE, skipping pip install." | tee -a "$LOG_FILE"
 fi
 
 deactivate
@@ -71,4 +71,4 @@ echo "✅ Frontend deployed." | tee -a "$LOG_FILE"
 echo "===================================" | tee -a "$LOG_FILE"
 echo "Deployment completed: $(date)" | tee -a "$LOG_FILE"
 echo "===================================" | tee -a "$LOG_FILE"
-echo "" | tee -a "$LOG_FILE"
+echo ""

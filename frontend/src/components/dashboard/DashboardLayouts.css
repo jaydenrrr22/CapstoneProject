@@ -1,0 +1,394 @@
+@import url("https://fonts.googleapis.com/css2?family=Itim&display=swap");
+
+:root {
+  --bg-1: #22223b;
+  --bg-2: #4a4e69;
+  --surface: #c9ada7;
+  --surface-muted: #dcc3bc;
+  --ink: #22223b;
+  --ink-soft: #393a56;
+  --line: rgba(34, 34, 59, 0.16);
+  --brand: #22223b;
+  --brand-strong: #4a4e69;
+  --danger: #b42318;
+  --success: #1f7a3a;
+  --shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+}
+
+.dashboard-shell {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-1) 40%, var(--bg-2) 60%, var(--bg-2) 100%);
+  color: var(--ink);
+  font-family: Arial, sans-serif;
+}
+
+.card-surface {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-family: "Itim", cursive;
+  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+  margin-top: 4px;
+}
+
+h3 {
+  font-size: 1.05rem;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.health-period-select {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.7);
+  color: #22223b;
+  font-weight: 600;
+}
+
+.health-period-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 34, 59, 0.18);
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.action-btn {
+  border: none;
+  border-radius: 10px;
+  background: var(--brand);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.action-btn:hover {
+  background: var(--brand-strong);
+  transform: translateY(-1px);
+}
+
+.tx-positive {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.tx-negative {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.mobile-shell {
+  padding: 14px 14px 92px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding: 14px;
+}
+
+.mobile-header .action-btn {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+.mobile-budget-scroll {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(154px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scroll-snap-type: x mandatory;
+}
+
+.budget-chip {
+  padding: 14px;
+  scroll-snap-align: start;
+}
+
+.budget-chip p {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.budget-chip h2 {
+  margin-top: 6px;
+  font-size: 1.1rem;
+}
+
+.mobile-chart-card,
+.mobile-transactions-card {
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.tx-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tx-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface-muted);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.mobile-bottom-nav {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  border-radius: 12px;
+  background: var(--brand);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  min-height: 60px;
+  z-index: 30;
+}
+
+.mobile-bottom-nav a {
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.mobile-bottom-nav a:hover {
+  color: #c9ada7;
+}
+
+.desktop-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 22px;
+}
+
+.desktop-top-nav {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.desktop-links {
+  display: flex;
+  gap: 14px;
+}
+
+.desktop-links a {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.desktop-links a:hover {
+  background: rgba(34, 34, 59, 0.1);
+}
+
+.desktop-top-nav .action-btn {
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+.desktop-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+  grid-template-areas:
+    "budgets budgets"
+    "health transactions";
+  gap: 16px;
+  align-items: start;
+}
+
+.desktop-budget-row {
+  grid-area: budgets;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.budget-stat {
+  padding: 14px;
+}
+
+.budget-stat p {
+  color: var(--ink-soft);
+}
+
+.budget-stat h2 {
+  margin-top: 6px;
+  font-size: 1.35rem;
+}
+
+.desktop-health-panel,
+.desktop-transactions-panel {
+  background: var(--surface);
+  padding: 20px;
+}
+
+.desktop-health-panel {
+  grid-area: health;
+  min-height: 290px;
+  display: grid;
+  align-content: center;
+  gap: 12px;
+}
+
+.desktop-transactions-panel {
+  grid-area: transactions;
+}
+
+.tx-table {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tx-table-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 11px 14px;
+}
+
+.simple-list {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.tx-table-row {
+  background: rgba(255, 255, 255, 0.26);
+  border-top: 1px solid var(--line);
+}
+
+.tx-table-row:first-child {
+  border-top: none;
+}
+
+.health-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.health-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: rgba(34, 34, 59, 0.12);
+  color: #22223b;
+}
+
+.health-status-badge.good {
+  background: rgba(31, 122, 58, 0.18);
+  color: #125f2d;
+}
+
+.health-status-badge.moderate {
+  background: rgba(245, 158, 11, 0.2);
+  color: #7a4a00;
+}
+
+.health-status-badge.risk {
+  background: rgba(180, 35, 24, 0.16);
+  color: #7a1510;
+}
+
+.health-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.health-metrics-grid div {
+  background: rgba(255, 255, 255, 0.24);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.health-metrics-grid p {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.health-metrics-grid h4 {
+  margin: 4px 0 0;
+  color: #22223b;
+  font-size: 1.05rem;
+}
+
+.health-error {
+  margin: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(176, 0, 32, 0.12);
+  color: #6f0014;
+}
+
+.tx-empty {
+  padding: 12px;
+}
+
+@media (max-width: 1060px) {
+  .desktop-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "budgets"
+      "health"
+      "transactions";
+  }
+
+  .desktop-budget-row {
+    grid-template-columns: 1fr;
+  }
+
+  .health-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
