@@ -124,7 +124,7 @@ const TransactionPage = () => {
   const filteredTransactions = useMemo(() => (
     filter === "All"
       ? transactions
-      : transactions.filter(() => filter === "Expense")
+      : transactions.filter((transaction) => transaction.category === filter)
   ), [filter, transactions]);
 
   const currency = (amount) => {
