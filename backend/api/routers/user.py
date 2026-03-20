@@ -5,7 +5,7 @@ from backend.api.dependencies.database import get_db
 from backend.api.models.user import User
 from backend.api.schemas.user import UserResponse, UserCreate, Token, UserLogin
 
-router = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/auth", tags=["User"])
 
 @router.post("/register", response_model=UserResponse,
              status_code = status.HTTP_201_CREATED)
@@ -23,12 +23,14 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 @router.post("/login", response_model=Token)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
+def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == user_credentials.email).first()
 
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+    if not user or not verify_password(user_credentials.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                            detail="Incorrect email or password")
+                            detail="Incorrect email or password",
+                            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    access_Token = create_access_token(data={"sub": str(db_user.id)})
-    return {"access_token": access_Token, "token_type": "bearer"}
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer"}
