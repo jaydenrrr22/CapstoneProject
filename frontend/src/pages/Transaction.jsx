@@ -258,12 +258,29 @@ const TransactionPage = () => {
 
       <DecisionImpactModal
         open={modalOpen}
-        loading={loadingSim}
+        loading={loadingSim || saving}
         simulation={simulation}
         onCancel={() => setModalOpen(false)}
         onConfirm={async () => {
-          await submitTransaction();
-          setModalOpen(false);
+          // Prevent duplicate submissions if already loading or saving
+          if (loadingSim || saving) {
+            return;
+          }
+          try {
+            await submitTransaction();
+            setModalOpen(false);
+          } catch (error) {
+            // Handle errors so they don't surface as unhandled promise rejections
+            // and provide visible feedback to the user.
+            // eslint-disable-next-line no-console
+            console.error("Failed to submit transaction:", error);
+            const message =
+              error && typeof error.message === "string"
+                ? error.message
+                : "Failed to submit transaction. Please try again.";
+            // Basic visible feedback without changing modal API
+            window.alert(message);
+          }
         }}
       />
     </div>
