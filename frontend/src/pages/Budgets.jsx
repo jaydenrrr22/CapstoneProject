@@ -147,6 +147,8 @@ function Budgets() {
 
           {loading ? (
             <p className="muted">Loading budgets...</p>
+          ) : error ? (
+            <p className="subpage-error">{error}</p>
           ) : budgets.length === 0 ? (
             <p className="muted">No budgets yet. Create your first one.</p>
           ) : (
