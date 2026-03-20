@@ -1,18 +1,26 @@
 import { PieChart, Pie, Cell } from "recharts";
 
-function FinancialHealthChart({ score }) {
+function FinancialHealthChart({
+  score,
+  width = 260,
+  height = 160,
+  innerRadius = 70,
+  outerRadius = 90,
+  labelSize = 28,
+}) {
+  const safeScore = Math.max(0, Math.min(100, Number(score) || 0));
 
   const data = [
-    { name: "score", value: score },
-    { name: "remaining", value: 100 - score }
+    { name: "score", value: safeScore },
+    { name: "remaining", value: 100 - safeScore }
   ];
 
   let scoreColor;
 
   // Color coding based on score thresholds
-  if (score <= 40) {
+  if (safeScore <= 40) {
     scoreColor = "#ef4444";
-  } else if (score <= 70) {
+  } else if (safeScore <= 70) {
     scoreColor = "#f59e0b";
   } else {
     scoreColor = "#22c55e";
@@ -23,17 +31,17 @@ function FinancialHealthChart({ score }) {
   return (
     <div style={{
       position: "relative",
-      width: "260px",
+      width: `${width}px`,
       margin: "0 auto"
     }}>
 
-      <PieChart width={260} height={160}>
+      <PieChart width={width} height={height}>
         <Pie
           data={data}
           startAngle={180}
           endAngle={0}
-          innerRadius={70}
-          outerRadius={90}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
           dataKey="value"
         >
           {data.map((entry, index) => (
@@ -49,12 +57,12 @@ function FinancialHealthChart({ score }) {
           top: "70%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          fontSize: "28px",
+          fontSize: `${labelSize}px`,
           fontWeight: "bold",
           color: scoreColor
         }}
       >
-        {score}
+        {safeScore}
       </div>
 
     </div>

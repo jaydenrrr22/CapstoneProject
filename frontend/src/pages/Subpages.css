@@ -1,0 +1,155 @@
+.subpage-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 380px) minmax(420px, 1fr);
+  gap: 16px;
+}
+
+.subpage-single-column {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.subpage-form-panel,
+.subpage-table-panel {
+  padding: 18px;
+}
+
+.subpage-form {
+  display: grid;
+  gap: 12px;
+}
+
+.subpage-form label {
+  display: grid;
+  gap: 6px;
+  color: #22223b;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.subpage-form input,
+.subpage-form select,
+.subpage-filter-row select {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ececf1;
+  color: #22223b;
+  font-family: inherit;
+}
+
+.subpage-form input:focus,
+.subpage-form select:focus,
+.subpage-filter-row select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 34, 59, 0.2);
+}
+
+.subpage-submit,
+.subpage-inline-btn {
+  border: none;
+  border-radius: 8px;
+  background: #22223b;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.subpage-submit {
+  min-height: 42px;
+  margin-top: 4px;
+}
+
+.subpage-inline-btn {
+  padding: 8px 10px;
+}
+
+.subpage-submit:hover,
+.subpage-inline-btn:hover {
+  background: #4a4e69;
+  transform: translateY(-1px);
+}
+
+.subpage-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.subpage-error {
+  margin: 0;
+  background: rgba(176, 0, 32, 0.12);
+  color: #6f0014;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.subpage-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.subpage-filter-row label {
+  font-weight: 700;
+  color: #22223b;
+}
+
+.subpage-table {
+  border: 1px solid rgba(34, 34, 59, 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.subpage-table-head,
+.subpage-table-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  align-items: center;
+}
+
+.subpage-table-head {
+  background: rgba(255, 255, 255, 0.3);
+  color: #22223b;
+  font-weight: 700;
+}
+
+.subpage-table-row {
+  background: rgba(255, 255, 255, 0.2);
+  border-top: 1px solid rgba(34, 34, 59, 0.12);
+}
+
+.subpage-metric-card {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(34, 34, 59, 0.14);
+}
+
+.subpage-metric-card h4 {
+  margin: 0 0 8px;
+  color: #22223b;
+  font-size: 1rem;
+}
+
+.subpage-metric-card p {
+  margin: 4px 0;
+  color: #22223b;
+}
+
+@media (max-width: 980px) {
+  .subpage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subpage-table-head,
+  .subpage-table-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
