@@ -1,16 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Itim&family=Outfit:wght@400;500;600;700&display=swap');
 
 /* Container for the whole login form */
 .login-container {
-  height: 100vh;                  /* Full viewport height */
-  display: flex;                  
-  flex-direction: column;         /* Stack heading, form, logout vertically */
-  justify-content: center;        /* Vertical center */
-  align-items: center;            /* Horizontal center */
-  background-color: #4A4E69;      /* Light neutral background */
-  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Outfit', Arial, sans-serif;
 
-  /* gradient background for visual interest */
   background: linear-gradient(
     135deg,
     #22223b 0%,
@@ -18,12 +15,28 @@
     #4A4E69 60%,
     #4A4E69 100%
   );
+
+  padding: 20px;
 }
 
-/* Heading */
-.login-container h2 {
+.auth-stack {
   width: 320px;
-  padding: 15px 20px;
+  animation: authFadeUp 380ms ease both;
+}
+
+.trace-logo {
+  width: 100%;
+  max-width: 320px;
+  display: block;
+  margin: 0 auto 14px;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+  animation: authFadeIn 460ms ease both;
+}
+
+.auth-title-card {
+  width: 320px;
+  box-sizing: border-box;
+  padding: 13px 20px;
   background-color: #C9ADA7;
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
@@ -32,39 +45,71 @@
   margin-bottom: 20px;
 
   font-family: 'Itim', cursive;
+  letter-spacing: 0.2px;
 }
 
-/* Form styling */
-.login-container form {
+.auth-form-card {
   display: flex;
-  flex-direction: column;         /* Stack inputs vertically */
+  flex-direction: column;
   width: 320px;
-  padding: 35px;
+  box-sizing: border-box;
+  padding: 28px;
   background-color: #C9ADA7;
-  border-radius: 10px;
+  border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  gap: 12px;
 }
 
-/* Inputs styling */
-.login-container input {
+.auth-form-card input {
   padding: 12px;
-  margin-bottom: 15px;
   border: none;
   border-radius: 8px;
   background-color: #e9e9ef;
-  font-size: 14px;
+  color: #22223B;
+  caret-color: #22223B;
+  font-size: 15px;
+  font-family: inherit;
   transition: all 0.2s ease;
 }
 
-/* Input focus effect */
-.login-container input:focus {
-  outline: none;
-  border-color: #646cff;
-  box-shadow: 0 0 2px rgba(100, 108, 255, 0.3);
+.auth-form-card input::placeholder {
+  color: rgba(34, 34, 59, 0.7);
 }
 
-/* Submit button styling */
-.login-container button[type="submit"] {
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrap input {
+  width: 100%;
+  padding-right: 72px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  border: none;
+  background: transparent;
+  color: #22223b;
+  font-weight: 700;
+  font-size: 0.86rem;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.password-toggle-btn:hover {
+  background: rgba(34, 34, 59, 0.08);
+}
+
+.auth-form-card input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 34, 59, 0.25);
+}
+
+.auth-form-card button[type="submit"] {
   padding: 12px;
   background-color: #22223B;
   color: white;
@@ -75,23 +120,72 @@
   transition: all 0.2s ease;
 }
 
-/* Submit hover effect */
-.login-container button[type="submit"]:hover {
+.auth-form-card button[type="submit"]:hover {
   background-color: #4A4E69;
   transform: translateY(-2px);
 }
 
-/* Logout button styling (temporary) */
-.login-container button[style] {
-  padding: 10px 12px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.auth-form-card button[type="submit"]:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.login-container button[style]:hover {
-  background-color: #d32f2f;
+.auth-error-text {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(176, 0, 32, 0.1);
+  color: #6f0014;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.auth-switch-text {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #22223b;
+}
+
+.auth-switch-text a {
+  color: #22223b;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@keyframes authFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes authFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-stack,
+  .auth-title-card,
+  .auth-form-card,
+  .trace-logo {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .auth-form-card {
+    padding: 22px;
+  }
 }

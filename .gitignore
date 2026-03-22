@@ -9,3 +9,6 @@ frontend/node_modules/
 .env
 .last_deploy_commit
 deploy.log
+
+# Local runtime logs
+trace-backend.log
