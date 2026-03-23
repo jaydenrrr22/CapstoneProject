@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
 import "./DashboardLayouts.css";
 
@@ -10,21 +10,13 @@ function MobileDashboard({
   availablePeriods,
   onPeriodChange,
   transactions,
-  onLogout,
+  subscriptionInsight,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
 
   return (
     <div className="dashboard-shell mobile-shell">
-      <header className="mobile-header card-surface">
-        <div>
-          <p className="eyebrow">Overview</p>
-          <h1>Dashboard</h1>
-        </div>
-        <button className="action-btn" onClick={onLogout}>Logout</button>
-      </header>
-
       <section className="mobile-budget-scroll" aria-label="Budget summary">
         <article className="budget-chip card-surface">
           <p>Total Budget</p>
@@ -33,6 +25,10 @@ function MobileDashboard({
         <article className="budget-chip card-surface">
           <p>Spent This Period</p>
           <h2>{spentTotal}</h2>
+        </article>
+        <article className="budget-chip card-surface">
+          <p>Subscriptions</p>
+          <h2>{subscriptionInsight.count}</h2>
         </article>
       </section>
 
@@ -70,11 +66,11 @@ function MobileDashboard({
 
             <FinancialHealthChart
               score={health.score}
-              width={220}
-              height={140}
-              innerRadius={56}
-              outerRadius={74}
-              labelSize={24}
+              width={250}
+              height={160}
+              innerRadius={64}
+              outerRadius={84}
+              labelSize={28}
             />
           </>
         ) : (
@@ -90,8 +86,8 @@ function MobileDashboard({
           {transactions.map((tx) => (
             <div key={tx.id} className="tx-row">
               <span>{tx.name}</span>
-              <span className={tx.amount < 0 ? "tx-negative" : "tx-positive"}>
-                ${Math.abs(tx.amount).toFixed(2)}
+              <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
               </span>
             </div>
           ))}
@@ -101,10 +97,10 @@ function MobileDashboard({
       </section>
 
       <nav className="mobile-bottom-nav" aria-label="Primary">
-        <Link to="/dashboard">Home</Link>
-        <Link to="/transactions">Transactions</Link>
-        <Link to="/subscriptions">Subscriptions</Link>
-        <Link to="/budgets">Budgets</Link>
+        <NavLink to="/dashboard">Home</NavLink>
+        <NavLink to="/transactions">Transactions</NavLink>
+        <NavLink to="/subscriptions">Subscriptions</NavLink>
+        <NavLink to="/budgets">Budgets</NavLink>
       </nav>
     </div>
   );

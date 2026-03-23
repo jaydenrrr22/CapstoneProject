@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
 import "./DashboardLayouts.css";
 
@@ -10,29 +9,13 @@ function DesktopDashboard({
   availablePeriods,
   onPeriodChange,
   transactions,
-  onLogout,
+  subscriptionInsight,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
 
   return (
     <div className="dashboard-shell desktop-shell">
-      <header className="desktop-top-nav card-surface">
-        <div>
-          <p className="eyebrow">Financial Workspace</p>
-          <h1>Dashboard</h1>
-        </div>
-
-        <nav className="desktop-links" aria-label="Primary">
-          <Link to="/dashboard">Home</Link>
-          <Link to="/transactions">Transactions</Link>
-          <Link to="/subscriptions">Subscriptions</Link>
-          <Link to="/budgets">Budgets</Link>
-        </nav>
-
-        <button className="action-btn" onClick={onLogout}>Logout</button>
-      </header>
-
       <div className="desktop-grid">
         <section className="desktop-budget-row">
           <article className="budget-stat card-surface">
@@ -42,6 +25,11 @@ function DesktopDashboard({
           <article className="budget-stat card-surface">
             <p>Spent This Period</p>
             <h2>{spentTotal}</h2>
+          </article>
+          <article className="budget-stat card-surface">
+            <p>Recurring Subscriptions</p>
+            <h2>{subscriptionInsight.count}</h2>
+            <small className="muted">${subscriptionInsight.totalMonthly.toFixed(2)}/mo</small>
           </article>
         </section>
 
@@ -79,11 +67,11 @@ function DesktopDashboard({
 
               <FinancialHealthChart
                 score={health.score}
-                width={320}
-                height={200}
+                width={360}
+                height={220}
                 innerRadius={86}
                 outerRadius={108}
-                labelSize={36}
+                labelSize={38}
               />
 
               <div className="health-metrics-grid">
@@ -114,8 +102,8 @@ function DesktopDashboard({
             {transactions.map((tx) => (
               <div key={tx.id} className="tx-table-row">
                 <span>{tx.name}</span>
-                <span className={tx.amount < 0 ? "tx-negative" : "tx-positive"}>
-                  ${Math.abs(tx.amount).toFixed(2)}
+                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
                 </span>
               </div>
             ))}

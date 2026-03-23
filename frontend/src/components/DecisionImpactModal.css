@@ -1,7 +1,8 @@
 .decision-impact-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(12, 14, 25, 0.5);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,11 +12,11 @@
 
 .decision-impact-modal {
   width: min(420px, 100%);
-  background: #ffffff;
+  background: #f5efec;
   border-radius: 14px;
   padding: 22px;
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
-  border: 1px solid #ececf1;
+  box-shadow: 0 24px 46px rgba(9, 9, 17, 0.35);
+  border: 1px solid rgba(34, 34, 59, 0.14);
 }
 
 .decision-impact-title {
@@ -23,6 +24,7 @@
   color: #22223b;
   font-size: 1.25rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .decision-impact-loading {
@@ -36,6 +38,9 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.48);
 }
 
 .decision-impact-label {
@@ -96,12 +101,12 @@
 }
 
 .decision-impact-btn.secondary {
-  background: #ececf1;
+  background: rgba(34, 34, 59, 0.12);
   color: #22223b;
 }
 
 .decision-impact-btn.secondary:not(:disabled):hover {
-  background: #e1e2ea;
+  background: rgba(34, 34, 59, 0.2);
 }
 
 .decision-impact-btn.primary {
