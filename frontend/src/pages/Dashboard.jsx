@@ -65,7 +65,7 @@ function Dashboard() {
           const subscriptions = subscriptionsResponse.data || [];
           const totalMonthly = subscriptions.reduce(
             (sum, item) => sum + Number(item.amount || 0),
-            0,
+            0
           );
 
           setSubscriptionInsight({

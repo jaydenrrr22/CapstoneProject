@@ -1,16 +1,16 @@
 import axios from "axios";
-import { getStoredToken, clearStoredToken } from "./tokenService";
 
-const API = axios.create({
+const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-API.interceptors.request.use(
+// Attach JWT token automatically
+apiClient.interceptors.request.use(
   (config) => {
-    const token = getStoredToken();
+    const token = localStorage.getItem("token");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -21,19 +21,21 @@ API.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-API.interceptors.response.use(
+// Global error handling
+apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
 
     if (status === 401) {
       console.warn("Unauthorized - redirecting to login");
-      clearStoredToken();
-      window.dispatchEvent(new Event("auth:unauthorized"));
+
+      localStorage.removeItem("token");
+      window.location.href = "/login";
     }
 
     return Promise.reject(error);
   }
 );
 
-export default API;
+export default apiClient;
