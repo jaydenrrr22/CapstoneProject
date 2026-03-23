@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getStoredToken, clearStoredToken } from "./tokenService";
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
@@ -9,7 +10,7 @@ const API = axios.create({
 
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = getStoredToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -27,8 +28,8 @@ API.interceptors.response.use(
 
     if (status === 401) {
       console.warn("Unauthorized - redirecting to login");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      clearStoredToken();
+      window.dispatchEvent(new Event("auth:unauthorized"));
     }
 
     return Promise.reject(error);

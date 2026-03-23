@@ -32,3 +32,11 @@
 {"timestamp": "2026-03-17T19:45:05.287338", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "99876aae-0b6b-4e65-912c-07caad9c4a12"}
 {"timestamp": "2026-03-17T19:45:05.288724", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "3992ca46-80f4-4d68-ab9d-7e3fe3e4d941"}
 {"timestamp": "2026-03-17T19:45:05.289853", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/analytics/financial-health/2026-03", "request_id": "3992ca46-80f4-4d68-ab9d-7e3fe3e4d941"}
+{"timestamp": "2026-03-19T01:51:08.102005", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/", "request_id": "f08e7091-f878-4386-a032-a04406643397"}
+{"timestamp": "2026-03-19T01:51:08.102771", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/", "request_id": "f08e7091-f878-4386-a032-a04406643397"}
+{"timestamp": "2026-03-19T01:51:08.144946", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/favicon.ico", "request_id": "220c63aa-3086-45ff-822b-564bb74eb162"}
+{"timestamp": "2026-03-19T01:51:08.145436", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/favicon.ico", "request_id": "220c63aa-3086-45ff-822b-564bb74eb162"}
+{"timestamp": "2026-03-19T01:51:38.245025", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/docs", "request_id": "4184188d-32e8-44b0-9897-772e2f76b49b"}
+{"timestamp": "2026-03-19T01:51:38.245314", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/docs", "request_id": "4184188d-32e8-44b0-9897-772e2f76b49b"}
+{"timestamp": "2026-03-19T01:51:38.410033", "level": "INFO", "message": "Incoming request http://127.0.0.1:8000/openapi.json", "request_id": "750e97fb-99f1-4c42-bd61-72720066764e"}
+{"timestamp": "2026-03-19T01:51:38.448402", "level": "INFO", "message": "Completed request http://127.0.0.1:8000/openapi.json", "request_id": "750e97fb-99f1-4c42-bd61-72720066764e"}
