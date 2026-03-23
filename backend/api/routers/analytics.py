@@ -47,8 +47,7 @@ def get_financial_health(
         func.sum(Transaction.cost)
     ).scalar() or 0.0
 
-    # Avoid double-penalizing recurring subscription transactions.
-    # If subscriptions are already saved as normal transactions, total_spent already includes them.
+
     adjusted_spent = total_spent
 
     remaining_balance = budget.amount - adjusted_spent
@@ -64,8 +63,7 @@ def get_financial_health(
 
     raw_score = 100 - percentage_used
 
-    # Optional light penalty for recurring subscription burden
-    # so subscriptions affect score without double-counting cost.
+    
     if budget.amount > 0:
         subscription_ratio = (subscription_total / budget.amount) * 100
         raw_score -= subscription_ratio * 0.15
