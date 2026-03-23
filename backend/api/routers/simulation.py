@@ -43,7 +43,7 @@ def simulate_purchase(
     if tx_type not in {"spend", "deposit"}:
         raise HTTPException(
             status_code=400,
-            detail="Invalid transaction_type. Use 'spend' or 'deposit'",
+            detail="Invalid transaction_type. Use 'spend' or 'deposit'.",
         )
 
     sign = 1 if tx_type == "spend" else -1
