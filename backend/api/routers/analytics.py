@@ -31,20 +31,45 @@ def get_financial_health(
     except ValueError:
         raise HTTPException(status_code=400, detail="Period must be in the format YYYY-MM")
 
-    total_spent = db.query(func.sum(Transaction.cost)).filter(
+    monthly_transactions = db.query(Transaction).filter(
         Transaction.user_id == current_user.id,
         extract("year", Transaction.date) == target_year,
         extract("month", Transaction.date) == target_month,
-    ).scalar()
+    )
 
-    total_spent = total_spent or 0.0
+    total_spent = monthly_transactions.with_entities(
+        func.sum(Transaction.cost)
+    ).scalar() or 0.0
 
-    remaining_balance = budget.amount - total_spent
-    percentage_used = (total_spent / budget.amount) * 100 if budget.amount > 0 else 0
+    subscription_total = monthly_transactions.filter(
+        Transaction.category.ilike("Subscription%")
+    ).with_entities(
+        func.sum(Transaction.cost)
+    ).scalar() or 0.0
 
-    # financial health score:
-    # lower percentage used = better score
+    # Avoid double-penalizing recurring subscription transactions.
+    # If subscriptions are already saved as normal transactions, total_spent already includes them.
+    adjusted_spent = total_spent
+
+    remaining_balance = budget.amount - adjusted_spent
+    percentage_used = (adjusted_spent / budget.amount) * 100 if budget.amount > 0 else 0
+
+    # TODO (Future):
+    # When dedicated Subscription records are fully implemented,
+    # replace category-based subscription detection with the real
+    # subscription table / endpoint and decide whether to:
+    # - include subscription cost directly in spending
+    # - apply an additional recurring-burden penalty
+    # - blend in prediction/ML-based scoring
+
     raw_score = 100 - percentage_used
+
+    # Optional light penalty for recurring subscription burden
+    # so subscriptions affect score without double-counting cost.
+    if budget.amount > 0:
+        subscription_ratio = (subscription_total / budget.amount) * 100
+        raw_score -= subscription_ratio * 0.15
+
     score = max(0, min(100, int(round(raw_score))))
 
     if score >= 70:
@@ -58,7 +83,7 @@ def get_financial_health(
         "period": period,
         "score": score,
         "budget_limit": round(budget.amount, 2),
-        "total_spent": round(total_spent, 2),
+        "total_spent": round(adjusted_spent, 2),
         "remaining_balance": round(remaining_balance, 2),
         "percentage_used": round(percentage_used, 2),
         "status": status,
