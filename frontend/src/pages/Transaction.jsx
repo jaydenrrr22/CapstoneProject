@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import API from "../services/api";
 import DecisionImpactModal from "../components/DecisionImpactModal";
+import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 
@@ -117,6 +118,7 @@ const TransactionPage = () => {
     try {
       await API.post("/transaction/create", pendingTransaction);
       await loadTransactions();
+      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
       setFormData({
         store_name: "",
         cost: "",
@@ -231,6 +233,7 @@ const TransactionPage = () => {
     try {
       await API.delete(`/transaction/delete/${transactionId}`);
       await loadTransactions();
+      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
     } catch (error) {
       setSubmitError(normalizeApiError(error, "Unable to delete transaction."));
     } finally {
