@@ -43,7 +43,7 @@ def simulate_purchase(
     if tx_type not in {"spend", "deposit"}:
         raise HTTPException(
             status_code=400,
-            detail="Invalid transaction_type. Use 'spend' or 'deposit'",
+            detail="Invalid transaction_type. Use 'spend' or 'deposit'.",
         )
 
     sign = 1 if tx_type == "spend" else -1
@@ -75,6 +75,7 @@ def simulate_purchase(
         Transaction.user_id == current_user.id,
         extract("year", Transaction.date) == target_year,
         extract("month", Transaction.date) == target_month,
+        Transaction.cost > 0,
     ).scalar() or 0.0
 
     projected_monthly_spend = current_spent + monthly_cost
