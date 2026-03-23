@@ -19,9 +19,20 @@ function CreateAccount() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const hasMinLength = password.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const hasNumber = /\d/.test(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!acceptedTerms) {
+      setErrorMessage("Please accept the terms to continue.");
+      return;
+    }
+
     setErrorMessage("");
     setSubmitting(true);
 
@@ -51,8 +62,8 @@ function CreateAccount() {
         <h2 className="auth-title-card">Create Account</h2>
 
         <form className="auth-form-card" onSubmit={handleSubmit}>
-
           <input
+            id="signup-name"
             type="text"
             placeholder="Name"
             value={name}
@@ -61,6 +72,7 @@ function CreateAccount() {
           />
 
           <input
+            id="signup-email"
             type="email"
             placeholder="Email"
             value={email}
@@ -70,6 +82,7 @@ function CreateAccount() {
 
           <div className="password-input-wrap">
             <input
+              id="signup-password"
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
@@ -87,6 +100,22 @@ function CreateAccount() {
             </button>
           </div>
 
+          <ul className="password-rules" aria-label="Password requirements">
+            <li className={hasMinLength ? "met" : ""}>At least 8 characters</li>
+            <li className={hasLetter ? "met" : ""}>Contains a letter</li>
+            <li className={hasNumber ? "met" : ""}>Contains a number</li>
+          </ul>
+
+          <label className="auth-check-row" htmlFor="accept-terms">
+            <input
+              id="accept-terms"
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={(event) => setAcceptedTerms(event.target.checked)}
+            />
+            <span>I agree to the Terms and Privacy Policy</span>
+          </label>
+
           {errorMessage && <p className="auth-error-text">{errorMessage}</p>}
 
           <button type="submit" disabled={submitting}>
@@ -94,11 +123,9 @@ function CreateAccount() {
           </button>
 
           <p className="auth-switch-text">
-            Already have an account?{" "}
-            <Link to="/login">Login</Link>
+            Already have an account? <Link to="/login">Login</Link>
           </p>
         </form>
-
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 // React hook for managing component state
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Import login function from our Service 
 // This function handles the API call to FastAPI backend
@@ -26,6 +26,16 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [rememberEmail, setRememberEmail] = useState(true);
+  const [capsLockOn, setCapsLockOn] = useState(false);
+
+  useEffect(() => {
+    const remembered = window.localStorage.getItem("trace.rememberedEmail");
+    if (remembered) {
+      setEmail(remembered);
+      setRememberEmail(true);
+    }
+  }, []);
 
 
   // Handle Login Form Submit
@@ -38,6 +48,12 @@ function Login() {
       // Call backend through Service Layer
       const data = await loginUser({ email, password });
 
+      if (rememberEmail) {
+        window.localStorage.setItem("trace.rememberedEmail", email.trim());
+      } else {
+        window.localStorage.removeItem("trace.rememberedEmail");
+      }
+
       // Save JWT token in browser localStorage
       // This allows authenticated requests later
       login(data.access_token);
@@ -45,10 +61,6 @@ function Login() {
       console.log("Login successful:", data);
       const destination = location.state?.from?.pathname || "/dashboard";
       navigate(destination, { replace: true });
-
-      // TODO (Future):
-      // Redirect to Dashboard after login
-      // or update global auth state
 
     } catch (error) {
       console.error(
@@ -64,7 +76,7 @@ function Login() {
   };
 
 
-  // Simple login form UI (temporarl for testing purpose)
+  // Login form UI
   return (
     <div className="login-container">
       <div className="auth-stack">
@@ -74,6 +86,7 @@ function Login() {
 
         <form className="auth-form-card" onSubmit={handleSubmit}>
           <input
+            id="login-email"
             type="email"
             placeholder="Email"
             value={email}
@@ -83,10 +96,13 @@ function Login() {
 
           <div className="password-input-wrap">
             <input
+              id="login-password"
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyUp={(event) => setCapsLockOn(event.getModifierState("CapsLock"))}
+              onBlur={() => setCapsLockOn(false)}
               required
             />
             <button
@@ -99,6 +115,18 @@ function Login() {
             </button>
           </div>
 
+          {capsLockOn && <p className="auth-warning-text">Caps Lock is on.</p>}
+
+          <label className="auth-check-row" htmlFor="remember-email">
+            <input
+              id="remember-email"
+              type="checkbox"
+              checked={rememberEmail}
+              onChange={(event) => setRememberEmail(event.target.checked)}
+            />
+            <span>Remember email on this device</span>
+          </label>
+
           {errorMessage && <p className="auth-error-text">{errorMessage}</p>}
 
           <button type="submit" disabled={submitting}>
@@ -106,8 +134,10 @@ function Login() {
           </button>
 
           <p className="auth-switch-text">
-            Don't have an account?{" "}
-            <Link to="/signup">Create one</Link>
+            Don't have an account? <Link to="/signup">Create one</Link>
+          </p>
+          <p className="auth-help-row">
+            <a className="auth-help-link" href="mailto:support@trace.app">Need help?</a>
           </p>
         </form>
       </div>

@@ -6,7 +6,7 @@ import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 
 function Dashboard() {
-  const { logout, token } = useAuth();
+  const { token } = useAuth();
   const isMobile = useIsMobile(768);
 
   const [health, setHealth] = useState(null);
@@ -17,6 +17,10 @@ function Dashboard() {
   const [selectedPeriod, setSelectedPeriod] = useState("");
 
   const [transactions, setTransactions] = useState([]);
+  const [subscriptionInsight, setSubscriptionInsight] = useState({
+    count: 0,
+    totalMonthly: 0,
+  });
 
   useEffect(() => {
     if (!token) {
@@ -55,6 +59,25 @@ function Dashboard() {
           }));
 
         setTransactions(recentTransactions);
+
+        try {
+          const subscriptionsResponse = await API.get("/subscription/detect");
+          const subscriptions = subscriptionsResponse.data || [];
+          const totalMonthly = subscriptions.reduce(
+            (sum, item) => sum + Number(item.amount || 0),
+            0,
+          );
+
+          setSubscriptionInsight({
+            count: subscriptions.length,
+            totalMonthly,
+          });
+        } catch {
+          setSubscriptionInsight({
+            count: 0,
+            totalMonthly: 0,
+          });
+        }
       } catch {
         setHealthError("Could not load dashboard data.");
         setLoadingHealth(false);
@@ -98,7 +121,7 @@ function Dashboard() {
         availablePeriods={availablePeriods}
         onPeriodChange={setSelectedPeriod}
         transactions={transactions}
-        onLogout={() => logout()}
+        subscriptionInsight={subscriptionInsight}
       />
     );
   }
@@ -112,7 +135,7 @@ function Dashboard() {
       availablePeriods={availablePeriods}
       onPeriodChange={setSelectedPeriod}
       transactions={transactions}
-      onLogout={() => logout()}
+      subscriptionInsight={subscriptionInsight}
     />
   );
 }

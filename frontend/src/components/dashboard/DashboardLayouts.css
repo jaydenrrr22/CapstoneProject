@@ -193,14 +193,20 @@ h3 {
   font-weight: 600;
 }
 
+.mobile-bottom-nav a.active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .mobile-bottom-nav a:hover {
   color: #c9ada7;
 }
 
 .desktop-shell {
-  max-width: 1120px;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
-  padding: 22px;
+  padding: clamp(16px, 2vw, 30px);
+  box-sizing: border-box;
 }
 
 .desktop-top-nav {
@@ -225,6 +231,10 @@ h3 {
   border-radius: 8px;
 }
 
+.desktop-links a.active {
+  background: rgba(34, 34, 59, 0.15);
+}
+
 .desktop-links a:hover {
   background: rgba(34, 34, 59, 0.1);
 }
@@ -236,7 +246,7 @@ h3 {
 
 .desktop-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+  grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr);
   grid-template-areas:
     "budgets budgets"
     "health transactions";
@@ -247,7 +257,7 @@ h3 {
 .desktop-budget-row {
   grid-area: budgets;
   display: grid;
-  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, minmax(200px, 1fr));
   gap: 12px;
 }
 
@@ -272,10 +282,15 @@ h3 {
 
 .desktop-health-panel {
   grid-area: health;
-  min-height: 290px;
+  min-height: 320px;
   display: grid;
-  align-content: center;
-  gap: 12px;
+  align-content: start;
+  gap: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.18) 100%), var(--surface);
+}
+
+.desktop-health-panel .section-heading {
+  margin-bottom: 2px;
 }
 
 .desktop-transactions-panel {
@@ -312,6 +327,10 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(34, 34, 59, 0.12);
 }
 
 .health-status-badge {
@@ -347,9 +366,10 @@ h3 {
 }
 
 .health-metrics-grid div {
-  background: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.34);
   border-radius: 10px;
-  padding: 10px;
+  border: 1px solid rgba(34, 34, 59, 0.14);
+  padding: 11px 12px;
 }
 
 .health-metrics-grid p {
@@ -360,7 +380,7 @@ h3 {
 .health-metrics-grid h4 {
   margin: 4px 0 0;
   color: #22223b;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
 }
 
 .health-error {
@@ -376,6 +396,25 @@ h3 {
 }
 
 @media (max-width: 1060px) {
+  .desktop-top-nav {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .desktop-links {
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .desktop-links a {
+    white-space: nowrap;
+  }
+
+  .desktop-top-nav .action-btn {
+    justify-self: start;
+  }
+
   .desktop-grid {
     grid-template-columns: 1fr;
     grid-template-areas:
@@ -385,7 +424,7 @@ h3 {
   }
 
   .desktop-budget-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 
   .health-metrics-grid {

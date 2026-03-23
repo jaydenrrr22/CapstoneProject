@@ -25,6 +25,8 @@ def detect_subscriptions(
 
     grouped_tx = defaultdict(list)
     for tx in transactions:
+        if tx.cost <= 0:
+            continue
         key = (tx.store_name.lower(), tx.cost)
         grouped_tx[key].append(tx)
 
@@ -56,5 +58,28 @@ def detect_subscriptions(
                 "is_duplicate": is_duplicate,
                 "transaction_ids": tx_ids,
             })
+
+    already_detected_ids = {
+        tx_id
+        for subscription in detected_subscriptions
+        for tx_id in subscription["transaction_ids"]
+    }
+
+    for tx in transactions:
+        category = (tx.category or "").strip().lower()
+        if tx.id in already_detected_ids:
+            continue
+        if tx.cost <= 0:
+            continue
+        if "subscription" not in category:
+            continue
+
+        detected_subscriptions.append({
+            "merchant": tx.store_name.strip().title(),
+            "amount": tx.cost,
+            "frequency": "Marked",
+            "is_duplicate": False,
+            "transaction_ids": [tx.id],
+        })
 
     return detected_subscriptions

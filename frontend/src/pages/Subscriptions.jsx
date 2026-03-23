@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import useAuth from "../hooks/useAuth";
 import API from "../services/api";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 
 function Subscriptions() {
-  const { logout } = useAuth();
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -32,22 +29,6 @@ function Subscriptions() {
 
   return (
     <div className="dashboard-shell desktop-shell">
-      <header className="desktop-top-nav card-surface">
-        <div>
-          <p className="eyebrow">Financial Workspace</p>
-          <h1>Subscriptions</h1>
-        </div>
-
-        <nav className="desktop-links" aria-label="Primary">
-          <Link to="/dashboard">Home</Link>
-          <Link to="/transactions">Transactions</Link>
-          <Link to="/subscriptions">Subscriptions</Link>
-          <Link to="/budgets">Budgets</Link>
-        </nav>
-
-        <button className="action-btn" onClick={() => logout()}>Logout</button>
-      </header>
-
       <div className="subpage-single-column">
         <section className="card-surface subpage-table-panel">
           <div className="section-heading">
@@ -64,8 +45,8 @@ function Subscriptions() {
           ) : subscriptions.length === 0 ? (
             <p className="muted">No recurring subscriptions detected yet.</p>
           ) : (
-            <div className="subpage-table">
-              <div className="subpage-table-head">
+            <div className="subpage-table subscriptions-table">
+              <div className="subpage-table-head subscriptions-table-head">
                 <span>Merchant</span>
                 <span>Amount</span>
                 <span>Frequency</span>
@@ -73,11 +54,11 @@ function Subscriptions() {
               </div>
 
               {subscriptions.map((item, index) => (
-                <div key={`${item.merchant}-${index}`} className="subpage-table-row">
+                <div key={`${item.merchant}-${index}`} className="subpage-table-row subscriptions-table-row">
                   <span>{item.merchant}</span>
                   <span>${Number(item.amount).toFixed(2)}</span>
                   <span>{item.frequency}</span>
-                  <span>{item.is_duplicate ? "Duplicate" : "Normal"}</span>
+                  <span>{String(item.frequency).toLowerCase() === "marked" ? "Marked" : item.is_duplicate ? "Duplicate" : "Detected"}</span>
                 </div>
               ))}
             </div>
