@@ -13,8 +13,10 @@ from .models import model_loader
 from .routers import index as indexRoute
 from .dependencies.config import conf
 from .logging_config import setup_logging
+from backend.api.prediction import router as prediction_router
 
 app = FastAPI()
+app.include_router(prediction_router)
 
 setup_logging()
 logger = logging.getLogger(__name__)

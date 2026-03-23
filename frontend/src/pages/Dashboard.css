@@ -166,6 +166,19 @@
   cursor: pointer;
 }
 
+.bottom-nav a {
+  flex: 1;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  text-decoration: none;
+}
+
 .bottom-nav button:hover {
+  color: #C9ADA7;
+}
+
+.bottom-nav a:hover {
   color: #C9ADA7;
 }

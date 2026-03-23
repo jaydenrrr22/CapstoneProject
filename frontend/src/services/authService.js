@@ -1,17 +1,13 @@
-import apiClient from "../api/client";
+import API from "./api";
 
 // Login
 export const loginUser = async (credentials) => {
-  const response = await apiClient.post("/auth/login", credentials);
-
-  // save token automatically on successful login
-  localStorage.setItem("token", response.data.access_token);
-
+  const response = await API.post("/auth/login", credentials);
   return response.data;
 };
 
 // Register
 export const registerUser = async (userData) => {
-  const response = await apiClient.post("/auth/register", userData);
+  const response = await API.post("/auth/register", userData);
   return response.data;
 };

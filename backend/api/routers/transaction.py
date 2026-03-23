@@ -24,8 +24,17 @@ MERCHANT_CATEGORIES = {
 router = APIRouter(prefix="/transaction", tags=["Transaction"])
 
 @router.get("/get", response_model=List[TransactionResponse])
-def get_transactions(db: Session = Depends(get_db)):
-    transactions = db.query(Transaction).limit(50).all()
+def get_transactions(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == current_user.id)
+        .order_by(Transaction.date.desc())
+        .limit(50)
+        .all()
+    )
     return transactions
 
 @router.get("/get/{user_id}", response_model=List[TransactionResponse])
