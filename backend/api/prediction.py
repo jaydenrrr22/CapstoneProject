@@ -17,8 +17,55 @@ class PredictionRequest(BaseModel):
     category: str
 
 
+# ---------------- CACHE CONFIG ----------------
+CACHE = {}
+CACHE_TTL = 60  # seconds
+
+
 @router.post("/")
 def run_prediction(data: PredictionRequest):
+
+    cache_key = f"{data.amount}:{data.category}"
+
+    # ---------- CACHE CHECK ----------
+    if cache_key in CACHE:
+        entry = CACHE[cache_key]
+
+        if time.time() - entry["timestamp"] < CACHE_TTL:
+            logger.info("CACHE HIT")
+
+            cloudwatch.put_metric_data(
+                Namespace="Trace/Prediction",
+                MetricData=[
+                    {
+                        "MetricName": "PredictionCacheHit",
+                        "Value": 1,
+                        "Unit": "Count"
+                    }
+                ]
+            )
+
+            return {
+                **entry["response"],
+                "cached": True
+            }
+
+        else:
+            logger.info("CACHE EXPIRED")
+            del CACHE[cache_key]
+
+    logger.info("CACHE MISS")
+
+    cloudwatch.put_metric_data(
+        Namespace="Trace/Prediction",
+        MetricData=[
+            {
+                "MetricName": "PredictionCacheMiss",
+                "Value": 1,
+                "Unit": "Count"
+            }
+        ]
+    )
 
     start_time = time.time()
 
@@ -30,9 +77,20 @@ def run_prediction(data: PredictionRequest):
 
         latency = time.time() - start_time
 
-        # -------- CloudWatch Metrics --------
+        response = {
+            "risk_score": risk_score,
+            "message": "Prediction executed successfully",
+            "latency": latency
+        }
 
-        # Request count
+        # -------- STORE IN CACHE --------
+        CACHE[cache_key] = {
+            "response": response,
+            "timestamp": time.time()
+        }
+
+        # -------- CloudWatch Metrics (ONLY ON REAL EXECUTION) --------
+
         cloudwatch.put_metric_data(
             Namespace="Trace/Prediction",
             MetricData=[
@@ -40,26 +98,12 @@ def run_prediction(data: PredictionRequest):
                     "MetricName": "PredictionRequests",
                     "Value": 1,
                     "Unit": "Count"
-                }
-            ]
-        )
-
-        # Latency
-        cloudwatch.put_metric_data(
-            Namespace="Trace/Prediction",
-            MetricData=[
+                },
                 {
                     "MetricName": "PredictionLatency",
                     "Value": latency,
                     "Unit": "Seconds"
-                }
-            ]
-        )
-
-        # Confidence / Risk Score
-        cloudwatch.put_metric_data(
-            Namespace="Trace/Prediction",
-            MetricData=[
+                },
                 {
                     "MetricName": "PredictionConfidence",
                     "Value": risk_score,
@@ -71,8 +115,8 @@ def run_prediction(data: PredictionRequest):
         logger.info(f"Prediction result: {risk_score}")
 
         return {
-            "risk_score": risk_score,
-            "message": "Prediction executed successfully"
+            **response,
+            "cached": False
         }
 
     except Exception as e:
