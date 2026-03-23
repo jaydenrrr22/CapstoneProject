@@ -75,6 +75,7 @@ def simulate_purchase(
         Transaction.user_id == current_user.id,
         extract("year", Transaction.date) == target_year,
         extract("month", Transaction.date) == target_month,
+        Transaction.cost > 0,
     ).scalar() or 0.0
 
     projected_monthly_spend = current_spent + monthly_cost
