@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.api.dependencies.auth import get_current_user
 from backend.api.dependencies.database import get_db
+from backend.api.models.subscription import Subscription
 from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.subscription import SubscriptionDetectionResponse
@@ -49,7 +50,32 @@ def detect_subscriptions(
                 is_monthly = False
 
         if is_monthly or is_duplicate:
+            frequency_val = "monthly" if is_monthly else "Unknown"
+            merchant_name = merchant.capitalize()
+            existing_sub = db.query(Subscription).filter(
+                Subscription.user_id == current_user.id,
+                Subscription.merchant == merchant_name,
+                Subscription.amount == cost
+            ).first()
+            if not existing_sub:
+                new_sub = Subscription(
+                    user_id = current_user.id,
+                    merchant = merchant_name,
+                    amount = cost,
+                    frequency = frequency_val,
+                    is_duplicate = is_duplicate,
+                    transaction_id = tx_ids
+                )
+                db.add(new_sub)
+                db.commit()
+                db.refresh(new_sub)
+
+                sub_id = new_sub.id
+            else:
+                sub_id = existing_sub.id
+
             detected_subscriptions.append({
+                "id": sub_id,
                 "merchant": merchant.capitalize(),
                 "amount": cost,
                 "frequency": "monthly" if is_monthly else "Unknown",
