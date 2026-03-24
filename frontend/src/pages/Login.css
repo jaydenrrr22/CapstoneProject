@@ -8,13 +8,7 @@
   align-items: center;
   font-family: 'Outfit', Arial, sans-serif;
 
-  background: linear-gradient(
-    135deg,
-    #22223b 0%,
-    #22223b 40%,
-    #4A4E69 60%,
-    #4A4E69 100%
-  );
+  background-color: #4A4E69;
 
   padding: 20px;
 }
@@ -29,7 +23,7 @@
   max-width: 320px;
   display: block;
   margin: 0 auto 14px;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.4));
   animation: authFadeIn 460ms ease both;
 }
 
@@ -131,6 +125,16 @@
   transform: none;
 }
 
+.auth-warning-text {
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(243, 227, 181, 0.75);
+  color: #6d4b00;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .auth-error-text {
   margin: 0;
   padding: 9px 10px;
@@ -141,6 +145,42 @@
   font-weight: 500;
 }
 
+.auth-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #22223b;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.auth-check-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #22223b;
+}
+
+.password-rules {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: #4a4e69;
+  font-size: 0.85rem;
+}
+
+.password-rules li.met {
+  color: #146b4b;
+  font-weight: 600;
+}
+
+.auth-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .auth-switch-text {
   margin: 6px 0 0;
   text-align: center;
@@ -148,7 +188,14 @@
   color: #22223b;
 }
 
-.auth-switch-text a {
+.auth-help-row {
+  margin: 2px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.auth-switch-text a,
+.auth-help-link {
   color: #22223b;
   font-weight: 700;
   text-decoration: underline;
@@ -187,5 +234,10 @@
 
   .auth-form-card {
     padding: 22px;
+  }
+
+  .auth-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

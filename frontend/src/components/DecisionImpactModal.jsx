@@ -16,6 +16,9 @@ export default function DecisionImpactModal({
 }) {
   if (!open) return null;
 
+  const safeOnCancel = typeof onCancel === "function" ? onCancel : () => {};
+  const safeOnConfirm = typeof onConfirm === "function" ? onConfirm : () => {};
+
   const projectedCost = Number(simulation?.projectedCost ?? 0);
   const healthScoreChange = Number(simulation?.healthScoreChange ?? 0);
 
@@ -39,7 +42,7 @@ export default function DecisionImpactModal({
 
   const handleBackdropClick = (event) => {
     if (event.target === event.currentTarget && !loading) {
-      onCancel();
+      safeOnCancel();
     }
   };
 
@@ -61,7 +64,7 @@ export default function DecisionImpactModal({
 
         {loading ? (
           <p className="decision-impact-loading">Calculating impact...</p>
-        ) : (
+        ) : simulation ? (
           <>
             <div className="decision-impact-row">
               <span className="decision-impact-label">Projected Long-Term Cost</span>
@@ -73,19 +76,27 @@ export default function DecisionImpactModal({
               <span className={healthImpactClass}>{formattedHealthChange}</span>
             </div>
 
+            {simulation?.aiSummary && (
+              <div className="decision-impact-warning" role="note">
+                {simulation.aiSummary}
+              </div>
+            )}
+
             {simulation?.overlappingSubscription && (
               <div className="decision-impact-warning" role="alert">
                 Possible overlap with existing subscription: {simulation.overlappingSubscription}
               </div>
             )}
           </>
+        ) : (
+          <p className="decision-impact-loading">Preview unavailable. You can cancel and try again.</p>
         )}
 
         <div className="decision-impact-actions">
           <button
             type="button"
             className="decision-impact-btn secondary"
-            onClick={onCancel}
+            onClick={safeOnCancel}
             disabled={loading}
           >
             Cancel
@@ -93,8 +104,8 @@ export default function DecisionImpactModal({
           <button
             type="button"
             className="decision-impact-btn primary"
-            onClick={onConfirm}
-            disabled={loading}
+            onClick={safeOnConfirm}
+            disabled={loading || !simulation}
           >
             {loading ? "Please wait..." : "Proceed"}
           </button>

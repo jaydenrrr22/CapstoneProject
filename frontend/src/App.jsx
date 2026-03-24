@@ -1,21 +1,26 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-router-dom";
 
 import Login from "./pages/Login";
 import CreateAccount from "./pages/CreateAccount";
 import Dashboard from "./pages/Dashboard";
 import Subscriptions from "./pages/Subscriptions";
 import Budgets from "./pages/Budgets";
+import Team from "./pages/Team";
+import LegalPlaceholder from "./pages/LegalPlaceholder";
 import { AuthProvider } from "./context/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import TransactionPage from "./pages/Transaction";
+import AppTopNav from "./components/AppTopNav";
+import Footer from "./components/Footer";
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+  const hideChrome = ["/", "/login", "/signup"].includes(location.pathname);
 
   return (
-    <BrowserRouter>
-
-      <AuthProvider>
+    <>
+      {!hideChrome && <AppTopNav />}
 
       <Routes>
 
@@ -65,7 +70,7 @@ function App() {
           path="/transaction"
           element={(
             <ProtectedRoute>
-              <TransactionPage />
+              <Navigate to="/transactions" replace />
             </ProtectedRoute>
           )}
         />
@@ -85,6 +90,34 @@ function App() {
             </ProtectedRoute>
           )}
         />
+        <Route path="/team" element={<Team />} />
+        <Route
+          path="/legal/privacy"
+          element={
+            <LegalPlaceholder
+              title="Privacy Policy"
+              summary="How Trace collects, stores, and protects user financial data, with clear consent and retention rules."
+            />
+          }
+        />
+        <Route
+          path="/legal/terms"
+          element={
+            <LegalPlaceholder
+              title="Terms of Service"
+              summary="The usage terms that define account responsibilities, acceptable use, and service limitations."
+            />
+          }
+        />
+        <Route
+          path="/legal/cookies"
+          element={
+            <LegalPlaceholder
+              title="Cookie Policy"
+              summary="How cookies and similar technologies are used for authentication, session management, and product analytics."
+            />
+          }
+        />
         <Route
           path="*"
           element={(
@@ -95,6 +128,20 @@ function App() {
         />
 
       </Routes>
+
+      {!hideChrome && <Footer />}
+    </>
+  );
+}
+
+function App() {
+
+  return (
+    <BrowserRouter>
+
+      <AuthProvider>
+
+        <AppRoutes />
 
       </AuthProvider>
 
