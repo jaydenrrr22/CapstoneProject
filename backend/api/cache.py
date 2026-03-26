@@ -1,7 +1,11 @@
+import threading
+
 CACHE = {}
 CACHE_TTL = 60
+CACHE_LOCK = threading.Lock()
 
 
 def clear_prediction_cache():
     global CACHE
-    CACHE.clear()
+    with CACHE_LOCK:
+        CACHE.clear()
