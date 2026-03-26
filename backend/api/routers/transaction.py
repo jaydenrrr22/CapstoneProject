@@ -68,7 +68,7 @@ def get_transactions_by_user_id(
 def create_transaction(
         transaction: TransactionCreate,
         db: Session = Depends(get_db),
-        current_user=Depends(get_current_user)
+        current_user: User = Depends(get_current_user)
 ):
     final_category = transaction.category
     if not final_category or final_category.strip().lower() == "other":
