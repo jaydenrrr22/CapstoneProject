@@ -79,7 +79,6 @@ def calculate_forecast(db: Session, user_id: int) -> ForecastDetail:
     return ForecastDetail(
         predicted_spend=round(total_spent, 2),
         expected_savings=round(expected_savings, 2),
-        confident_level=0.9,
         target_date=date.today()
     )
 

@@ -1,4 +1,4 @@
-from . import user, transaction, subscription, budget, simulation, analytics, insight
+from . import user, transaction, subscription, budget, simulation, analytics, insight, summary, prediction
 
 
 def load_routes(app):
@@ -9,3 +9,5 @@ def load_routes(app):
     app.include_router(simulation.router)
     app.include_router(analytics.router)
     app.include_router(insight.router)
+    app.include_router(summary.router)
+    app.include_router(prediction.router)

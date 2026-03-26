@@ -11,7 +11,6 @@ class HealthScoreDetail(BaseModel):
 class ForecastDetail(BaseModel):
     predicted_spend: float
     expected_savings: float
-    confident_level: float
     target_date: date
 
 class UnifiedIntelligenceSummary(BaseModel):

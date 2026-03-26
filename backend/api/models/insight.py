@@ -2,17 +2,6 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, JSON, String, Float
 from backend.api.dependencies.database import Base
 
-
-class PredictResult(Base):
-    __tablename__ = "predict_results"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
-    created_at = Column(DateTime, default=lambda : datetime.now(timezone.utc))
-
-    model_output = Column(JSON, nullable=False)
-    prediction_type = Column(String(50), nullable=False)
-
 class AnomalyResult(Base):
     __tablename__ = "anomaly_results"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
