@@ -3,6 +3,7 @@ import os
 import time
 import logging
 import uuid
+
 from fastapi import FastAPI, Depends, HTTPException, Request
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -15,47 +16,62 @@ from .dependencies.config import conf
 from .logging_config import setup_logging
 from backend.api.prediction import router as prediction_router
 
+
+# ---------- APP INIT ----------
 app = FastAPI()
+
+# Include routers
 app.include_router(prediction_router)
 
+# Setup logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Track uptime
 START_TIME = time.time()
 
-origins = ["*"]
+
+# ---------- SECURE CORS CONFIG ----------
+ALLOWED_ORIGINS = [
+    "https://3.151.137.239",
+    "https://ec2-3-151-137-239.us-east-2.compute.amazonaws.com",
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
+
+# ---------- LOAD MODELS / ROUTES ----------
 model_loader.index()
 indexRoute.load_routes(app)
 
 
+# ---------- REQUEST LOGGING MIDDLEWARE ----------
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
     request_id = str(uuid.uuid4())
 
     logger.info(
-        f"Incoming request {request.url}",
+        f"Incoming request {request.method} {request.url.path}",
         extra={"request_id": request_id}
     )
 
     response = await call_next(request)
 
     logger.info(
-        f"Completed request {request.url}",
+        f"Completed request {request.method} {request.url.path} status={response.status_code}",
         extra={"request_id": request_id}
     )
 
     return response
 
 
+# ---------- HEALTH CHECK ----------
 @app.get("/health", tags=["Health"])
 def health_check(db: Session = Depends(get_db)):
     try:
@@ -78,5 +94,6 @@ def health_check(db: Session = Depends(get_db)):
         )
 
 
+# ---------- LOCAL RUN ----------
 if __name__ == "__main__":
     uvicorn.run(app, host=conf.app_host, port=8000)
