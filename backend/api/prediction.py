@@ -114,6 +114,6 @@ def run_prediction(data: PredictionRequest):
             }]
         )
 
-        logger.error(f"Prediction failure")
+        logger.exception("Prediction failure")
 
-        raise e
+        raise
