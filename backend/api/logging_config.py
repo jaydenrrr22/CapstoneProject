@@ -22,10 +22,10 @@ def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
 
-    if os.name == "nt":
-        log_path = "trace-backend.log"
+    if os.path.exists ("home/ubuntu"):
+        log_path = "home/ubuntu/trace-backend.log"
     else:
-        log_path = "/home/ubuntu/trace-backend.log"
+        log_path = "trace-backend.log"
 
     file_handler = logging.FileHandler(log_path)
 
