@@ -24,6 +24,14 @@ function Dashboard() {
     totalMonthly: 0,
   });
 
+  // ---------- MOCK PREDICTED TRANSACTIONS SECTION ----------
+  const [predictedTransactions, setPredictedTransactions] = useState([
+    { id: 1, name: "Electricity Bill", amount: 120.5, date: "2026-04-01" },
+    { id: 2, name: "Netflix Subscription", amount: 15.99, date: "2026-04-03" },
+    { id: 3, name: "Grocery Delivery", amount: 78.25, date: "2026-04-05" },
+  ]);
+  // ---------------------------------------------------------
+
   const loadSubscriptionInsight = useCallback(async () => {
     try {
       const subscriptionsResponse = await API.get("/subscription/detect");
@@ -169,6 +177,7 @@ function Dashboard() {
         onPeriodChange={setSelectedPeriod}
         transactions={transactions}
         subscriptionInsight={subscriptionInsight}
+        predictedTransactions={predictedTransactions}
       />
     );
   }
@@ -183,6 +192,7 @@ function Dashboard() {
       onPeriodChange={setSelectedPeriod}
       transactions={transactions}
       subscriptionInsight={subscriptionInsight}
+      predictedTransactions={predictedTransactions}
     />
   );
 }

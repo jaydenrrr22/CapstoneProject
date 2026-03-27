@@ -10,6 +10,7 @@ function DesktopDashboard({
   onPeriodChange,
   transactions,
   subscriptionInsight,
+  predictedTransactions, // <-- NEW PROP ADDED
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
@@ -17,6 +18,7 @@ function DesktopDashboard({
   return (
     <div className="dashboard-shell desktop-shell">
       <div className="desktop-grid">
+        {/* ---------- Budget Row ---------- */}
         <section className="desktop-budget-row">
           <article className="budget-stat card-surface">
             <p>Total Budget</p>
@@ -33,6 +35,7 @@ function DesktopDashboard({
           </article>
         </section>
 
+        {/* ---------- Financial Health Panel ---------- */}
         <section className="desktop-health-panel card-surface">
           <div className="section-heading">
             <h3>Financial Health</h3>
@@ -94,6 +97,7 @@ function DesktopDashboard({
           )}
         </section>
 
+        {/* ---------- Recent Transactions Panel ---------- */}
         <section className="desktop-transactions-panel card-surface">
           <div className="section-heading">
             <h3>Recent Transactions</h3>
@@ -111,6 +115,28 @@ function DesktopDashboard({
             {transactions.length === 0 && <p className="muted tx-empty">No transactions yet.</p>}
           </div>
         </section>
+
+        {/* ---------- NEW Predicted Spending Section ADDED ---------- */}
+        <section className="desktop-predicted-panel card-surface">
+          <div className="section-heading">
+            <h3>Upcoming Predicted Transactions</h3>
+          </div>
+          <div className="tx-table simple-list">
+            {predictedTransactions && predictedTransactions.length > 0 ? (
+              predictedTransactions.map((tx) => (
+                <div key={tx.id} className="tx-table-row">
+                  <span>{tx.name}</span>
+                  <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                    {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="muted tx-empty">No predicted transactions.</p>
+            )}
+          </div>
+        </section>
+        {/* ---------- END Predicted Spending Section ---------- */}
       </div>
     </div>
   );

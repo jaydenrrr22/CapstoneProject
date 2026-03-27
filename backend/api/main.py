@@ -35,6 +35,7 @@ START_TIME = time.time()
 ALLOWED_ORIGINS = [
     "https://3.151.137.239",
     "https://ec2-3-151-137-239.us-east-2.compute.amazonaws.com",
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
