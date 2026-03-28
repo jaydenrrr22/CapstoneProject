@@ -7,7 +7,7 @@ class PredictionResponse(BaseModel):
     id: int
     created_at: datetime
     target_data: date
-    prediction_data: float
+    predicted_spending: float
     expected_savings: float
     confidence_level: float
 
@@ -16,6 +16,6 @@ class PredictionResponse(BaseModel):
 
 class PredictionCreateResponse(BaseModel):
     target_data: date
-    prediction_data: float
+    predicted_spending: float
     expected_savings: float
     confidence_level: float

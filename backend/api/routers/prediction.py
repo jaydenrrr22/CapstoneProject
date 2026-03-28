@@ -34,7 +34,7 @@ def create_prediction_history(
     new_prediction = PredictionResult(
         user_id=current_user.id,
         target_data=request.target_data,
-        prediction_data=request.prediction_data,
+        predicted_spending=request.predicted_spending,
         expected_savings=request.expected_savings,
         confidence_level=request.confidence_level,
     )

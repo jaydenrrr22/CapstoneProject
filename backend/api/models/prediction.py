@@ -13,6 +13,6 @@ class PredictionResult(Base):
     created_at = Column(DateTime, default = lambda: datetime.now(timezone.utc))
 
     target_data = Column(Date)
-    prediction_data = Column(Float)
+    predicted_spending = Column(Float)
     expected_savings=Column(Float)
     confidence_level = Column(Float)
