@@ -1,0 +1,246 @@
+.subpage-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, 390px) minmax(460px, 1fr);
+  gap: 18px;
+}
+
+.subpage-single-column {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.subpage-form-panel,
+.subpage-table-panel {
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.subpage-form {
+  display: grid;
+  gap: 14px;
+}
+
+.subpage-form label {
+  display: grid;
+  gap: 6px;
+  color: #22223b;
+  font-weight: 600;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+}
+
+.subpage-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.subpage-check-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #22223b;
+}
+
+.subpage-form input,
+.subpage-form select,
+.subpage-filter-row select,
+.subpage-inline-input {
+  border: 1px solid rgba(34, 34, 59, 0.18);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.65);
+  color: #22223b;
+  font-family: inherit;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.subpage-form input:focus,
+.subpage-form select:focus,
+.subpage-filter-row select:focus,
+.subpage-inline-input:focus {
+  outline: none;
+  border-color: rgba(34, 34, 59, 0.28);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 0 0 3px rgba(34, 34, 59, 0.14);
+}
+
+.subpage-submit,
+.subpage-inline-btn {
+  border: none;
+  border-radius: 8px;
+  background: #22223b;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.subpage-submit {
+  min-height: 42px;
+  margin-top: 4px;
+}
+
+.subpage-inline-btn {
+  padding: 8px 10px;
+  min-height: 34px;
+}
+
+.subpage-submit:hover,
+.subpage-inline-btn:hover {
+  background: #4a4e69;
+  transform: translateY(-1px);
+}
+
+.subpage-inline-btn.ghost {
+  background: rgba(34, 34, 59, 0.11);
+  color: #22223b;
+}
+
+.subpage-inline-btn.ghost:hover {
+  background: rgba(34, 34, 59, 0.18);
+}
+
+.subpage-inline-btn.danger {
+  background: #8c2b23;
+}
+
+.subpage-inline-btn.danger:hover {
+  background: #b42318;
+}
+
+.subpage-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.subpage-inline-btn:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.subpage-error {
+  margin: 0;
+  background: rgba(176, 0, 32, 0.12);
+  color: #6f0014;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.subpage-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.subpage-filter-row label {
+  font-weight: 700;
+  color: #22223b;
+}
+
+.subpage-table {
+  border: 1px solid rgba(34, 34, 59, 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.subpage-table-head,
+.subpage-table-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 11px 12px;
+  align-items: center;
+}
+
+.subpage-table-head {
+  background: rgba(255, 255, 255, 0.4);
+  color: #22223b;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(34, 34, 59, 0.12);
+}
+
+.subpage-table-row {
+  background: rgba(255, 255, 255, 0.16);
+  border-top: 1px solid rgba(34, 34, 59, 0.12);
+}
+
+.subpage-table-row:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.subpage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.budgets-table-head,
+.budgets-table-row {
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px) minmax(180px, 1.25fr);
+}
+
+.transactions-table-head,
+.transactions-table-row {
+  grid-template-columns: minmax(110px, 0.85fr) minmax(120px, 1fr) minmax(90px, 0.7fr) minmax(110px, 0.8fr) minmax(120px, 0.95fr);
+}
+
+.subscriptions-table-head,
+.subscriptions-table-row {
+  grid-template-columns: minmax(120px, 1fr) minmax(90px, 0.65fr) minmax(90px, 0.75fr) minmax(90px, 0.6fr);
+}
+
+.subpage-empty-row {
+  color: #4a4e69;
+  font-style: italic;
+}
+
+.subpage-metric-card {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(34, 34, 59, 0.14);
+}
+
+.subpage-metric-card h4 {
+  margin: 0 0 8px;
+  color: #22223b;
+  font-size: 1rem;
+}
+
+.subpage-metric-card p {
+  margin: 4px 0;
+  color: #22223b;
+}
+
+@media (max-width: 980px) {
+  .subpage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subpage-filter-row {
+    flex-wrap: wrap;
+  }
+
+  .subpage-table {
+    overflow-x: auto;
+  }
+
+  .subpage-table-head,
+  .subpage-table-row {
+    min-width: 680px;
+  }
+
+  .subpage-actions {
+    justify-content: flex-start;
+  }
+}
