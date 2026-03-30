@@ -1,0 +1,139 @@
+.decision-impact-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 14, 25, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.decision-impact-modal {
+  width: min(420px, 100%);
+  background: #f5efec;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 24px 46px rgba(9, 9, 17, 0.35);
+  border: 1px solid rgba(34, 34, 59, 0.14);
+}
+
+.decision-impact-title {
+  margin: 0 0 16px;
+  color: #22223b;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.decision-impact-loading {
+  margin: 8px 0;
+  color: #4a4e69;
+}
+
+.decision-impact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.decision-impact-label {
+  color: #4a4e69;
+  font-weight: 500;
+}
+
+.decision-impact-value {
+  color: #22223b;
+  font-weight: 700;
+}
+
+.decision-impact-value.positive {
+  color: #1f7a3a;
+}
+
+.decision-impact-value.negative {
+  color: #b42318;
+}
+
+.decision-impact-value.neutral {
+  color: #4a4e69;
+}
+
+.decision-impact-warning {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff3f2;
+  color: #8f1d14;
+  border: 1px solid #f3c7c3;
+  font-size: 0.92rem;
+}
+
+.decision-impact-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.decision-impact-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.16s ease, opacity 0.16s ease, background-color 0.16s ease;
+}
+
+.decision-impact-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.decision-impact-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.decision-impact-btn.secondary {
+  background: rgba(34, 34, 59, 0.12);
+  color: #22223b;
+}
+
+.decision-impact-btn.secondary:not(:disabled):hover {
+  background: rgba(34, 34, 59, 0.2);
+}
+
+.decision-impact-btn.primary {
+  background: #22223b;
+  color: #ffffff;
+}
+
+.decision-impact-btn.primary:not(:disabled):hover {
+  background: #3e415d;
+}
+
+@media (max-width: 480px) {
+  .decision-impact-modal {
+    padding: 18px;
+  }
+
+  .decision-impact-row {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .decision-impact-actions {
+    justify-content: stretch;
+  }
+
+  .decision-impact-btn {
+    flex: 1;
+  }
+}
