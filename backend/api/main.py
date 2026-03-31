@@ -3,14 +3,19 @@ import os
 import time
 import logging
 import uuid
+import redis.asyncio as redis
 
 from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi_limiter import FastAPILimiter
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
 
 from .dependencies.database import get_db
+from .dependencies.auth import get_current_user
+from .dependencies.rate_limit import rate_limit_callback, set_rate_limiter_enabled
 from .models import model_loader
+from .models.user import User
 from .routers import index as indexRoute
 from .dependencies.config import conf
 from .logging_config import setup_logging
@@ -29,6 +34,32 @@ logger = logging.getLogger(__name__)
 
 # Track uptime
 START_TIME = time.time()
+
+
+@app.on_event("startup")
+async def on_startup() -> None:
+    try:
+        redis_client = redis.from_url(
+            conf.redis_url,
+            encoding="utf-8",
+            decode_responses=True,
+        )
+        await redis_client.ping()
+        await FastAPILimiter.init(redis_client, http_callback=rate_limit_callback)
+        app.state.redis = redis_client
+        set_rate_limiter_enabled(True)
+        logger.info("Rate limiting enabled with Redis backend")
+    except Exception as exc:
+        app.state.redis = None
+        set_rate_limiter_enabled(False)
+        logger.warning("Redis unavailable; rate limiting disabled: %s", exc)
+
+
+@app.on_event("shutdown")
+async def on_shutdown() -> None:
+    redis_client = getattr(app.state, "redis", None)
+    if redis_client is not None:
+        await redis_client.close()
 
 
 # ---------- SECURE CORS CONFIG ----------
@@ -73,7 +104,10 @@ async def add_request_id(request: Request, call_next):
 
 # ---------- HEALTH CHECK ----------
 @app.get("/health", tags=["Health"])
-def health_check(db: Session = Depends(get_db)):
+def health_check(
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user)
+):
     try:
         db.execute(text("SELECT 1"))
 

@@ -13,10 +13,11 @@ class conf:
     db_port = os.getenv("DB_PORT", "3306")
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     app_host = "0.0.0.0"
     app_port = 8000
 
 class Settings(BaseModel):
-    secret_key: str = os.getenv("SECRET_KEY", "dev-only-change-me")
+    secret_key: str = os.environ["SECRET_KEY"]
 
 config = Settings()

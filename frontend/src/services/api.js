@@ -1,8 +1,13 @@
 import axios from "axios";
 import { getStoredToken, clearStoredToken } from "./tokenService";
 
+const rawApiBase = import.meta.env.VITE_API_BASE_URL || "/api";
+const apiBaseUrl = rawApiBase.startsWith("http://")
+  ? rawApiBase.replace("http://", "https://")
+  : rawApiBase;
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000",
+  baseURL: apiBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },

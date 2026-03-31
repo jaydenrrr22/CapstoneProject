@@ -38,7 +38,7 @@ npm install recharts
 
 Create a .env file inside the frontend folder:
 
-VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_API_BASE_URL=/api
 
 This is required for the frontend to communicate with the backend.
 
