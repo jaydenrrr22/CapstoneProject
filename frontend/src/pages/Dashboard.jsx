@@ -5,9 +5,18 @@ import API from "../services/api";
 import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
+import { normalizeApiError } from "../utils/normalizeApiError";
+import { useIntelligence } from "../context/IntelligenceContext";
 
 function Dashboard() {
   const { token } = useAuth();
+  const {
+    predictions,
+    setPredictions,
+    setLoadingPredictions,
+    setPredictionError,
+  } = useIntelligence();
+
   const isMobile = useIsMobile(768);
   const skipNextHealthLoadRef = useRef(false);
 
@@ -24,13 +33,35 @@ function Dashboard() {
     totalMonthly: 0,
   });
 
-  // ---------- MOCK PREDICTED TRANSACTIONS SECTION ----------
-  const [predictedTransactions, setPredictedTransactions] = useState([
-    { id: 1, name: "Electricity Bill", amount: 120.5, date: "2026-04-01" },
-    { id: 2, name: "Netflix Subscription", amount: 15.99, date: "2026-04-03" },
-    { id: 3, name: "Grocery Delivery", amount: 78.25, date: "2026-04-05" },
-  ]);
-  // ---------------------------------------------------------
+  useEffect(() => {
+    if (!token) return;
+
+    const loadPredictions = async () => {
+      setLoadingPredictions(true);
+      setPredictionError("");
+
+      try {
+        const response = await API.get("/prediction/history");
+
+        const mapped = (response.data || []).map((item, index) => ({
+          id: item.id || `pred-${index}`,
+          name: item.target_data || "Predicted Transaction",
+          amount: Number(item.predicted_spending) || 0,
+        }));
+
+        setPredictions(mapped);
+      } catch (error) {
+        setPredictionError(
+          normalizeApiError(error, "Failed to load predicted transactions.")
+        );
+        setPredictions([]);
+      } finally {
+        setLoadingPredictions(false);
+      }
+    };
+
+    loadPredictions();
+  }, [token, setPredictions, setLoadingPredictions, setPredictionError]);
 
   const loadSubscriptionInsight = useCallback(async () => {
     try {
@@ -115,9 +146,10 @@ function Dashboard() {
       const response = await API.get(`/analytics/financial-health/${period}`);
       setHealth(response.data);
     } catch (error) {
-      const detail = error?.response?.data?.detail;
       setHealth(null);
-      setHealthError(detail || "Unable to load financial health for this period.");
+      setHealthError(
+        normalizeApiError(error, "Unable to load financial health for this period.")
+      );
     } finally {
       setLoadingHealth(false);
     }
@@ -177,7 +209,7 @@ function Dashboard() {
         onPeriodChange={setSelectedPeriod}
         transactions={transactions}
         subscriptionInsight={subscriptionInsight}
-        predictedTransactions={predictedTransactions}
+        predictedTransactions={predictions}
       />
     );
   }
@@ -192,7 +224,7 @@ function Dashboard() {
       onPeriodChange={setSelectedPeriod}
       transactions={transactions}
       subscriptionInsight={subscriptionInsight}
-      predictedTransactions={predictedTransactions}
+      predictedTransactions={predictions}
     />
   );
 }

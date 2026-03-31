@@ -10,15 +10,18 @@ function DesktopDashboard({
   onPeriodChange,
   transactions,
   subscriptionInsight,
-  predictedTransactions, // <-- NEW PROP ADDED
+  predictedTransactions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
 
+  const validPredictions = (predictedTransactions || []).filter(
+    (tx) => tx.amount !== null && tx.amount !== undefined
+  );
+
   return (
     <div className="dashboard-shell desktop-shell">
       <div className="desktop-grid">
-        {/* ---------- Budget Row ---------- */}
         <section className="desktop-budget-row">
           <article className="budget-stat card-surface">
             <p>Total Budget</p>
@@ -35,7 +38,6 @@ function DesktopDashboard({
           </article>
         </section>
 
-        {/* ---------- Financial Health Panel ---------- */}
         <section className="desktop-health-panel card-surface">
           <div className="section-heading">
             <h3>Financial Health</h3>
@@ -97,7 +99,6 @@ function DesktopDashboard({
           )}
         </section>
 
-        {/* ---------- Recent Transactions Panel ---------- */}
         <section className="desktop-transactions-panel card-surface">
           <div className="section-heading">
             <h3>Recent Transactions</h3>
@@ -116,14 +117,13 @@ function DesktopDashboard({
           </div>
         </section>
 
-        {/* ---------- NEW Predicted Spending Section ADDED ---------- */}
         <section className="desktop-predicted-panel card-surface">
           <div className="section-heading">
             <h3>Upcoming Predicted Transactions</h3>
           </div>
           <div className="tx-table simple-list">
-            {predictedTransactions && predictedTransactions.length > 0 ? (
-              predictedTransactions.map((tx) => (
+            {validPredictions.length > 0 ? (
+              validPredictions.map((tx) => (
                 <div key={tx.id} className="tx-table-row">
                   <span>{tx.name}</span>
                   <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
@@ -136,7 +136,6 @@ function DesktopDashboard({
             )}
           </div>
         </section>
-        {/* ---------- END Predicted Spending Section ---------- */}
       </div>
     </div>
   );
