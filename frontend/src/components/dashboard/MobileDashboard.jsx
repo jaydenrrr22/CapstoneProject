@@ -11,14 +11,17 @@ function MobileDashboard({
   onPeriodChange,
   transactions,
   subscriptionInsight,
-  predictedTransactions, // <-- NEW PROP ADDED
+  predictedTransactions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
 
+  const validPredictions = (predictedTransactions || []).filter(
+    (tx) => tx.amount !== null && tx.amount !== undefined
+  );
+
   return (
     <div className="dashboard-shell mobile-shell">
-      {/* ---------- Budget Summary Scroll ---------- */}
       <section className="mobile-budget-scroll" aria-label="Budget summary">
         <article className="budget-chip card-surface">
           <p>Total Budget</p>
@@ -34,7 +37,6 @@ function MobileDashboard({
         </article>
       </section>
 
-      {/* ---------- Financial Health Panel ---------- */}
       <section className="card-surface mobile-chart-card">
         <div className="section-heading">
           <h3>Financial Health</h3>
@@ -81,7 +83,6 @@ function MobileDashboard({
         )}
       </section>
 
-      {/* ---------- Recent Transactions Panel ---------- */}
       <section className="card-surface mobile-transactions-card">
         <div className="section-heading">
           <h3>Recent Transactions</h3>
@@ -100,14 +101,13 @@ function MobileDashboard({
         </div>
       </section>
 
-      {/* ---------- NEW Predicted Spending Section ADDED ---------- */}
       <section className="card-surface mobile-predicted-card">
         <div className="section-heading">
           <h3>Upcoming Predicted Transactions</h3>
         </div>
         <div className="tx-list">
-          {predictedTransactions && predictedTransactions.length > 0 ? (
-            predictedTransactions.map((tx) => (
+          {validPredictions.length > 0 ? (
+            validPredictions.map((tx) => (
               <div key={tx.id} className="tx-row">
                 <span>{tx.name}</span>
                 <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
@@ -120,9 +120,7 @@ function MobileDashboard({
           )}
         </div>
       </section>
-      {/* ---------- END Predicted Spending Section ---------- */}
 
-      {/* ---------- Bottom Navigation ---------- */}
       <nav className="mobile-bottom-nav" aria-label="Primary">
         <NavLink to="/dashboard">Home</NavLink>
         <NavLink to="/transactions">Transactions</NavLink>
