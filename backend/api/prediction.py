@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from backend.api.cache import CACHE, CACHE_TTL
+from backend.api.dependencies.auth import get_current_user
+from backend.api.dependencies.rate_limit import get_rate_limit_dependency
+from backend.api.models.user import User
 import random
 import logging
 import time
@@ -14,27 +16,18 @@ logger = logging.getLogger("prediction")
 # CloudWatch client
 cloudwatch = boto3.client("cloudwatch", region_name="us-east-2")
 
-# ---- SIMPLE AUTH CONFIG ----
-security = HTTPBearer()
-VALID_TOKEN = "trace-secure-token"   # capstone demo token
-
-
-def require_auth(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    if credentials.credentials != VALID_TOKEN:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token"
-        )
-
-
 class PredictionRequest(BaseModel):
     amount: float
     category: str
 
 
 # ---------------- CACHE CONFIG ----------------
-@router.post("/", dependencies=[Depends(require_auth)])
-def run_prediction(data: PredictionRequest):
+@router.post("/")
+def run_prediction(
+    data: PredictionRequest,
+    _rate_limit: None = Depends(get_rate_limit_dependency(times=20, seconds=60)),
+    _current_user: User = Depends(get_current_user)
+):
 
     cache_key = f"{data.amount}:{data.category}"
 
