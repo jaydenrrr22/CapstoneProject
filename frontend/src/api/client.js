@@ -1,9 +1,15 @@
 import axios from "axios";
 
 const rawApiBase = import.meta.env.VITE_API_BASE_URL || "/api";
-const apiBaseUrl = rawApiBase.startsWith("http://")
-  ? rawApiBase.replace("http://", "https://")
-  : rawApiBase;
+const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.hostname === "::1");
+const apiBaseUrl =
+  rawApiBase.startsWith("http://") && !isLocalhost
+    ? rawApiBase.replace("http://", "https://")
+    : rawApiBase;
 
 const apiClient = axios.create({
   baseURL: apiBaseUrl,
