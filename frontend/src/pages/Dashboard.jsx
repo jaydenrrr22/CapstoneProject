@@ -5,9 +5,18 @@ import API from "../services/api";
 import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
+import { normalizeApiError } from "../utils/normalizeApiError";
+import { useIntelligence } from "../context/IntelligenceContext";
 
 function Dashboard() {
   const { token } = useAuth();
+  const {
+    predictions,
+    setPredictions,
+    setLoadingPredictions,
+    setPredictionError,
+  } = useIntelligence();
+
   const isMobile = useIsMobile(768);
   const skipNextHealthLoadRef = useRef(false);
 
@@ -23,6 +32,36 @@ function Dashboard() {
     count: 0,
     totalMonthly: 0,
   });
+
+  useEffect(() => {
+    if (!token) return;
+
+    const loadPredictions = async () => {
+      setLoadingPredictions(true);
+      setPredictionError("");
+
+      try {
+        const response = await API.get("/prediction/history");
+
+        const mapped = (response.data || []).map((item, index) => ({
+          id: item.id || `pred-${index}`,
+          name: item.target_data || "Predicted Transaction",
+          amount: Number(item.predicted_spending) || 0,
+        }));
+
+        setPredictions(mapped);
+      } catch (error) {
+        setPredictionError(
+          normalizeApiError(error, "Failed to load predicted transactions.")
+        );
+        setPredictions([]);
+      } finally {
+        setLoadingPredictions(false);
+      }
+    };
+
+    loadPredictions();
+  }, [token, setPredictions, setLoadingPredictions, setPredictionError]);
 
   const loadSubscriptionInsight = useCallback(async () => {
     try {
@@ -107,9 +146,10 @@ function Dashboard() {
       const response = await API.get(`/analytics/financial-health/${period}`);
       setHealth(response.data);
     } catch (error) {
-      const detail = error?.response?.data?.detail;
       setHealth(null);
-      setHealthError(detail || "Unable to load financial health for this period.");
+      setHealthError(
+        normalizeApiError(error, "Unable to load financial health for this period.")
+      );
     } finally {
       setLoadingHealth(false);
     }
@@ -169,6 +209,7 @@ function Dashboard() {
         onPeriodChange={setSelectedPeriod}
         transactions={transactions}
         subscriptionInsight={subscriptionInsight}
+        predictedTransactions={predictions}
       />
     );
   }
@@ -183,6 +224,7 @@ function Dashboard() {
       onPeriodChange={setSelectedPeriod}
       transactions={transactions}
       subscriptionInsight={subscriptionInsight}
+      predictedTransactions={predictions}
     />
   );
 }

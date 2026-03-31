@@ -11,9 +11,14 @@ function MobileDashboard({
   onPeriodChange,
   transactions,
   subscriptionInsight,
+  predictedTransactions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
+
+  const validPredictions = (predictedTransactions || []).filter(
+    (tx) => tx.amount !== null && tx.amount !== undefined
+  );
 
   return (
     <div className="dashboard-shell mobile-shell">
@@ -93,6 +98,26 @@ function MobileDashboard({
           ))}
 
           {transactions.length === 0 && <p className="muted">No transactions yet.</p>}
+        </div>
+      </section>
+
+      <section className="card-surface mobile-predicted-card">
+        <div className="section-heading">
+          <h3>Upcoming Predicted Transactions</h3>
+        </div>
+        <div className="tx-list">
+          {validPredictions.length > 0 ? (
+            validPredictions.map((tx) => (
+              <div key={tx.id} className="tx-row">
+                <span>{tx.name}</span>
+                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="muted">No predicted transactions.</p>
+          )}
         </div>
       </section>
 

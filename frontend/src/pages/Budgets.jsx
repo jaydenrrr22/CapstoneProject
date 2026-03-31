@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
+import { normalizeApiError } from "../utils/normalizeApiError";
 
 function Budgets() {
   const [budgets, setBudgets] = useState([]);
@@ -32,8 +33,7 @@ function Budgets() {
         setProgress(null);
       }
     } catch (requestError) {
-      const detail = requestError?.response?.data?.detail;
-      setError(detail || "Could not load budgets.");
+      setError(normalizeApiError(requestError, "Failed to load budgets."));
     } finally {
       setLoading(false);
     }
@@ -57,8 +57,7 @@ function Budgets() {
       setAmount("");
       await loadBudgets();
     } catch (requestError) {
-      const detail = requestError?.response?.data?.detail;
-      setError(detail || "Could not create budget.");
+      setError(normalizeApiError(requestError, "Could not create budget."));
     } finally {
       setSaving(false);
     }
@@ -102,8 +101,7 @@ function Budgets() {
       await loadProgressForPeriod(budget.period);
       cancelEditingBudget();
     } catch (requestError) {
-      const detail = requestError?.response?.data?.detail;
-      setError(detail || "Could not update budget.");
+      setError(normalizeApiError(requestError, "Could not update budget."));
     } finally {
       setRowActionLoadingId(null);
     }
@@ -124,8 +122,7 @@ function Budgets() {
         cancelEditingBudget();
       }
     } catch (requestError) {
-      const detail = requestError?.response?.data?.detail;
-      setError(detail || "Could not delete budget.");
+      setError(normalizeApiError(requestError, "Could not delete budget."));
     } finally {
       setRowActionLoadingId(null);
     }
