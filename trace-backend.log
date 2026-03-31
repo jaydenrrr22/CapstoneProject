@@ -2032,3 +2032,195 @@
 {"timestamp": "2026-03-31T00:47:43.522073", "level": "INFO", "message": "Incoming request GET /analytics/financial-health/2026-03", "request_id": "735d0017-3554-40fa-9a91-b928eb6d2225"}
 {"timestamp": "2026-03-31T00:47:43.535949", "level": "INFO", "message": "Completed request GET /analytics/financial-health/2026-03 status=200", "request_id": "735d0017-3554-40fa-9a91-b928eb6d2225"}
 {"timestamp": "2026-03-31T00:47:43.558605", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "34add0b3-6c67-4d10-ad17-9d69b302322a"}
+{"timestamp": "2026-03-31T01:01:16.713154", "level": "INFO", "message": "Incoming request OPTIONS /budget/get", "request_id": "96daf83a-951f-4df7-8641-416a517ab2cf"}
+{"timestamp": "2026-03-31T01:01:16.714050", "level": "INFO", "message": "Completed request OPTIONS /budget/get status=200", "request_id": "96daf83a-951f-4df7-8641-416a517ab2cf"}
+{"timestamp": "2026-03-31T01:01:16.715168", "level": "INFO", "message": "Incoming request OPTIONS /transaction/get", "request_id": "db691824-2cdb-4204-a438-2e80ef81e77b"}
+{"timestamp": "2026-03-31T01:01:16.715295", "level": "INFO", "message": "Incoming request OPTIONS /transaction/get", "request_id": "df52b516-7589-4c81-9595-e744979853ca"}
+{"timestamp": "2026-03-31T01:01:16.715408", "level": "INFO", "message": "Incoming request OPTIONS /budget/get", "request_id": "847be9b7-28cd-4cb8-b4b9-7c4a8692f296"}
+{"timestamp": "2026-03-31T01:01:16.715698", "level": "INFO", "message": "Completed request OPTIONS /transaction/get status=200", "request_id": "db691824-2cdb-4204-a438-2e80ef81e77b"}
+{"timestamp": "2026-03-31T01:01:16.716044", "level": "INFO", "message": "Completed request OPTIONS /transaction/get status=200", "request_id": "df52b516-7589-4c81-9595-e744979853ca"}
+{"timestamp": "2026-03-31T01:01:16.716368", "level": "INFO", "message": "Completed request OPTIONS /budget/get status=200", "request_id": "847be9b7-28cd-4cb8-b4b9-7c4a8692f296"}
+{"timestamp": "2026-03-31T01:01:16.717096", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "71808dc7-009a-49e9-a6c2-79b00ce7f578"}
+{"timestamp": "2026-03-31T01:01:16.718890", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "a778a712-36e9-40a2-8955-775755df8ad7"}
+{"timestamp": "2026-03-31T01:01:16.720072", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "1e36a85a-3774-4987-bc63-1c3d478da845"}
+{"timestamp": "2026-03-31T01:01:16.720621", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "b792cc76-2076-4876-af31-3db3c56d4d91"}
+{"timestamp": "2026-03-31T01:01:16.732805", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "71808dc7-009a-49e9-a6c2-79b00ce7f578"}
+{"timestamp": "2026-03-31T01:01:16.739540", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "1e36a85a-3774-4987-bc63-1c3d478da845"}
+{"timestamp": "2026-03-31T01:01:16.740247", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "b792cc76-2076-4876-af31-3db3c56d4d91"}
+{"timestamp": "2026-03-31T01:01:16.740574", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "a778a712-36e9-40a2-8955-775755df8ad7"}
+{"timestamp": "2026-03-31T01:01:16.753072", "level": "INFO", "message": "Incoming request OPTIONS /subscription/detect", "request_id": "ea0ee0d3-c7e1-4c07-a14f-e82dbecc76ca"}
+{"timestamp": "2026-03-31T01:01:16.753362", "level": "INFO", "message": "Completed request OPTIONS /subscription/detect status=200", "request_id": "ea0ee0d3-c7e1-4c07-a14f-e82dbecc76ca"}
+{"timestamp": "2026-03-31T01:01:16.756332", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "1e8d4dc4-3251-4a32-a087-9604610956c3"}
+{"timestamp": "2026-03-31T01:01:16.762006", "level": "INFO", "message": "Incoming request OPTIONS /subscription/detect", "request_id": "5031a498-37a7-4ab3-9ee2-2a39fbdb6351"}
+{"timestamp": "2026-03-31T01:01:16.762334", "level": "INFO", "message": "Completed request OPTIONS /subscription/detect status=200", "request_id": "5031a498-37a7-4ab3-9ee2-2a39fbdb6351"}
+{"timestamp": "2026-03-31T01:01:16.772333", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "0872ff6d-7483-4bee-b7d9-7fe70ce09f56"}
+{"timestamp": "2026-03-31T01:01:16.778062", "level": "INFO", "message": "Incoming request OPTIONS /analytics/financial-health/2026-03", "request_id": "9440e5dd-0430-4292-8635-d7b07be8ec61"}
+{"timestamp": "2026-03-31T01:01:16.779007", "level": "INFO", "message": "Completed request OPTIONS /analytics/financial-health/2026-03 status=200", "request_id": "9440e5dd-0430-4292-8635-d7b07be8ec61"}
+{"timestamp": "2026-03-31T01:01:16.782450", "level": "INFO", "message": "Incoming request GET /analytics/financial-health/2026-03", "request_id": "4180fb49-85ac-4d71-83e8-d96e070042c3"}
+{"timestamp": "2026-03-31T01:01:16.796110", "level": "INFO", "message": "Completed request GET /analytics/financial-health/2026-03 status=200", "request_id": "4180fb49-85ac-4d71-83e8-d96e070042c3"}
+{"timestamp": "2026-03-31T01:01:16.800427", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "1e8d4dc4-3251-4a32-a087-9604610956c3"}
+{"timestamp": "2026-03-31T01:01:16.808150", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "0872ff6d-7483-4bee-b7d9-7fe70ce09f56"}
+{"timestamp": "2026-03-31T01:01:46.907478", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "e81723e3-584c-45e9-a550-177a0fa03298"}
+{"timestamp": "2026-03-31T01:01:46.908620", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "a878b45a-9414-4540-b573-c136cd91fb9a"}
+{"timestamp": "2026-03-31T01:01:46.913729", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "a878b45a-9414-4540-b573-c136cd91fb9a"}
+{"timestamp": "2026-03-31T01:01:46.914197", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "e81723e3-584c-45e9-a550-177a0fa03298"}
+{"timestamp": "2026-03-31T01:02:50.076752", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "9cf5261a-7039-4241-bf6e-54c58dd1ed5b"}
+{"timestamp": "2026-03-31T01:02:50.080622", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "9cf5261a-7039-4241-bf6e-54c58dd1ed5b"}
+{"timestamp": "2026-03-31T01:02:50.089837", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "6bc02a53-db74-42ae-b6d3-441952dced10"}
+{"timestamp": "2026-03-31T01:02:50.094361", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "6bc02a53-db74-42ae-b6d3-441952dced10"}
+{"timestamp": "2026-03-31T01:03:01.700266", "level": "INFO", "message": "Incoming request OPTIONS /simulation/simulate_purchase", "request_id": "ad77c4bf-0a73-430f-9ec5-8fc7e10ba98a"}
+{"timestamp": "2026-03-31T01:03:01.700560", "level": "INFO", "message": "Completed request OPTIONS /simulation/simulate_purchase status=200", "request_id": "ad77c4bf-0a73-430f-9ec5-8fc7e10ba98a"}
+{"timestamp": "2026-03-31T01:03:01.702559", "level": "INFO", "message": "Incoming request POST /simulation/simulate_purchase", "request_id": "fa2b1510-5256-4561-9b7c-a13445cd40ec"}
+{"timestamp": "2026-03-31T01:03:01.709175", "level": "INFO", "message": "Completed request POST /simulation/simulate_purchase status=200", "request_id": "fa2b1510-5256-4561-9b7c-a13445cd40ec"}
+{"timestamp": "2026-03-31T01:03:14.123328", "level": "INFO", "message": "Incoming request OPTIONS /transaction/create", "request_id": "d54444a1-6e38-4052-8fef-f7381165b5e9"}
+{"timestamp": "2026-03-31T01:03:14.123619", "level": "INFO", "message": "Completed request OPTIONS /transaction/create status=200", "request_id": "d54444a1-6e38-4052-8fef-f7381165b5e9"}
+{"timestamp": "2026-03-31T01:03:14.125446", "level": "INFO", "message": "Incoming request POST /transaction/create", "request_id": "3fc75d57-91ce-478b-b91c-50ce56d37f79"}
+{"timestamp": "2026-03-31T01:03:14.133531", "level": "INFO", "message": "Completed request POST /transaction/create status=201", "request_id": "3fc75d57-91ce-478b-b91c-50ce56d37f79"}
+{"timestamp": "2026-03-31T01:03:14.138867", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "751d8511-f96b-48ee-b6a5-da5515c54125"}
+{"timestamp": "2026-03-31T01:03:14.143210", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "751d8511-f96b-48ee-b6a5-da5515c54125"}
+{"timestamp": "2026-03-31T01:03:30.233881", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "bc16e953-7ae4-4eb8-bdcf-5d5b3345d035"}
+{"timestamp": "2026-03-31T01:03:30.255447", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "bc16e953-7ae4-4eb8-bdcf-5d5b3345d035"}
+{"timestamp": "2026-03-31T01:03:30.257432", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "441179ad-91b5-461d-8e7c-7cc865a1f9bc"}
+{"timestamp": "2026-03-31T01:03:30.278018", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "441179ad-91b5-461d-8e7c-7cc865a1f9bc"}
+{"timestamp": "2026-03-31T01:03:34.325395", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "3fae98eb-c8bc-47d2-9a9e-4784743b2bd0"}
+{"timestamp": "2026-03-31T01:03:34.328597", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "3fae98eb-c8bc-47d2-9a9e-4784743b2bd0"}
+{"timestamp": "2026-03-31T01:03:34.330096", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "76b93d36-de95-4f5b-949a-325af34dfbf3"}
+{"timestamp": "2026-03-31T01:03:34.333061", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "76b93d36-de95-4f5b-949a-325af34dfbf3"}
+{"timestamp": "2026-03-31T01:03:34.340647", "level": "INFO", "message": "Incoming request OPTIONS /budget/progress/2026-03", "request_id": "f527cf29-2481-440f-9274-2448f0e88932"}
+{"timestamp": "2026-03-31T01:03:34.340954", "level": "INFO", "message": "Completed request OPTIONS /budget/progress/2026-03 status=200", "request_id": "f527cf29-2481-440f-9274-2448f0e88932"}
+{"timestamp": "2026-03-31T01:03:34.343552", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "1c048755-edf2-422c-8b4a-b26dac1565c1"}
+{"timestamp": "2026-03-31T01:03:34.346035", "level": "INFO", "message": "Incoming request OPTIONS /budget/progress/2026-03", "request_id": "5e2e5e13-2088-4438-93bd-a1868248f17e"}
+{"timestamp": "2026-03-31T01:03:34.346239", "level": "INFO", "message": "Completed request OPTIONS /budget/progress/2026-03 status=200", "request_id": "5e2e5e13-2088-4438-93bd-a1868248f17e"}
+{"timestamp": "2026-03-31T01:03:34.349326", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "1c048755-edf2-422c-8b4a-b26dac1565c1"}
+{"timestamp": "2026-03-31T01:03:34.350060", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "7e681b1d-5be8-4f32-9f9a-7a8f5a3ab179"}
+{"timestamp": "2026-03-31T01:03:34.355006", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "7e681b1d-5be8-4f32-9f9a-7a8f5a3ab179"}
+{"timestamp": "2026-03-31T01:04:46.563959", "level": "INFO", "message": "Incoming request OPTIONS /budget/create", "request_id": "d4394b23-218d-4e3e-87ab-456879f4fab8"}
+{"timestamp": "2026-03-31T01:04:46.564205", "level": "INFO", "message": "Completed request OPTIONS /budget/create status=200", "request_id": "d4394b23-218d-4e3e-87ab-456879f4fab8"}
+{"timestamp": "2026-03-31T01:04:46.566265", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "803037a5-1b4b-4914-993b-beff8a5dcf99"}
+{"timestamp": "2026-03-31T01:04:46.570175", "level": "INFO", "message": "Completed request POST /budget/create status=400", "request_id": "803037a5-1b4b-4914-993b-beff8a5dcf99"}
+{"timestamp": "2026-03-31T01:04:57.177473", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "d87c8d70-0fc0-486b-b9d6-cb36286af8e2"}
+{"timestamp": "2026-03-31T01:04:57.185458", "level": "INFO", "message": "Completed request POST /budget/create status=201", "request_id": "d87c8d70-0fc0-486b-b9d6-cb36286af8e2"}
+{"timestamp": "2026-03-31T01:04:57.190979", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "dae9b92a-cba1-4da3-94b6-1c466b84a827"}
+{"timestamp": "2026-03-31T01:04:57.194349", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "dae9b92a-cba1-4da3-94b6-1c466b84a827"}
+{"timestamp": "2026-03-31T01:04:57.201312", "level": "INFO", "message": "Incoming request OPTIONS /budget/progress/2027-03", "request_id": "eda47b9e-23a3-4055-a70b-295c636aa55f"}
+{"timestamp": "2026-03-31T01:04:57.201658", "level": "INFO", "message": "Completed request OPTIONS /budget/progress/2027-03 status=200", "request_id": "eda47b9e-23a3-4055-a70b-295c636aa55f"}
+{"timestamp": "2026-03-31T01:04:57.203606", "level": "INFO", "message": "Incoming request GET /budget/progress/2027-03", "request_id": "0e3692d6-9884-4e1e-bbfc-9fd2d5e814a1"}
+{"timestamp": "2026-03-31T01:04:57.208047", "level": "INFO", "message": "Completed request GET /budget/progress/2027-03 status=200", "request_id": "0e3692d6-9884-4e1e-bbfc-9fd2d5e814a1"}
+{"timestamp": "2026-03-31T01:05:16.629298", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "69fe9b5d-b8b4-41de-846b-310796eade3d"}
+{"timestamp": "2026-03-31T01:05:16.633278", "level": "INFO", "message": "Completed request POST /budget/create status=400", "request_id": "69fe9b5d-b8b4-41de-846b-310796eade3d"}
+{"timestamp": "2026-03-31T01:05:26.756771", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "6f0318af-c334-4685-be52-c94e6fabe528"}
+{"timestamp": "2026-03-31T01:05:26.763171", "level": "INFO", "message": "Completed request POST /budget/create status=201", "request_id": "6f0318af-c334-4685-be52-c94e6fabe528"}
+{"timestamp": "2026-03-31T01:05:26.767785", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "5a2818fa-ed1c-4789-9946-ef9a3248ac69"}
+{"timestamp": "2026-03-31T01:05:26.770509", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "5a2818fa-ed1c-4789-9946-ef9a3248ac69"}
+{"timestamp": "2026-03-31T01:05:26.777191", "level": "INFO", "message": "Incoming request OPTIONS /budget/progress/2027-04", "request_id": "64b0cf2a-1f34-4bad-ab5a-26732b7a8478"}
+{"timestamp": "2026-03-31T01:05:26.777465", "level": "INFO", "message": "Completed request OPTIONS /budget/progress/2027-04 status=200", "request_id": "64b0cf2a-1f34-4bad-ab5a-26732b7a8478"}
+{"timestamp": "2026-03-31T01:05:26.779043", "level": "INFO", "message": "Incoming request GET /budget/progress/2027-04", "request_id": "eee81c5a-7036-4777-a6d9-14be00c7a16f"}
+{"timestamp": "2026-03-31T01:05:26.782964", "level": "INFO", "message": "Completed request GET /budget/progress/2027-04 status=200", "request_id": "eee81c5a-7036-4777-a6d9-14be00c7a16f"}
+{"timestamp": "2026-03-31T01:05:33.531226", "level": "INFO", "message": "Incoming request OPTIONS /budget/delete/6", "request_id": "ff1cbd7b-6252-4c9b-b7ae-0c2e48866e36"}
+{"timestamp": "2026-03-31T01:05:33.531541", "level": "INFO", "message": "Completed request OPTIONS /budget/delete/6 status=200", "request_id": "ff1cbd7b-6252-4c9b-b7ae-0c2e48866e36"}
+{"timestamp": "2026-03-31T01:05:33.533235", "level": "INFO", "message": "Incoming request DELETE /budget/delete/6", "request_id": "8e824d13-3bc4-4b34-bec3-8f38475820f5"}
+{"timestamp": "2026-03-31T01:05:33.539403", "level": "INFO", "message": "Completed request DELETE /budget/delete/6 status=200", "request_id": "8e824d13-3bc4-4b34-bec3-8f38475820f5"}
+{"timestamp": "2026-03-31T01:05:33.543815", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "80b10a2b-5f25-48e4-b0ab-2af1c99db6cc"}
+{"timestamp": "2026-03-31T01:05:33.547065", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "80b10a2b-5f25-48e4-b0ab-2af1c99db6cc"}
+{"timestamp": "2026-03-31T01:05:33.551846", "level": "INFO", "message": "Incoming request GET /budget/progress/2027-04", "request_id": "db93d4a6-b4fd-437c-b5e0-3039a894fb83"}
+{"timestamp": "2026-03-31T01:05:33.555571", "level": "INFO", "message": "Completed request GET /budget/progress/2027-04 status=200", "request_id": "db93d4a6-b4fd-437c-b5e0-3039a894fb83"}
+{"timestamp": "2026-03-31T01:05:38.616239", "level": "INFO", "message": "Incoming request OPTIONS /budget/delete/7", "request_id": "8b9bc02c-71e6-43b5-98bb-c04129b36da2"}
+{"timestamp": "2026-03-31T01:05:38.616519", "level": "INFO", "message": "Completed request OPTIONS /budget/delete/7 status=200", "request_id": "8b9bc02c-71e6-43b5-98bb-c04129b36da2"}
+{"timestamp": "2026-03-31T01:05:38.618557", "level": "INFO", "message": "Incoming request DELETE /budget/delete/7", "request_id": "202a16cc-ccb1-4a77-b3b1-2a81e3f9bb6f"}
+{"timestamp": "2026-03-31T01:05:38.624208", "level": "INFO", "message": "Completed request DELETE /budget/delete/7 status=200", "request_id": "202a16cc-ccb1-4a77-b3b1-2a81e3f9bb6f"}
+{"timestamp": "2026-03-31T01:05:38.629781", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "2a2b5637-ec8a-4b06-ac6a-3538a841f141"}
+{"timestamp": "2026-03-31T01:05:38.633195", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "2a2b5637-ec8a-4b06-ac6a-3538a841f141"}
+{"timestamp": "2026-03-31T01:05:38.639111", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "0fbde5eb-252f-426f-ad32-1bdc2b61528a"}
+{"timestamp": "2026-03-31T01:05:38.643504", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "0fbde5eb-252f-426f-ad32-1bdc2b61528a"}
+{"timestamp": "2026-03-31T01:06:07.923813", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "09c806a7-7493-4fa3-98ea-240cbdc415fd"}
+{"timestamp": "2026-03-31T01:06:07.927428", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "09c806a7-7493-4fa3-98ea-240cbdc415fd"}
+{"timestamp": "2026-03-31T01:06:07.929267", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "44627e3f-4b53-4fa6-bdf5-3548cf05fa38"}
+{"timestamp": "2026-03-31T01:06:07.932659", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "44627e3f-4b53-4fa6-bdf5-3548cf05fa38"}
+{"timestamp": "2026-03-31T01:07:27.699663", "level": "INFO", "message": "Incoming request OPTIONS /auth/login", "request_id": "3d3c3686-0eb8-4512-9f9f-ee8ead6bee53"}
+{"timestamp": "2026-03-31T01:07:27.699960", "level": "INFO", "message": "Completed request OPTIONS /auth/login status=200", "request_id": "3d3c3686-0eb8-4512-9f9f-ee8ead6bee53"}
+{"timestamp": "2026-03-31T01:07:27.702038", "level": "INFO", "message": "Incoming request POST /auth/login", "request_id": "85661821-c23f-4077-ae06-ad8438cbcbc9"}
+{"timestamp": "2026-03-31T01:07:27.710751", "level": "INFO", "message": "Completed request POST /auth/login status=401", "request_id": "85661821-c23f-4077-ae06-ad8438cbcbc9"}
+{"timestamp": "2026-03-31T01:08:22.157263", "level": "INFO", "message": "Incoming request POST /auth/login", "request_id": "16355614-8839-41f6-85b8-66f457d44a1d"}
+{"timestamp": "2026-03-31T01:08:22.362648", "level": "INFO", "message": "Completed request POST /auth/login status=200", "request_id": "16355614-8839-41f6-85b8-66f457d44a1d"}
+{"timestamp": "2026-03-31T01:08:22.397846", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "ff10050c-281f-486d-a916-b8479741735d"}
+{"timestamp": "2026-03-31T01:08:22.398786", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "8ff3b964-5bc3-49ae-afe3-3be4f77250b4"}
+{"timestamp": "2026-03-31T01:08:22.399124", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "588c5dd1-39bf-4b66-baee-43d6527e8ba2"}
+{"timestamp": "2026-03-31T01:08:22.405144", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "ff10050c-281f-486d-a916-b8479741735d"}
+{"timestamp": "2026-03-31T01:08:22.406407", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "588c5dd1-39bf-4b66-baee-43d6527e8ba2"}
+{"timestamp": "2026-03-31T01:08:22.407267", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "8ff3b964-5bc3-49ae-afe3-3be4f77250b4"}
+{"timestamp": "2026-03-31T01:08:22.410628", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "9fecf7ef-846e-46a6-9a3e-fc859ae10cdb"}
+{"timestamp": "2026-03-31T01:08:22.414838", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "9fecf7ef-846e-46a6-9a3e-fc859ae10cdb"}
+{"timestamp": "2026-03-31T01:08:22.422577", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "275adc87-c5fe-4f70-b268-a6608befc273"}
+{"timestamp": "2026-03-31T01:08:22.429580", "level": "INFO", "message": "Incoming request GET /analytics/financial-health/2026-03", "request_id": "9ec7a44b-8d00-4514-b685-89429207162f"}
+{"timestamp": "2026-03-31T01:08:22.431758", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "5c9493e3-320b-4819-9902-17f37bf5cbd7"}
+{"timestamp": "2026-03-31T01:08:22.438792", "level": "INFO", "message": "Completed request GET /analytics/financial-health/2026-03 status=200", "request_id": "9ec7a44b-8d00-4514-b685-89429207162f"}
+{"timestamp": "2026-03-31T01:08:22.455798", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "275adc87-c5fe-4f70-b268-a6608befc273"}
+{"timestamp": "2026-03-31T01:08:22.463577", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "5c9493e3-320b-4819-9902-17f37bf5cbd7"}
+{"timestamp": "2026-03-31T01:22:31.595174", "level": "INFO", "message": "Incoming request OPTIONS /budget/get", "request_id": "63362cee-45e4-4013-bd82-021a807c671a"}
+{"timestamp": "2026-03-31T01:22:31.595663", "level": "INFO", "message": "Incoming request OPTIONS /budget/get", "request_id": "c9b6bdcd-4a02-4378-ac3d-c2f57a9294a0"}
+{"timestamp": "2026-03-31T01:22:31.596158", "level": "INFO", "message": "Completed request OPTIONS /budget/get status=200", "request_id": "63362cee-45e4-4013-bd82-021a807c671a"}
+{"timestamp": "2026-03-31T01:22:31.596722", "level": "INFO", "message": "Completed request OPTIONS /budget/get status=200", "request_id": "c9b6bdcd-4a02-4378-ac3d-c2f57a9294a0"}
+{"timestamp": "2026-03-31T01:22:31.597409", "level": "INFO", "message": "Incoming request OPTIONS /transaction/get", "request_id": "66ec0853-1796-44e9-93e1-1ee1a6e62e18"}
+{"timestamp": "2026-03-31T01:22:31.597524", "level": "INFO", "message": "Incoming request OPTIONS /transaction/get", "request_id": "2a7af1ef-710b-451b-9568-9707ee5fd353"}
+{"timestamp": "2026-03-31T01:22:31.597756", "level": "INFO", "message": "Completed request OPTIONS /transaction/get status=200", "request_id": "66ec0853-1796-44e9-93e1-1ee1a6e62e18"}
+{"timestamp": "2026-03-31T01:22:31.598071", "level": "INFO", "message": "Completed request OPTIONS /transaction/get status=200", "request_id": "2a7af1ef-710b-451b-9568-9707ee5fd353"}
+{"timestamp": "2026-03-31T01:22:31.603297", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "30367919-25c9-46e5-a876-a7180801cef6"}
+{"timestamp": "2026-03-31T01:22:31.603895", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "b457789e-2c4e-43ca-8abc-34be3b4607f4"}
+{"timestamp": "2026-03-31T01:22:31.604508", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "def38979-e518-402e-b771-2c7f7ea46d52"}
+{"timestamp": "2026-03-31T01:22:31.604942", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "ef925043-10a2-4f3b-8976-472ca76dca99"}
+{"timestamp": "2026-03-31T01:22:31.613489", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "30367919-25c9-46e5-a876-a7180801cef6"}
+{"timestamp": "2026-03-31T01:22:31.614140", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "b457789e-2c4e-43ca-8abc-34be3b4607f4"}
+{"timestamp": "2026-03-31T01:22:31.615601", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "def38979-e518-402e-b771-2c7f7ea46d52"}
+{"timestamp": "2026-03-31T01:22:31.616430", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "ef925043-10a2-4f3b-8976-472ca76dca99"}
+{"timestamp": "2026-03-31T01:22:31.688029", "level": "INFO", "message": "Incoming request OPTIONS /subscription/detect", "request_id": "2f74e19d-008a-4210-8c43-bc4df5205245"}
+{"timestamp": "2026-03-31T01:22:31.688658", "level": "INFO", "message": "Incoming request OPTIONS /analytics/financial-health/2026-03", "request_id": "a080abbc-bf16-482e-a723-07bcc23b5c84"}
+{"timestamp": "2026-03-31T01:22:31.688833", "level": "INFO", "message": "Incoming request OPTIONS /subscription/detect", "request_id": "d6f322f7-c2bd-45e1-959e-cb02432e67a4"}
+{"timestamp": "2026-03-31T01:22:31.689090", "level": "INFO", "message": "Completed request OPTIONS /subscription/detect status=200", "request_id": "2f74e19d-008a-4210-8c43-bc4df5205245"}
+{"timestamp": "2026-03-31T01:22:31.689752", "level": "INFO", "message": "Completed request OPTIONS /analytics/financial-health/2026-03 status=200", "request_id": "a080abbc-bf16-482e-a723-07bcc23b5c84"}
+{"timestamp": "2026-03-31T01:22:31.690098", "level": "INFO", "message": "Completed request OPTIONS /subscription/detect status=200", "request_id": "d6f322f7-c2bd-45e1-959e-cb02432e67a4"}
+{"timestamp": "2026-03-31T01:22:31.695916", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "f5f1a8e4-bb9a-4059-b4a9-08080442ed9e"}
+{"timestamp": "2026-03-31T01:22:31.696474", "level": "INFO", "message": "Incoming request GET /analytics/financial-health/2026-03", "request_id": "91118ab0-c63d-479c-9fb9-7274987356f7"}
+{"timestamp": "2026-03-31T01:22:31.696971", "level": "INFO", "message": "Incoming request GET /subscription/detect", "request_id": "1282a85f-d12d-408a-922c-53fcb2ceb94b"}
+{"timestamp": "2026-03-31T01:22:31.705799", "level": "INFO", "message": "Completed request GET /analytics/financial-health/2026-03 status=200", "request_id": "91118ab0-c63d-479c-9fb9-7274987356f7"}
+{"timestamp": "2026-03-31T01:22:31.728767", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "f5f1a8e4-bb9a-4059-b4a9-08080442ed9e"}
+{"timestamp": "2026-03-31T01:22:31.729993", "level": "INFO", "message": "Completed request GET /subscription/detect status=200", "request_id": "1282a85f-d12d-408a-922c-53fcb2ceb94b"}
+{"timestamp": "2026-03-31T01:22:33.594046", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "a9f641e0-b2d0-4a6b-b555-6940e3f0670d"}
+{"timestamp": "2026-03-31T01:22:33.595544", "level": "INFO", "message": "Incoming request GET /transaction/get", "request_id": "2318c20e-431b-4b5e-a40f-9e65809cb274"}
+{"timestamp": "2026-03-31T01:22:33.599201", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "a9f641e0-b2d0-4a6b-b555-6940e3f0670d"}
+{"timestamp": "2026-03-31T01:22:33.599908", "level": "INFO", "message": "Completed request GET /transaction/get status=200", "request_id": "2318c20e-431b-4b5e-a40f-9e65809cb274"}
+{"timestamp": "2026-03-31T01:22:52.133509", "level": "INFO", "message": "Incoming request OPTIONS /simulation/simulate_purchase", "request_id": "818954c5-b329-4a84-8aaa-98124952fc13"}
+{"timestamp": "2026-03-31T01:22:52.133734", "level": "INFO", "message": "Completed request OPTIONS /simulation/simulate_purchase status=200", "request_id": "818954c5-b329-4a84-8aaa-98124952fc13"}
+{"timestamp": "2026-03-31T01:22:52.135381", "level": "INFO", "message": "Incoming request POST /simulation/simulate_purchase", "request_id": "616e4676-dcf1-4d98-adf7-80cbf0ad9a99"}
+{"timestamp": "2026-03-31T01:22:52.139342", "level": "INFO", "message": "Completed request POST /simulation/simulate_purchase status=200", "request_id": "616e4676-dcf1-4d98-adf7-80cbf0ad9a99"}
+{"timestamp": "2026-03-31T01:22:57.737501", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "108ec950-9dc9-46c6-b31f-43226f4a6be1"}
+{"timestamp": "2026-03-31T01:22:57.738324", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "78aa734f-0595-4721-b120-94ba7d8e6218"}
+{"timestamp": "2026-03-31T01:22:57.742200", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "108ec950-9dc9-46c6-b31f-43226f4a6be1"}
+{"timestamp": "2026-03-31T01:22:57.742684", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "78aa734f-0595-4721-b120-94ba7d8e6218"}
+{"timestamp": "2026-03-31T01:22:57.752581", "level": "INFO", "message": "Incoming request OPTIONS /budget/progress/2026-03", "request_id": "df103758-7218-477d-a75a-8f557cafcf44"}
+{"timestamp": "2026-03-31T01:22:57.752854", "level": "INFO", "message": "Completed request OPTIONS /budget/progress/2026-03 status=200", "request_id": "df103758-7218-477d-a75a-8f557cafcf44"}
+{"timestamp": "2026-03-31T01:22:57.756784", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "0c46fef4-498f-4ff2-bb69-d9d06860cb44"}
+{"timestamp": "2026-03-31T01:22:57.760683", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "0c46fef4-498f-4ff2-bb69-d9d06860cb44"}
+{"timestamp": "2026-03-31T01:22:57.762354", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "88260548-6b46-41a2-9ac6-ded6c0e1e23c"}
+{"timestamp": "2026-03-31T01:22:57.766733", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "88260548-6b46-41a2-9ac6-ded6c0e1e23c"}
+{"timestamp": "2026-03-31T01:23:02.301996", "level": "INFO", "message": "Incoming request OPTIONS /budget/create", "request_id": "b5fb1905-5d9a-446a-b37a-3104df5d39ea"}
+{"timestamp": "2026-03-31T01:23:02.302254", "level": "INFO", "message": "Completed request OPTIONS /budget/create status=200", "request_id": "b5fb1905-5d9a-446a-b37a-3104df5d39ea"}
+{"timestamp": "2026-03-31T01:23:02.303659", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "90dd5184-9688-4999-9ed3-00732472c44e"}
+{"timestamp": "2026-03-31T01:23:02.306955", "level": "INFO", "message": "Completed request POST /budget/create status=400", "request_id": "90dd5184-9688-4999-9ed3-00732472c44e"}
+{"timestamp": "2026-03-31T01:23:10.219551", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "7fb64d03-88fb-4216-b99c-ab9a9e39c4a1"}
+{"timestamp": "2026-03-31T01:23:10.221702", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "33d43d09-3cc5-4595-8d29-2ad6a0b8110b"}
+{"timestamp": "2026-03-31T01:23:10.224346", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "7fb64d03-88fb-4216-b99c-ab9a9e39c4a1"}
+{"timestamp": "2026-03-31T01:23:10.226508", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "33d43d09-3cc5-4595-8d29-2ad6a0b8110b"}
+{"timestamp": "2026-03-31T01:23:10.253646", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "289d8d28-1463-4ef2-bc46-ee482432d068"}
+{"timestamp": "2026-03-31T01:23:10.254152", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-03", "request_id": "d3d39029-5e47-42a5-80dc-78e1a3fedc36"}
+{"timestamp": "2026-03-31T01:23:10.259558", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "d3d39029-5e47-42a5-80dc-78e1a3fedc36"}
+{"timestamp": "2026-03-31T01:23:10.260045", "level": "INFO", "message": "Completed request GET /budget/progress/2026-03 status=200", "request_id": "289d8d28-1463-4ef2-bc46-ee482432d068"}
+{"timestamp": "2026-03-31T01:23:36.540314", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "8a63640d-3c3a-402c-bc93-9897eec41503"}
+{"timestamp": "2026-03-31T01:23:36.544512", "level": "INFO", "message": "Completed request POST /budget/create status=400", "request_id": "8a63640d-3c3a-402c-bc93-9897eec41503"}
+{"timestamp": "2026-03-31T01:23:44.301379", "level": "INFO", "message": "Incoming request POST /budget/create", "request_id": "82b7dd30-9eb1-44ca-8879-7bfbc2fc748c"}
+{"timestamp": "2026-03-31T01:23:44.308436", "level": "INFO", "message": "Completed request POST /budget/create status=201", "request_id": "82b7dd30-9eb1-44ca-8879-7bfbc2fc748c"}
+{"timestamp": "2026-03-31T01:23:44.312969", "level": "INFO", "message": "Incoming request GET /budget/get", "request_id": "f5aa5d99-3531-417a-9c52-7fca6733a319"}
+{"timestamp": "2026-03-31T01:23:44.316139", "level": "INFO", "message": "Completed request GET /budget/get status=200", "request_id": "f5aa5d99-3531-417a-9c52-7fca6733a319"}
+{"timestamp": "2026-03-31T01:23:44.322248", "level": "INFO", "message": "Incoming request OPTIONS /budget/progress/2026-04", "request_id": "12bc3b56-fcae-43fc-a4d0-aa2dce45127a"}
+{"timestamp": "2026-03-31T01:23:44.322453", "level": "INFO", "message": "Completed request OPTIONS /budget/progress/2026-04 status=200", "request_id": "12bc3b56-fcae-43fc-a4d0-aa2dce45127a"}
+{"timestamp": "2026-03-31T01:23:44.323906", "level": "INFO", "message": "Incoming request GET /budget/progress/2026-04", "request_id": "087fad25-78b4-42c1-9a8b-fa5b19ce5930"}
+{"timestamp": "2026-03-31T01:23:44.328078", "level": "INFO", "message": "Completed request GET /budget/progress/2026-04 status=200", "request_id": "087fad25-78b4-42c1-9a8b-fa5b19ce5930"}
