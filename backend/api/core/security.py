@@ -6,7 +6,22 @@ from jose import ExpiredSignatureError, JWTError, jwt
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-SECRET_KEY = os.environ["SECRET_KEY"]
+
+
+def get_secret_key() -> str:
+    try:
+        secret_key = os.environ["SECRET_KEY"]
+    except KeyError as exc:
+        raise RuntimeError(
+            "SECRET_KEY environment variable is not set. Ensure configuration "
+            "is loaded (for example via the config module or dotenv) before "
+            "using backend.api.core.security."
+        ) from exc
+
+    if not secret_key:
+        raise RuntimeError("SECRET_KEY environment variable is empty.")
+
+    return secret_key
 
 
 def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
@@ -15,12 +30,12 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, get_secret_key(), algorithm=ALGORITHM)
 
 
 def verify_token(token: str) -> dict[str, Any]:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, get_secret_key(), algorithms=[ALGORITHM])
     except ExpiredSignatureError as exc:
         raise ValueError("Token has expired") from exc
     except JWTError as exc:
