@@ -2,10 +2,25 @@ import axios from "axios";
 import { getStoredToken, clearStoredToken } from "./tokenService";
 
 const rawApiBase = import.meta.env.VITE_API_BASE_URL || "/api";
-const apiBaseUrl = rawApiBase.startsWith("http://")
-  ? rawApiBase.replace("http://", "https://")
-  : rawApiBase;
 
+let apiBaseUrl = rawApiBase;
+
+if (rawApiBase.startsWith("http://")) {
+  try {
+    const url = new URL(rawApiBase);
+    const hostname = url.hostname;
+    const isLocalhost =
+      hostname === "localhost" || hostname === "127.0.0.1";
+
+    // Only enforce HTTPS in non-dev, non-localhost contexts
+    if (!import.meta.env.DEV && !isLocalhost) {
+      apiBaseUrl = rawApiBase.replace("http://", "https://");
+    }
+  } catch {
+    // If parsing fails, leave the base URL unchanged
+    apiBaseUrl = rawApiBase;
+  }
+}
 const API = axios.create({
   baseURL: apiBaseUrl,
   headers: {
