@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import { normalizeApiError } from "../utils/normalizeApiError";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 
@@ -16,8 +17,7 @@ function Subscriptions() {
       const response = await API.get("/subscription/detect");
       setSubscriptions(response.data);
     } catch (requestError) {
-      const detail = requestError?.response?.data?.detail;
-      setError(detail || "Could not detect subscriptions.");
+      setError(normalizeApiError(requestError, "Could not detect subscriptions."));
     } finally {
       setLoading(false);
     }

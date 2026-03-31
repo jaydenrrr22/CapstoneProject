@@ -10,9 +10,14 @@ function DesktopDashboard({
   onPeriodChange,
   transactions,
   subscriptionInsight,
+  predictedTransactions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
+
+  const validPredictions = (predictedTransactions || []).filter(
+    (tx) => tx.amount !== null && tx.amount !== undefined
+  );
 
   return (
     <div className="dashboard-shell desktop-shell">
@@ -109,6 +114,26 @@ function DesktopDashboard({
             ))}
 
             {transactions.length === 0 && <p className="muted tx-empty">No transactions yet.</p>}
+          </div>
+        </section>
+
+        <section className="desktop-predicted-panel card-surface">
+          <div className="section-heading">
+            <h3>Upcoming Predicted Transactions</h3>
+          </div>
+          <div className="tx-table simple-list">
+            {validPredictions.length > 0 ? (
+              validPredictions.map((tx) => (
+                <div key={tx.id} className="tx-table-row">
+                  <span>{tx.name}</span>
+                  <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                    {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="muted tx-empty">No predicted transactions.</p>
+            )}
           </div>
         </section>
       </div>

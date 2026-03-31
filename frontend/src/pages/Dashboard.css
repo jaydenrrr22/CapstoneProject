@@ -182,3 +182,40 @@
 .bottom-nav a:hover {
   color: #C9ADA7;
 }
+
+/* --- Predicted Spending Section (matches Transactions styling) --- */
+.predicted-spending-section {
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: #C9ADA7;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+  margin-bottom: 16px;
+}
+
+.predicted-spending-section h3 {
+  margin-top: 0;
+  font-family: 'Itim', cursive;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+/* Individual predicted transaction items */
+.predicted-spending-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.predicted-spending-item:last-child {
+  border-bottom: none;
+}
+
+.predicted-spending-negative {
+  color: #b00020;
+}
+
+.predicted-spending-positive {
+  color: #2e7d32;
+}
