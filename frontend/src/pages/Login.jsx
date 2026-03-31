@@ -3,6 +3,7 @@ import { loginUser } from "../services/authService";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import traceHeaderLogo from "../assets/trace_header.png";
+import { normalizeApiError } from "../utils/normalizeApiError";
 import "./Login.css";
 
 function Login() {
@@ -54,8 +55,9 @@ function Login() {
         error.response?.data || error.message
       );
 
-      const backendDetail = error?.response?.data?.detail;
-      setErrorMessage(backendDetail || "Login failed. Please check your email and password.");
+      setErrorMessage(
+        normalizeApiError(error, "Login failed. Please check your email and password.")
+      );
     } finally {
       setSubmitting(false);
     }

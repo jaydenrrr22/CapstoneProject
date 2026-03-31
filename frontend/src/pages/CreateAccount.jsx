@@ -1,14 +1,9 @@
 import { useState } from "react";
 import "./Login.css";
-
-// Import Create Account function from our Service 
-// This function handles the API call to FastAPI backend
-import { registerUser  } from "../services/authService";
-
-//Route link for navigation
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { registerUser } from "../services/authService";
+import { Link, useNavigate } from "react-router-dom";
 import traceHeaderLogo from "../assets/trace_header.png";
+import { normalizeApiError } from "../utils/normalizeApiError";
 
 function CreateAccount() {
   const navigate = useNavigate();
@@ -29,7 +24,7 @@ function CreateAccount() {
     e.preventDefault();
 
     if (!acceptedTerms) {
-      setErrorMessage("Please accept the terms to continue.");
+      setErrorMessage("You must accept the Terms and Privacy Policy to create an account.");
       return;
     }
 
@@ -37,21 +32,23 @@ function CreateAccount() {
     setSubmitting(true);
 
     try {
-        await registerUser({ 
-            name, email, password 
-        });
-        navigate("/login", { replace: true });
+      await registerUser({
+        name,
+        email,
+        password,
+      });
+      navigate("/login", { replace: true });
     } catch (error) {
-        console.error(
-            "Registration error:",
-            error.response?.data || error.message
-        );
-      const backendDetail = error?.response?.data?.detail;
-      setErrorMessage(backendDetail || "Account creation failed. Try a different email.");
+      console.error(
+        "Registration error:",
+        error.response?.data || error.message
+      );
+      setErrorMessage(
+        normalizeApiError(error, "Account creation failed. Try a different email.")
+      );
     } finally {
       setSubmitting(false);
     }
-    
   };
 
   return (

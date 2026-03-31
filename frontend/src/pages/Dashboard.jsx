@@ -5,6 +5,7 @@ import API from "../services/api";
 import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
+import { normalizeApiError } from "../utils/normalizeApiError";
 
 function Dashboard() {
   const { token } = useAuth();
@@ -115,9 +116,10 @@ function Dashboard() {
       const response = await API.get(`/analytics/financial-health/${period}`);
       setHealth(response.data);
     } catch (error) {
-      const detail = error?.response?.data?.detail;
       setHealth(null);
-      setHealthError(detail || "Unable to load financial health for this period.");
+      setHealthError(
+        normalizeApiError(error, "Unable to load financial health for this period.")
+      );
     } finally {
       setLoadingHealth(false);
     }
