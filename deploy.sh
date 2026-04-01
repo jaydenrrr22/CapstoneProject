@@ -7,7 +7,7 @@ FRONTEND_DIR="$APP_DIR/frontend"
 FRONTEND_DIST_DIR="$FRONTEND_DIR/dist"
 REQUIREMENTS_FILE="$APP_DIR/requirements.txt"
 
-SERVICE_NAME="trace-backend"
+SERVICE_NAME="trace-backend.service"
 BRANCH="main"
 HEALTH_URL="http://127.0.0.1:8000/healthz"
 HEALTH_RETRIES=15
