@@ -17,6 +17,7 @@ LOG_FILE="$APP_DIR/deploy.log"
 ROLLBACK_FILE="$APP_DIR/.last_deploy_commit"
 LOCK_DIR="$APP_DIR/.deploy.lock"
 ROLLBACK_DONE=0
+LOCK_ACQUIRED=0
 
 timestamp() {
     date "+%Y-%m-%d %H:%M:%S"
@@ -43,6 +44,7 @@ acquire_lock() {
     fi
 
     echo "$$" >"$LOCK_DIR/pid"
+    LOCK_ACQUIRED=1
 }
 
 release_lock() {
@@ -50,7 +52,9 @@ release_lock() {
 }
 
 cleanup_on_exit() {
-    release_lock
+    if [ "$LOCK_ACQUIRED" -eq 1 ]; then
+        release_lock
+    fi
 }
 
 trap cleanup_on_exit EXIT INT TERM
