@@ -103,6 +103,12 @@ async def add_request_id(request: Request, call_next):
     return response
 
 
+# ---------- PUBLIC LIVENESS PROBE (unauthenticated, for deployment checks) ----------
+@app.get("/healthz", tags=["Health"])
+def liveness_probe():
+    return {"status": "ok"}
+
+
 # ---------- HEALTH CHECK ----------
 @app.get("/health", tags=["Health"])
 def health_check(
