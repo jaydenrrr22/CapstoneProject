@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
+import ForecastChart from "../forecast/ForecastChart";
 import "./DashboardLayouts.css";
 
 function MobileDashboard({
@@ -10,6 +11,10 @@ function MobileDashboard({
   availablePeriods,
   onPeriodChange,
   transactions,
+  forecastTransactions,
+  loadingForecast,
+  forecastError,
+  selectedBudgetLimit,
   subscriptionInsight,
   predictedTransactions,
 }) {
@@ -81,6 +86,17 @@ function MobileDashboard({
         ) : (
           <p className="muted">Create a budget to unlock financial health insights.</p>
         )}
+      </section>
+
+      <section className="card-surface mobile-forecast-card">
+        <ForecastChart
+          transactions={forecastTransactions}
+          selectedPeriod={selectedPeriod}
+          budgetLimit={selectedBudgetLimit}
+          loading={loadingForecast}
+          error={forecastError}
+          compact
+        />
       </section>
 
       <section className="card-surface mobile-transactions-card">

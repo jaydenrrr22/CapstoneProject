@@ -1,4 +1,5 @@
 import FinancialHealthChart from "../FinancialHealthChart";
+import ForecastChart from "../forecast/ForecastChart";
 import "./DashboardLayouts.css";
 
 function DesktopDashboard({
@@ -9,6 +10,10 @@ function DesktopDashboard({
   availablePeriods,
   onPeriodChange,
   transactions,
+  forecastTransactions,
+  loadingForecast,
+  forecastError,
+  selectedBudgetLimit,
   subscriptionInsight,
   predictedTransactions,
 }) {
@@ -115,6 +120,16 @@ function DesktopDashboard({
 
             {transactions.length === 0 && <p className="muted tx-empty">No transactions yet.</p>}
           </div>
+        </section>
+
+        <section className="desktop-forecast-panel card-surface">
+          <ForecastChart
+            transactions={forecastTransactions}
+            selectedPeriod={selectedPeriod}
+            budgetLimit={selectedBudgetLimit}
+            loading={loadingForecast}
+            error={forecastError}
+          />
         </section>
 
         <section className="desktop-predicted-panel card-surface">
