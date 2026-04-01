@@ -120,8 +120,19 @@ export function addMonths(value, amount) {
     return null;
   }
 
-  const nextDate = new Date(date);
+  const originalDay = date.getDate();
+  const nextDate = new Date(date.getTime());
+
+  // Move to the first of the month before adjusting the month to avoid day overflow,
+  // then clamp the day to the last valid day of the target month.
+  nextDate.setDate(1);
   nextDate.setMonth(nextDate.getMonth() + amount);
+  const lastDayOfMonth = new Date(
+    nextDate.getFullYear(),
+    nextDate.getMonth() + 1,
+    0
+  ).getDate();
+  nextDate.setDate(Math.min(originalDay, lastDayOfMonth));
   nextDate.setHours(0, 0, 0, 0);
   return nextDate;
 }
