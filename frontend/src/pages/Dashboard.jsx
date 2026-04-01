@@ -51,7 +51,7 @@ function Dashboard() {
   );
 
   useEffect(() => {
-    if (!token) return;
+          API.get("/transaction/get", { params: { limit: 1000 } }),
 
     const loadPredictions = async () => {
       setLoadingPredictions(true);
