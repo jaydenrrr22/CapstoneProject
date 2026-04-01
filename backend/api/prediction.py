@@ -1,5 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from backend.api.cache import CACHE, CACHE_TTL
+from backend.api.dependencies.auth import get_current_user
+from backend.api.dependencies.rate_limit import get_rate_limit_dependency
+from backend.api.models.user import User
 import random
 import logging
 import time
@@ -18,16 +22,15 @@ class PredictionRequest(BaseModel):
 
 
 # ---------------- CACHE CONFIG ----------------
-CACHE = {}
-CACHE_TTL = 60  # seconds
-
-
 @router.post("/")
-def run_prediction(data: PredictionRequest):
+def run_prediction(
+    data: PredictionRequest,
+    _rate_limit: None = Depends(get_rate_limit_dependency(times=20, seconds=60)),
+    _current_user: User = Depends(get_current_user)
+):
 
     cache_key = f"{data.amount}:{data.category}"
 
-    # ---------- CACHE CHECK ----------
     if cache_key in CACHE:
         entry = CACHE[cache_key]
 
@@ -36,19 +39,14 @@ def run_prediction(data: PredictionRequest):
 
             cloudwatch.put_metric_data(
                 Namespace="Trace/Prediction",
-                MetricData=[
-                    {
-                        "MetricName": "PredictionCacheHit",
-                        "Value": 1,
-                        "Unit": "Count"
-                    }
-                ]
+                MetricData=[{
+                    "MetricName": "PredictionCacheHit",
+                    "Value": 1,
+                    "Unit": "Count"
+                }]
             )
 
-            return {
-                **entry["response"],
-                "cached": True
-            }
+            return {**entry["response"], "cached": True}
 
         else:
             logger.info("CACHE EXPIRED")
@@ -58,21 +56,18 @@ def run_prediction(data: PredictionRequest):
 
     cloudwatch.put_metric_data(
         Namespace="Trace/Prediction",
-        MetricData=[
-            {
-                "MetricName": "PredictionCacheMiss",
-                "Value": 1,
-                "Unit": "Count"
-            }
-        ]
+        MetricData=[{
+            "MetricName": "PredictionCacheMiss",
+            "Value": 1,
+            "Unit": "Count"
+        }]
     )
 
     start_time = time.time()
 
     try:
-        logger.info(f"Prediction requested: {data}")
+        logger.info(f"Prediction requested")
 
-        # fake ML logic for now
         risk_score = random.uniform(0, 1)
 
         latency = time.time() - start_time
@@ -83,55 +78,35 @@ def run_prediction(data: PredictionRequest):
             "latency": latency
         }
 
-        # -------- STORE IN CACHE --------
         CACHE[cache_key] = {
             "response": response,
             "timestamp": time.time()
         }
 
-        # -------- CloudWatch Metrics (ONLY ON REAL EXECUTION) --------
-
         cloudwatch.put_metric_data(
             Namespace="Trace/Prediction",
             MetricData=[
-                {
-                    "MetricName": "PredictionRequests",
-                    "Value": 1,
-                    "Unit": "Count"
-                },
-                {
-                    "MetricName": "PredictionLatency",
-                    "Value": latency,
-                    "Unit": "Seconds"
-                },
-                {
-                    "MetricName": "PredictionConfidence",
-                    "Value": risk_score,
-                    "Unit": "None"
-                }
+                {"MetricName": "PredictionRequests", "Value": 1, "Unit": "Count"},
+                {"MetricName": "PredictionLatency", "Value": latency, "Unit": "Seconds"},
+                {"MetricName": "PredictionConfidence", "Value": risk_score, "Unit": "None"}
             ]
         )
 
         logger.info(f"Prediction result: {risk_score}")
 
-        return {
-            **response,
-            "cached": False
-        }
+        return {**response, "cached": False}
 
     except Exception as e:
 
         cloudwatch.put_metric_data(
             Namespace="Trace/Prediction",
-            MetricData=[
-                {
-                    "MetricName": "PredictionErrors",
-                    "Value": 1,
-                    "Unit": "Count"
-                }
-            ]
+            MetricData=[{
+                "MetricName": "PredictionErrors",
+                "Value": 1,
+                "Unit": "Count"
+            }]
         )
 
-        logger.error(f"Prediction failure: {str(e)}")
+        logger.exception("Prediction failure")
 
-        raise e
+        raise

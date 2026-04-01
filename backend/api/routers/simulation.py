@@ -92,6 +92,51 @@ def simulate_purchase(
     else:
         risk_level = "Good"
 
+    scenarios = []
+
+    scenarios.append({
+        "scenario_type": "Base Case",
+        "projected_spent_this_period": round(projected_monthly_spend, 2),
+        "remaining_budget_after_purchase": round(remaining_budget, 2),
+        "projected_percentage_used": round(projected_percentage_used, 2),
+        "risk_level": risk_level,
+    })
+
+    best_cost = monthly_cost * 0.85
+    best_projected = current_spent + best_cost
+    best_percentage = (best_projected / current_budget_limit) * 100 if current_budget_limit > 0 else 0
+
+    scenarios.append({
+        "scenario_type": "Best Case",
+        "projected_spent_this_period": round(best_projected, 2),
+        "remaining_budget_after_purchase": round(current_budget_limit - best_projected, 2),
+        "projected_percentage_used": round(best_percentage, 2),
+        "risk_level": "Risk" if best_percentage >= 90 else "Moderate" if best_percentage >= 70 else "Good",
+    })
+
+    worst_cost = monthly_cost * 1.20
+    worst_projected = current_spent + worst_cost
+    worst_percentage = (worst_projected / current_budget_limit) * 100 if current_budget_limit > 0 else 0
+
+    scenarios.append({
+        "scenario_type": "Worst Case",
+        "projected_spent_this_period": round(worst_projected, 2),
+        "remaining_budget_after_purchase": round(current_budget_limit - worst_projected, 2),
+        "projected_percentage_used": round(worst_percentage, 2),
+        "risk_level": "Risk" if worst_percentage >= 90 else "Moderate" if worst_percentage >= 70 else "Good",
+    })
+
+    if projected_percentage_used >= 90:
+        recommendation = (f"Warning: This pushes you to "
+                          f"{round(projected_percentage_used, 1)}% of the budget. Strongly advise delaying.")
+        confidence_level = 0.95
+    elif worst_percentage >= 90:
+        recommendation = "Proceed with caution. The base cost is fine, but unexpected fees will put you over budget."
+        confidence_level = 0.82
+    else:
+        recommendation = "This purchase is safe. You will remain within your budget."
+        confidence_level = 0.88
+
     return {
         "projected_monthly_cost": round(monthly_cost, 2),
         "projected_yearly_cost": round(yearly_cost, 2),
@@ -101,5 +146,8 @@ def simulate_purchase(
         "current_percentage_used": round(current_percentage_used, 2),
         "projected_percentage_used": round(projected_percentage_used, 2),
         "remaining_budget_after_purchase": round(remaining_budget, 2),
-        "risk_level": risk_level
+        "risk_level": risk_level,
+        "confidence_level": confidence_level,
+        "recommendation": recommendation,
+        "scenarios": scenarios,
     }
