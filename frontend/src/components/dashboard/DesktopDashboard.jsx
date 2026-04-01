@@ -1,4 +1,5 @@
 import FinancialHealthChart from "../FinancialHealthChart";
+import ForecastChart from "../forecast/ForecastChart";
 import "./DashboardLayouts.css";
 
 function DesktopDashboard({
@@ -9,6 +10,10 @@ function DesktopDashboard({
   availablePeriods,
   onPeriodChange,
   transactions,
+  forecastTransactions,
+  loadingForecast,
+  forecastError,
+  selectedBudgetLimit,
   subscriptionInsight,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
@@ -110,6 +115,16 @@ function DesktopDashboard({
 
             {transactions.length === 0 && <p className="muted tx-empty">No transactions yet.</p>}
           </div>
+        </section>
+
+        <section className="desktop-forecast-panel card-surface">
+          <ForecastChart
+            transactions={forecastTransactions}
+            selectedPeriod={selectedPeriod}
+            budgetLimit={selectedBudgetLimit}
+            loading={loadingForecast}
+            error={forecastError}
+          />
         </section>
       </div>
     </div>
