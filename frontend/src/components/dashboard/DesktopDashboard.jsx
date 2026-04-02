@@ -20,6 +20,7 @@ function DesktopDashboard({
   predictedTransactions,
   loadingPredictions,
   predictionError,
+  onRetryPredictions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
@@ -137,6 +138,7 @@ function DesktopDashboard({
             transactions={predictedTransactions}
             loading={loadingPredictions}
             error={predictionError}
+            onRetry={onRetryPredictions}
           />
         </section>
       </div>

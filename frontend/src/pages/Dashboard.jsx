@@ -68,39 +68,46 @@ function Dashboard() {
     [transactions]
   );
 
-  useEffect(() => {
+  const loadPredictions = useCallback(async () => {
     if (isDemoMode) {
       setLoadingPredictions(false);
       setPredictionError("");
+      setPredictions(currentDataset?.predictions || []);
       return;
     }
 
-    const loadPredictions = async () => {
-      setLoadingPredictions(true);
-      setPredictionError("");
+    setLoadingPredictions(true);
+    setPredictionError("");
 
-      try {
-        const response = await API.get("/prediction/history");
+    try {
+      const response = await API.get("/prediction/history");
 
-        const mapped = (response.data || []).map((item, index) => ({
-          id: item.id || `pred-${index}`,
-          name: item.target_data || "Predicted Transaction",
-          amount: Number(item.predicted_spending) || 0,
-        }));
+      const mapped = (response.data || []).map((item, index) => ({
+        id: item.id || `pred-${index}`,
+        name: item.target_data || "Predicted Transaction",
+        amount: Number(item.predicted_spending) || 0,
+      }));
 
-        setPredictions(mapped);
-      } catch (error) {
-        setPredictionError(
-          normalizeApiError(error, "Failed to load predicted transactions.")
-        );
-        setPredictions([]);
-      } finally {
-        setLoadingPredictions(false);
-      }
-    };
+      setPredictions(mapped);
+    } catch (error) {
+      setPredictionError(
+        normalizeApiError(error, "Failed to load predicted transactions.")
+      );
+      setPredictions([]);
+    } finally {
+      setLoadingPredictions(false);
+    }
+  }, [
+    currentDataset,
+    isDemoMode,
+    setPredictions,
+    setLoadingPredictions,
+    setPredictionError,
+  ]);
 
+  useEffect(() => {
     loadPredictions();
-  }, [isDemoMode, token, setPredictions, setLoadingPredictions, setPredictionError]);
+  }, [loadPredictions, token]);
 
   const loadSubscriptionInsight = useCallback(async () => {
     if (isDemoMode) {
@@ -316,6 +323,7 @@ function Dashboard() {
           predictedTransactions={activePredictions}
           loadingPredictions={activeLoadingPredictions}
           predictionError={activePredictionError}
+          onRetryPredictions={loadPredictions}
         />
         <DemoWalkthrough />
       </>
@@ -340,6 +348,7 @@ function Dashboard() {
         predictedTransactions={activePredictions}
         loadingPredictions={activeLoadingPredictions}
         predictionError={activePredictionError}
+        onRetryPredictions={loadPredictions}
       />
       <DemoWalkthrough />
     </>

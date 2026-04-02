@@ -21,6 +21,7 @@ function MobileDashboard({
   predictedTransactions,
   loadingPredictions,
   predictionError,
+  onRetryPredictions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
@@ -123,6 +124,7 @@ function MobileDashboard({
           transactions={predictedTransactions}
           loading={loadingPredictions}
           error={predictionError}
+          onRetry={onRetryPredictions}
           defaultExpanded={false}
         />
       </section>
