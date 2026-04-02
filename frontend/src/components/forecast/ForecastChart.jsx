@@ -10,6 +10,8 @@ import {
   YAxis,
 } from "recharts";
 import useForecastData from "../../hooks/useForecastData";
+import InsightCard from "../insight/InsightCard";
+import { ForecastIcon } from "../insight/InsightIcons";
 import {
   FORECAST_HORIZONS,
   formatCurrency,
@@ -96,14 +98,23 @@ function ForecastChart({
     });
   };
 
-  return (
-    <section className="forecast-card">
-      <div className="forecast-header">
-        <div className="forecast-header-copy">
-          <h3>Forecast</h3>
-          <p>Historical spending stays solid while the projection animates forward from the latest recorded point.</p>
-        </div>
+  const forecastStatus = error
+    ? "negative"
+    : forecast.projectedDelta > 0
+      ? "warning"
+      : forecast.projectedDelta < 0
+        ? "positive"
+        : "neutral";
 
+  return (
+    <InsightCard
+      title="Forecast Outlook"
+      value={loading ? "Loading..." : error ? "Unavailable" : formatCurrencyDelta(forecast.projectedDelta)}
+      description="Historical spending holds steady while the projection extends from the latest observed point."
+      status={forecastStatus}
+      icon={<ForecastIcon />}
+      collapsible={false}
+      action={(
         <div className="forecast-toggle" role="tablist" aria-label="Forecast horizon">
           {FORECAST_HORIZONS.map((option) => (
             <button
@@ -117,8 +128,8 @@ function ForecastChart({
             </button>
           ))}
         </div>
-      </div>
-
+      )}
+    >
       {loading ? (
         <ForecastSkeleton compact={compact} />
       ) : error ? (
@@ -222,7 +233,7 @@ function ForecastChart({
           </div>
         </>
       )}
-    </section>
+    </InsightCard>
   );
 }
 

@@ -5,20 +5,31 @@ const rawApiBase = import.meta.env.VITE_API_BASE_URL || "/api";
 
 let apiBaseUrl = rawApiBase;
 
-if (rawApiBase.startsWith("http://")) {
+if (!import.meta.env.DEV) {
+  const isLoopbackBase =
+    rawApiBase.includes("127.0.0.1") ||
+    rawApiBase.includes("localhost") ||
+    rawApiBase.includes("[::1]") ||
+    rawApiBase.includes("::1");
+
+  if (isLoopbackBase) {
+    apiBaseUrl = "/api";
+  }
+}
+
+if (apiBaseUrl.startsWith("http://")) {
   try {
-    const url = new URL(rawApiBase);
+    const url = new URL(apiBaseUrl);
     const hostname = url.hostname;
     const isLocalhost =
       hostname === "localhost" || hostname === "127.0.0.1";
 
     // Only enforce HTTPS in non-dev, non-localhost contexts
     if (!import.meta.env.DEV && !isLocalhost) {
-      apiBaseUrl = rawApiBase.replace("http://", "https://");
+      apiBaseUrl = apiBaseUrl.replace("http://", "https://");
     }
   } catch {
-    // If parsing fails, leave the base URL unchanged
-    apiBaseUrl = rawApiBase;
+    // If parsing fails, leave the base URL unchanged.
   }
 }
 const API = axios.create({
