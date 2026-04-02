@@ -78,11 +78,6 @@ function DesktopDashboard({
 
               <FinancialHealthChart
                 score={health.score}
-                width={360}
-                height={220}
-                innerRadius={86}
-                outerRadius={108}
-                labelSize={38}
               />
 
               <div className="health-metrics-grid">

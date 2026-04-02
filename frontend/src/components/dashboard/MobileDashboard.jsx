@@ -78,11 +78,6 @@ function MobileDashboard({
 
             <FinancialHealthChart
               score={health.score}
-              width={250}
-              height={160}
-              innerRadius={64}
-              outerRadius={84}
-              labelSize={28}
             />
           </>
         ) : (
