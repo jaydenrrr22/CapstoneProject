@@ -1,4 +1,4 @@
-from . import user, transaction, subscription, budget, simulation, analytics, insight, summary, prediction
+from . import user, transaction, subscription, budget, simulation, analytics, insight, summary, prediction, dataset
 from fastapi import Depends
 from backend.api.dependencies.rate_limit import get_rate_limit_dependency
 
@@ -17,3 +17,4 @@ def load_routes(app):
     app.include_router(insight.router, dependencies=[rate_limit])
     app.include_router(summary.router, dependencies=[rate_limit])
     app.include_router(prediction.router, dependencies=[rate_limit])
+    app.include_router(dataset.router, dependencies=[rate_limit])
