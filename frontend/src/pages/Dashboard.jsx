@@ -6,12 +6,18 @@ import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import { normalizeApiError } from "../utils/normalizeApiError";
-import { useIntelligence } from "../context/IntelligenceContext";
+import useIntelligence from "../hooks/useIntelligence";
+import useDemoMode from "../hooks/useDemoMode";
+import { buildDemoHealth, getAvailablePeriods, getBudgetLimitMap, getSubscriptionInsight } from "../demo/demoUtils";
+import DemoWalkthrough from "../components/demo/DemoWalkthrough";
 
 function Dashboard() {
   const { token } = useAuth();
+  const { currentDataset, isDemoMode } = useDemoMode();
   const {
     predictions,
+    loadingPredictions,
+    predictionError,
     setPredictions,
     setLoadingPredictions,
     setPredictionError,
@@ -36,6 +42,18 @@ function Dashboard() {
     totalMonthly: 0,
   });
 
+  const demoBudgetMap = useMemo(
+    () => getBudgetLimitMap(currentDataset?.budget || []),
+    [currentDataset]
+  );
+  const demoAvailablePeriods = useMemo(
+    () => getAvailablePeriods(currentDataset?.budget || []),
+    [currentDataset]
+  );
+  const activePredictions = isDemoMode ? currentDataset?.predictions || [] : predictions;
+  const activeLoadingPredictions = isDemoMode ? false : loadingPredictions;
+  const activePredictionError = isDemoMode ? "" : predictionError;
+
   const recentTransactions = useMemo(
     () =>
       transactions
@@ -50,37 +68,53 @@ function Dashboard() {
     [transactions]
   );
 
-  useEffect(() => {
-          API.get("/transaction/get", { params: { limit: 1000 } }),
-
-    const loadPredictions = async () => {
-      setLoadingPredictions(true);
+  const loadPredictions = useCallback(async () => {
+    if (isDemoMode) {
+      setLoadingPredictions(false);
       setPredictionError("");
+      setPredictions(currentDataset?.predictions || []);
+      return;
+    }
 
-      try {
-        const response = await API.get("/prediction/history");
+    setLoadingPredictions(true);
+    setPredictionError("");
 
-        const mapped = (response.data || []).map((item, index) => ({
-          id: item.id || `pred-${index}`,
-          name: item.target_data || "Predicted Transaction",
-          amount: Number(item.predicted_spending) || 0,
-        }));
+    try {
+      const response = await API.get("/prediction/history");
 
-        setPredictions(mapped);
-      } catch (error) {
-        setPredictionError(
-          normalizeApiError(error, "Failed to load predicted transactions.")
-        );
-        setPredictions([]);
-      } finally {
-        setLoadingPredictions(false);
-      }
-    };
+      const mapped = (response.data || []).map((item, index) => ({
+        id: item.id || `pred-${index}`,
+        name: item.target_data || "Predicted Transaction",
+        amount: Number(item.predicted_spending) || 0,
+      }));
 
+      setPredictions(mapped);
+    } catch (error) {
+      setPredictionError(
+        normalizeApiError(error, "Failed to load predicted transactions.")
+      );
+      setPredictions([]);
+    } finally {
+      setLoadingPredictions(false);
+    }
+  }, [
+    currentDataset,
+    isDemoMode,
+    setPredictions,
+    setLoadingPredictions,
+    setPredictionError,
+  ]);
+
+  useEffect(() => {
     loadPredictions();
-  }, [token, setPredictions, setLoadingPredictions, setPredictionError]);
+  }, [loadPredictions, token]);
 
   const loadSubscriptionInsight = useCallback(async () => {
+    if (isDemoMode) {
+      setSubscriptionInsight(getSubscriptionInsight(currentDataset?.subscriptions || []));
+      return;
+    }
+
     try {
       const response = await API.get("/subscription/detect");
       const subscriptions = response.data || [];
@@ -99,7 +133,7 @@ function Dashboard() {
         totalMonthly: 0,
       });
     }
-  }, []);
+  }, [currentDataset, isDemoMode]);
 
   const loadBaseDashboardData = useCallback(
     async (preferredPeriod = "", shouldSyncSelectedPeriod = true) => {
@@ -194,25 +228,46 @@ function Dashboard() {
   );
 
   useEffect(() => {
+    if (isDemoMode) {
+      setLoadingBaseData(false);
+      setBaseDataError("");
+      setAvailablePeriods(demoAvailablePeriods);
+      setBudgetLimitsByPeriod(demoBudgetMap);
+      setTransactions(currentDataset?.transactions || []);
+      setSubscriptionInsight(getSubscriptionInsight(currentDataset?.subscriptions || []));
+      setSelectedPeriod((current) =>
+        demoAvailablePeriods.includes(current) ? current : demoAvailablePeriods[0] || ""
+      );
+      return;
+    }
+
     if (!token) {
       setLoadingHealth(false);
       return;
     }
 
-    loadBaseDashboardData(selectedPeriod);
-  }, [loadBaseDashboardData, token]);
+    loadBaseDashboardData();
+  }, [currentDataset, demoAvailablePeriods, demoBudgetMap, isDemoMode, loadBaseDashboardData, token]);
 
   useEffect(() => {
+    if (isDemoMode) {
+      setLoadingHealth(true);
+      setHealthError("");
+      setHealth(buildDemoHealth(selectedPeriod, demoBudgetMap, currentDataset?.transactions || []));
+      setLoadingHealth(false);
+      return;
+    }
+
     if (skipNextHealthLoadRef.current) {
       skipNextHealthLoadRef.current = false;
       return;
     }
 
     loadHealth(selectedPeriod);
-  }, [loadHealth, selectedPeriod]);
+  }, [currentDataset, demoBudgetMap, isDemoMode, loadHealth, selectedPeriod]);
 
   useEffect(() => {
-    if (!token) return;
+    if (isDemoMode || !token) return;
 
     const handleDashboardRefresh = async () => {
       const resolvedPeriod = await loadBaseDashboardData(
@@ -241,22 +296,48 @@ function Dashboard() {
         handleDashboardRefresh
       );
     };
-  }, [loadBaseDashboardData, loadHealth, selectedPeriod, token]);
+  }, [isDemoMode, loadBaseDashboardData, loadHealth, selectedPeriod, token]);
 
   const selectedBudgetLimit = selectedPeriod
-    ? budgetLimitsByPeriod[selectedPeriod] ?? null
+    ? (isDemoMode ? demoBudgetMap[selectedPeriod] : budgetLimitsByPeriod[selectedPeriod]) ?? null
     : null;
 
-  const forecastError = !loadingBaseData ? baseDataError : "";
+  const forecastError = isDemoMode ? "" : !loadingBaseData ? baseDataError : "";
 
   if (isMobile) {
     return (
-      <MobileDashboard
+      <>
+        <MobileDashboard
+          loadingHealth={loadingHealth}
+          healthError={healthError}
+          health={health}
+          selectedPeriod={selectedPeriod}
+          availablePeriods={isDemoMode ? demoAvailablePeriods : availablePeriods}
+          onPeriodChange={setSelectedPeriod}
+          transactions={recentTransactions}
+          forecastTransactions={transactions}
+          loadingForecast={loadingBaseData}
+          forecastError={forecastError}
+          selectedBudgetLimit={selectedBudgetLimit}
+          subscriptionInsight={subscriptionInsight}
+          predictedTransactions={activePredictions}
+          loadingPredictions={activeLoadingPredictions}
+          predictionError={activePredictionError}
+          onRetryPredictions={loadPredictions}
+        />
+        <DemoWalkthrough />
+      </>
+    );
+  }
+
+  return (
+    <>
+      <DesktopDashboard
         loadingHealth={loadingHealth}
         healthError={healthError}
         health={health}
         selectedPeriod={selectedPeriod}
-        availablePeriods={availablePeriods}
+        availablePeriods={isDemoMode ? demoAvailablePeriods : availablePeriods}
         onPeriodChange={setSelectedPeriod}
         transactions={recentTransactions}
         forecastTransactions={transactions}
@@ -264,27 +345,13 @@ function Dashboard() {
         forecastError={forecastError}
         selectedBudgetLimit={selectedBudgetLimit}
         subscriptionInsight={subscriptionInsight}
-        predictedTransactions={predictions}
+        predictedTransactions={activePredictions}
+        loadingPredictions={activeLoadingPredictions}
+        predictionError={activePredictionError}
+        onRetryPredictions={loadPredictions}
       />
-    );
-  }
-
-  return (
-    <DesktopDashboard
-      loadingHealth={loadingHealth}
-      healthError={healthError}
-      health={health}
-      selectedPeriod={selectedPeriod}
-      availablePeriods={availablePeriods}
-      onPeriodChange={setSelectedPeriod}
-      transactions={recentTransactions}
-      forecastTransactions={transactions}
-      loadingForecast={loadingBaseData}
-      forecastError={forecastError}
-      selectedBudgetLimit={selectedBudgetLimit}
-      subscriptionInsight={subscriptionInsight}
-      predictedTransactions={predictions}
-    />
+      <DemoWalkthrough />
+    </>
   );
 }
 

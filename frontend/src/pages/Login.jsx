@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { loginUser } from "../services/authService";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import useDemoMode from "../hooks/useDemoMode";
 import traceHeaderLogo from "../assets/trace_header.png";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import "./Login.css";
@@ -10,6 +11,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { needsModeSelection } = useDemoMode();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +48,9 @@ function Login() {
 
       console.log("Login successful:", data);
 
-      const destination = location.state?.from?.pathname || "/dashboard";
+      const destination = needsModeSelection
+        ? "/mode-select"
+        : location.state?.from?.pathname || "/dashboard";
       navigate(destination, { replace: true });
 
     } catch (error) {

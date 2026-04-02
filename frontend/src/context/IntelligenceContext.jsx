@@ -1,6 +1,5 @@
-import { createContext, useContext, useMemo, useState } from "react";
-
-const IntelligenceContext = createContext();
+import { useMemo, useState } from "react";
+import { IntelligenceContext } from "./intelligenceContext";
 
 export const IntelligenceProvider = ({ children }) => {
   const [predictions, setPredictions] = useState(null);
@@ -28,8 +27,4 @@ export const IntelligenceProvider = ({ children }) => {
       {children}
     </IntelligenceContext.Provider>
   );
-};
-
-export const useIntelligence = () => {
-  return useContext(IntelligenceContext);
 };

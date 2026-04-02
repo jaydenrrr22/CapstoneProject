@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Routes, Route, useLocation } from "react-route
 import Login from "./pages/Login";
 import CreateAccount from "./pages/CreateAccount";
 import Dashboard from "./pages/Dashboard";
+import IntelligenceDashboard from "./pages/IntelligenceDashboard";
+import ModeSelection from "./pages/ModeSelection";
 import Subscriptions from "./pages/Subscriptions";
 import Budgets from "./pages/Budgets";
 import Team from "./pages/Team";
@@ -16,7 +18,7 @@ import Footer from "./components/Footer";
 
 function AppRoutes() {
   const location = useLocation();
-  const hideChrome = ["/", "/login", "/signup"].includes(location.pathname);
+  const hideChrome = ["/", "/login", "/signup", "/mode-select"].includes(location.pathname);
 
   return (
     <>
@@ -51,10 +53,26 @@ function AppRoutes() {
           )}
         />
         <Route
+          path="/mode-select"
+          element={(
+            <ProtectedRoute>
+              <ModeSelection />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
           path="/dashboard"
           element={(
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          )}
+        />
+        <Route
+          path="/intelligence"
+          element={(
+            <ProtectedRoute>
+              <IntelligenceDashboard />
             </ProtectedRoute>
           )}
         />

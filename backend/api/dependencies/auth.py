@@ -9,11 +9,22 @@ from backend.api.dependencies.database import get_db
 
 security = HTTPBearer(auto_error=False)
 
+MAX_BCRYPT_PASSWORD_BYTES = 72
+
+
+def validate_bcrypt_password(password: str) -> None:
+    if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise ValueError(
+            "Password cannot be longer than 72 bytes. Please use a shorter password."
+        )
+
 def get_password_hash(password: str) -> str:
+    validate_bcrypt_password(password)
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    validate_bcrypt_password(plain_password)
     return bcrypt.checkpw(
         plain_password.encode('utf-8'),
         hashed_password.encode('utf-8')

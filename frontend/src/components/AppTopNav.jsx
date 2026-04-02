@@ -5,6 +5,7 @@ import "./AppTopNav.css";
 
 const TITLE_BY_PATH = {
   "/dashboard": "Dashboard",
+  "/intelligence": "Intelligence Overview",
   "/transactions": "Transactions",
   "/transaction": "Transactions",
   "/subscriptions": "Subscriptions",
@@ -38,6 +39,7 @@ function AppTopNav() {
           {isAuthenticated ? (
             <>
               <NavLink to="/dashboard">Home</NavLink>
+              <NavLink to="/intelligence">Intelligence</NavLink>
               <NavLink to="/transactions">Transactions</NavLink>
               <NavLink to="/subscriptions">Subscriptions</NavLink>
               <NavLink to="/budgets">Budgets</NavLink>
