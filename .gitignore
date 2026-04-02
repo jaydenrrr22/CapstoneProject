@@ -1,7 +1,11 @@
 venv/
+.venv/
 
 __pycache__/
 *.pyc
+.idea/
+.DS_Store
+desktop.ini
 
 node_modules/
 frontend/node_modules/

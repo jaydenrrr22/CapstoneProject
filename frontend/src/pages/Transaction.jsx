@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import API from "../services/api";
-import DecisionImpactModal from "../components/DecisionImpactModal";
+import DecisionModal from "../components/DecisionModal";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
+import { buildDecisionSimulationModel } from "../utils/decisionSimulation";
 
 const TransactionPage = () => {
   
@@ -18,7 +19,7 @@ const TransactionPage = () => {
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState("monthly");
   const [keywords, setKeywords] = useState("");
-  const [aiSummary, setAiSummary] = useState("");
+  const [decisionSummary, setDecisionSummary] = useState("");
   const [formData, setFormData] = useState({
     store_name: "",
     cost: "",
@@ -33,29 +34,18 @@ const TransactionPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [simulation, setSimulation] = useState(null);
   const [loadingSim, setLoadingSim] = useState(false);
+  const [simulationError, setSimulationError] = useState("");
   const [deletingTransactionId, setDeletingTransactionId] = useState(null);
 
-  const buildPurchaseSummary = (payload, simulationData = null) => {
-    const keywordList = keywords
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean);
-
+  const buildDecisionSummary = (payload, simulationModel = null) => {
     const cadence = isRecurring ? `recurring ${recurringFrequency}` : "one-time";
     const action = transactionType === "deposit" ? "deposit" : "purchase";
     const amountLabel = `$${Math.abs(Number(payload.cost || 0)).toFixed(2)}`;
     const storeLabel = payload.store_name || "this merchant";
     const categoryLabel = payload.category || "Uncategorized";
+    const detail = simulationModel?.recommendation?.headline || "Preview generated successfully.";
 
-    const usageText = simulationData
-      ? `Projected budget usage moves from ${Number(simulationData.current_percentage_used || 0).toFixed(1)}% to ${Number(simulationData.projected_percentage_used || 0).toFixed(1)}%.`
-      : "Budget impact preview is currently unavailable.";
-
-    const keywordText = keywordList.length > 0
-      ? ` Keywords: ${keywordList.join(", ")}.`
-      : "";
-
-    return `AI summary: ${amountLabel} ${cadence} ${action} at ${storeLabel} in ${categoryLabel}.${keywordText} ${usageText}`;
+    return `${amountLabel} ${cadence} ${action} at ${storeLabel} in ${categoryLabel}. ${detail}`;
   };
 
   const loadTransactions = async () => {
@@ -98,6 +88,9 @@ const TransactionPage = () => {
       setRecurringFrequency("monthly");
       setKeywords("");
       setPendingTransaction(null);
+      setDecisionSummary("");
+      setSimulation(null);
+      setSimulationError("");
     } catch (error) {
       setSubmitError(normalizeApiError(error, "Unable to create transaction."));
       throw error;
@@ -109,6 +102,7 @@ const TransactionPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitError("");
+    setSimulationError("");
 
     const enteredCost = Number(formData.cost);
     const normalizedCategory = transactionType === "deposit"
@@ -146,34 +140,17 @@ const TransactionPage = () => {
         frequency: isRecurring ? recurringFrequency : "one_time",
       });
 
-      const data = response.data;
-      const toScore = (percentageUsed) => {
-        const raw = 100 - Number(percentageUsed || 0);
-        return Math.max(0, Math.min(100, Math.round(raw)));
-      };
-
-      const currentScore = toScore(data.current_percentage_used);
-      const projectedScore = toScore(data.projected_percentage_used);
-      const riskDelta = projectedScore - currentScore;
-      const summary = buildPurchaseSummary(payload, data);
-
-      setSimulation({
-        projectedCost: data.projected_yearly_cost,
-        healthScoreChange: riskDelta,
-        aiSummary: summary,
-        overlappingSubscription: null,
+      const simulationModel = buildDecisionSimulationModel({
+        transactions,
+        pendingTransaction: payload,
+        apiSimulation: response.data,
       });
-      setAiSummary(summary);
+
+      setSimulation(simulationModel);
+      setDecisionSummary(buildDecisionSummary(payload, simulationModel));
     } catch (error) {
-      setSubmitError(normalizeApiError(error, "Could not simulate impact. You can still continue."));
-      const summary = buildPurchaseSummary(payload);
-      setSimulation({
-        projectedCost: 0,
-        healthScoreChange: 0,
-        aiSummary: summary,
-        overlappingSubscription: null,
-      });
-      setAiSummary(summary);
+      setSimulationError(normalizeApiError(error, "Could not simulate impact. You can still continue."));
+      setDecisionSummary(buildDecisionSummary(payload));
     } finally {
       setLoadingSim(false);
     }
@@ -324,10 +301,10 @@ const TransactionPage = () => {
               {loadingSim ? "Simulating..." : saving ? "Saving..." : "Preview Impact"}
             </button>
 
-            {aiSummary && (
+            {decisionSummary && (
               <div className="subpage-metric-card">
-                <h4>AI Purchase Summary</h4>
-                <p>{aiSummary}</p>
+                <h4>Decision Summary</h4>
+                <p>{decisionSummary}</p>
               </div>
             )}
           </form>
@@ -396,18 +373,26 @@ const TransactionPage = () => {
         </section>
       </div>
 
-      <DecisionImpactModal
+      <DecisionModal
         open={modalOpen}
         loading={loadingSim || saving}
+        error={simulationError}
         simulation={simulation}
+        title={pendingTransaction?.store_name ? `Preview ${pendingTransaction.store_name}` : "Preview this decision"}
+        confirmLabel={simulationError ? "Confirm Anyway" : "Confirm Action"}
         onCancel={() => {
           if (loadingSim || saving) {
             return;
           }
           setModalOpen(false);
         }}
+        onAdjust={() => {
+          if (loadingSim || saving) {
+            return;
+          }
+          setModalOpen(false);
+        }}
         onConfirm={async () => {
-          // Prevent duplicate submissions if already loading or saving
           if (loadingSim || saving || !pendingTransaction) {
             return;
           }

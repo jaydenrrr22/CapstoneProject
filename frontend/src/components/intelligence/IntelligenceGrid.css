@@ -1,0 +1,52 @@
+.intelligence-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.05fr) minmax(340px, 1.35fr);
+  grid-template-areas:
+    "hero hero"
+    "forecast chart"
+    "anomalies chart"
+    "subscriptions predictions";
+  gap: 16px;
+  align-items: start;
+}
+
+.intelligence-panel {
+  min-width: 0;
+}
+
+.intelligence-panel--hero {
+  grid-area: hero;
+}
+
+.intelligence-panel--forecast {
+  grid-area: forecast;
+}
+
+.intelligence-panel--chart {
+  grid-area: chart;
+}
+
+.intelligence-panel--anomalies {
+  grid-area: anomalies;
+}
+
+.intelligence-panel--subscriptions {
+  grid-area: subscriptions;
+}
+
+.intelligence-panel--predictions {
+  grid-area: predictions;
+}
+
+@media (max-width: 1024px) {
+  .intelligence-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hero"
+      "forecast"
+      "chart"
+      "anomalies"
+      "subscriptions"
+      "predictions";
+  }
+}

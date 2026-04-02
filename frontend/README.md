@@ -45,6 +45,9 @@ This is required for the frontend to communicate with the backend during local d
 If you run the frontend behind a local reverse proxy or configure a Vite dev-server proxy that forwards `/api` to the backend, you may instead set:
 
 VITE_API_BASE_URL=/api
+
+Production note:
+Never point `VITE_API_BASE_URL` at `127.0.0.1` or `localhost` for deployed builds. In production, the frontend should call `/api` so Nginx can proxy requests to the backend on the server.
 Note: This file is not tracked by Git. Each developer must create their own .env file.
 
 You can copy from .env.example if available:
