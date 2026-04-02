@@ -14,7 +14,8 @@ const TransactionPage = () => {
   const [loadingList, setLoadingList] = useState(true);
   const [listError, setListError] = useState("");
 
-  const [filter, setFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [monthFilter, setMonthFilter] = useState("All");
   const [transactionType, setTransactionType] = useState("spend");
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState("monthly");
@@ -36,6 +37,14 @@ const TransactionPage = () => {
   const [loadingSim, setLoadingSim] = useState(false);
   const [simulationError, setSimulationError] = useState("");
   const [deletingTransactionId, setDeletingTransactionId] = useState(null);
+  const [editingTransactionId, setEditingTransactionId] = useState(null);
+  const [editingTransactionData, setEditingTransactionData] = useState({
+    store_name: "",
+    cost: "",
+    date: "",
+    category: "Other",
+  });
+  const [updatingTransactionId, setUpdatingTransactionId] = useState(null);
 
   const buildDecisionSummary = (payload, simulationModel = null) => {
     const cadence = isRecurring ? `recurring ${recurringFrequency}` : "one-time";
@@ -157,14 +166,28 @@ const TransactionPage = () => {
   };
 
   const filteredTransactions = useMemo(() => (
-    filter === "All"
-      ? transactions
-      : transactions.filter((transaction) => transaction.category === filter)
-  ), [filter, transactions]);
+    transactions.filter((transaction) => {
+      const categoryMatches = categoryFilter === "All"
+        || (transaction.category || "Other") === categoryFilter;
+      const monthMatches = monthFilter === "All"
+        || String(transaction.date).slice(0, 7) === monthFilter;
+      return categoryMatches && monthMatches;
+    })
+  ), [categoryFilter, monthFilter, transactions]);
 
   const availableCategories = useMemo(() => {
     const categories = new Set(transactions.map((transaction) => transaction.category || "Other"));
     return ["All", ...Array.from(categories).sort((a, b) => a.localeCompare(b))];
+  }, [transactions]);
+
+  const availableMonths = useMemo(() => {
+    const months = new Set(
+      transactions
+        .map((transaction) => String(transaction.date).slice(0, 7))
+        .filter((value) => /^\d{4}-\d{2}$/.test(value))
+    );
+
+    return ["All", ...Array.from(months).sort((a, b) => b.localeCompare(a))];
   }, [transactions]);
 
   const deleteTransaction = async (transactionId) => {
@@ -183,6 +206,58 @@ const TransactionPage = () => {
       setSubmitError(normalizeApiError(error, "Unable to delete transaction."));
     } finally {
       setDeletingTransactionId(null);
+    }
+  };
+
+  const startEditingTransaction = (transaction) => {
+    setSubmitError("");
+    setEditingTransactionId(transaction.id);
+    setEditingTransactionData({
+      store_name: transaction.store_name || "",
+      cost: String(Math.abs(Number(transaction.cost || 0)).toFixed(2)),
+      date: String(transaction.date).slice(0, 10),
+      category: transaction.category || "Other",
+    });
+  };
+
+  const cancelEditingTransaction = () => {
+    setEditingTransactionId(null);
+    setEditingTransactionData({
+      store_name: "",
+      cost: "",
+      date: "",
+      category: "Other",
+    });
+  };
+
+  const saveEditedTransaction = async (transaction) => {
+    const enteredCost = Number(editingTransactionData.cost);
+    const trimmedStore = editingTransactionData.store_name.trim();
+    const selectedCategory = editingTransactionData.category || "Other";
+    const signedCost = Number(transaction.cost) < 0 ? -Math.abs(enteredCost) : Math.abs(enteredCost);
+
+    if (!trimmedStore || !editingTransactionData.date || !Number.isFinite(enteredCost) || enteredCost <= 0) {
+      setSubmitError("Please enter a valid store, date, and amount greater than 0.");
+      return;
+    }
+
+    setSubmitError("");
+    setUpdatingTransactionId(transaction.id);
+
+    try {
+      await API.put(`/transaction/update/${transaction.id}`, {
+        store_name: trimmedStore,
+        cost: signedCost,
+        date: editingTransactionData.date,
+        category: selectedCategory,
+      });
+      await loadTransactions();
+      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
+      cancelEditingTransaction();
+    } catch (error) {
+      setSubmitError(normalizeApiError(error, "Unable to update transaction."));
+    } finally {
+      setUpdatingTransactionId(null);
     }
   };
 
@@ -316,10 +391,16 @@ const TransactionPage = () => {
           </div>
 
           <div className="subpage-filter-row">
-            <label>Filter:</label>
-            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <label>Category:</label>
+            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
               {availableCategories.map((category) => (
                 <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+            <label>Month:</label>
+            <select value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)}>
+              {availableMonths.map((monthOption) => (
+                <option key={monthOption} value={monthOption}>{monthOption}</option>
               ))}
             </select>
           </div>
@@ -339,22 +420,129 @@ const TransactionPage = () => {
               </div>
 
               {filteredTransactions.map((t) => {
+                const isEditing = editingTransactionId === t.id;
+                const isRowBusy = deletingTransactionId === t.id || updatingTransactionId === t.id;
+
                 return (
                   <div key={t.id} className="subpage-table-row transactions-table-row">
-                    <span>{t.category || "Other"}</span>
-                    <span>{t.store_name}</span>
-                    <span className={Number(t.cost) > 0 ? "tx-negative" : "tx-positive"}>{currency(t.cost)}</span>
-                    <span>{String(t.date).slice(0, 10)}</span>
                     <span>
+                      {isEditing ? (
+                        <select
+                          className="subpage-inline-input"
+                          value={editingTransactionData.category}
+                          onChange={(event) => (
+                            setEditingTransactionData((previous) => ({
+                              ...previous,
+                              category: event.target.value,
+                            }))
+                          )}
+                        >
+                          <option value="Other">Other</option>
+                          <option value="Groceries">Groceries</option>
+                          <option value="Dining">Dining</option>
+                          <option value="Transportation">Transportation</option>
+                          <option value="Entertainment">Entertainment</option>
+                          <option value="Utilities">Utilities</option>
+                          <option value="Income">Income</option>
+                          <option value="Gas">Gas</option>
+                        </select>
+                      ) : (
+                        t.category || "Other"
+                      )}
+                    </span>
+                    <span>
+                      {isEditing ? (
+                        <input
+                          className="subpage-inline-input"
+                          type="text"
+                          value={editingTransactionData.store_name}
+                          onChange={(event) => (
+                            setEditingTransactionData((previous) => ({
+                              ...previous,
+                              store_name: event.target.value,
+                            }))
+                          )}
+                        />
+                      ) : (
+                        t.store_name
+                      )}
+                    </span>
+                    <span className={Number(t.cost) > 0 ? "tx-negative" : "tx-positive"}>
+                      {isEditing ? (
+                        <input
+                          className="subpage-inline-input"
+                          type="number"
+                          min="0.01"
+                          step="0.01"
+                          value={editingTransactionData.cost}
+                          onChange={(event) => (
+                            setEditingTransactionData((previous) => ({
+                              ...previous,
+                              cost: event.target.value,
+                            }))
+                          )}
+                        />
+                      ) : (
+                        currency(t.cost)
+                      )}
+                    </span>
+                    <span>
+                      {isEditing ? (
+                        <input
+                          className="subpage-inline-input"
+                          type="date"
+                          value={editingTransactionData.date}
+                          onChange={(event) => (
+                            setEditingTransactionData((previous) => ({
+                              ...previous,
+                              date: event.target.value,
+                            }))
+                          )}
+                        />
+                      ) : (
+                        String(t.date).slice(0, 10)
+                      )}
+                    </span>
+                    <div className="subpage-actions">
+                      {isEditing ? (
+                        <>
+                          <button
+                            className="subpage-inline-btn"
+                            type="button"
+                            onClick={() => saveEditedTransaction(t)}
+                            disabled={isRowBusy}
+                          >
+                            {updatingTransactionId === t.id ? "Saving..." : "Save"}
+                          </button>
+                          <button
+                            className="subpage-inline-btn ghost"
+                            type="button"
+                            onClick={cancelEditingTransaction}
+                            disabled={isRowBusy}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="subpage-inline-btn"
+                          type="button"
+                          onClick={() => startEditingTransaction(t)}
+                          disabled={isRowBusy}
+                        >
+                          Edit
+                        </button>
+                      )}
+
                       <button
                         className="subpage-inline-btn danger"
                         type="button"
                         onClick={() => deleteTransaction(t.id)}
-                        disabled={deletingTransactionId === t.id}
+                        disabled={isRowBusy}
                       >
                         {deletingTransactionId === t.id ? "Deleting..." : "Delete"}
                       </button>
-                    </span>
+                    </div>
                   </div>
                 );
               })}

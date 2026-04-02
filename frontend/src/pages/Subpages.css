@@ -57,6 +57,12 @@
   transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
+.subpage-inline-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .subpage-form input:focus,
 .subpage-form select:focus,
 .subpage-filter-row select:focus,
@@ -136,6 +142,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .subpage-filter-row label {
@@ -185,7 +192,7 @@
 
 .budgets-table-head,
 .budgets-table-row {
-  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px) minmax(180px, 1.25fr);
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px) minmax(220px, 1.4fr);
 }
 
 .transactions-table-head,
@@ -220,6 +227,39 @@
 .subpage-metric-card p {
   margin: 4px 0;
   color: #22223b;
+}
+
+.budget-progress-track {
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(34, 34, 59, 0.14);
+  margin: 8px 0 6px;
+}
+
+.budget-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1f7a3a 0%, #38a169 100%);
+  transition: width 0.25s ease;
+}
+
+.budget-progress-fill.moderate {
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%);
+}
+
+.budget-progress-fill.risk {
+  background: linear-gradient(90deg, #8c2b23 0%, #b42318 100%);
+}
+
+.budget-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #393a56;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .subscriptions-insight-grid {
