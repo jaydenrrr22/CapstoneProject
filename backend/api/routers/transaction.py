@@ -124,3 +124,46 @@ def delete_transaction(
     clear_prediction_cache()
 
     return {"message": f"Successfully deleted transaction {transaction.id}"}
+
+
+@router.put("/update/{transaction_id}", response_model=TransactionResponse)
+def update_transaction(
+        transaction_id: int,
+        transaction_update: TransactionCreate,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    transaction = (
+        db.query(Transaction)
+        .filter(Transaction.id == transaction_id)
+        .first()
+    )
+
+    if not transaction:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found",
+        )
+
+    if transaction.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to update this transaction",
+        )
+
+    final_category = transaction_update.category
+    if not final_category or final_category.strip().lower() == "other":
+        normalized_merchant = transaction_update.store_name.strip().lower()
+        final_category = MERCHANT_CATEGORIES.get(normalized_merchant, "Other")
+
+    transaction.cost = transaction_update.cost
+    transaction.date = transaction_update.date
+    transaction.store_name = transaction_update.store_name
+    transaction.category = final_category
+
+    db.commit()
+    db.refresh(transaction)
+
+    clear_prediction_cache()
+
+    return transaction

@@ -1,10 +1,12 @@
 .health-gauge-wrap {
   margin: 2px auto 0;
+  width: 100%;
   max-width: 100%;
 }
 
 .health-gauge-canvas {
   position: relative;
+  width: 100%;
 }
 
 .health-gauge-center {
@@ -26,9 +28,37 @@
   color: #3b3c58;
 }
 
+.health-gauge-status {
+  margin-top: 7px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(34, 34, 59, 0.1);
+}
+
+.health-gauge-status.strong {
+  color: #12622f;
+  background: rgba(31, 122, 58, 0.16);
+}
+
+.health-gauge-status.watch {
+  color: #7a4a00;
+  background: rgba(245, 158, 11, 0.2);
+}
+
+.health-gauge-status.risk {
+  color: #7a1510;
+  background: rgba(180, 35, 24, 0.18);
+}
+
 .health-gauge-meta {
   margin-top: 4px;
-  padding: 8px 10px;
+  padding: 9px 10px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.38);
   border: 1px solid rgba(34, 34, 59, 0.13);
@@ -60,4 +90,18 @@
 
 .health-gauge-scale span:nth-child(3) {
   text-align: right;
+}
+
+@media (max-width: 480px) {
+  .health-gauge-meta {
+    padding: 8px 9px;
+  }
+
+  .health-gauge-meta-row {
+    font-size: 0.84rem;
+  }
+
+  .health-gauge-meta-row strong {
+    font-size: 0.88rem;
+  }
 }
