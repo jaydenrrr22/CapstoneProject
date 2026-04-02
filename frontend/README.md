@@ -40,8 +40,11 @@ Create a .env file inside the frontend folder:
 
 VITE_API_BASE_URL=http://127.0.0.1:8000
 
-This is required for the frontend to communicate with the backend.
+This is required for the frontend to communicate with the backend during local development.
 
+If you run the frontend behind a local reverse proxy or configure a Vite dev-server proxy that forwards `/api` to the backend, you may instead set:
+
+VITE_API_BASE_URL=/api
 Note: This file is not tracked by Git. Each developer must create their own .env file.
 
 You can copy from .env.example if available:

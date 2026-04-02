@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
-from backend.api.dependencies.auth import get_password_hash, verify_password, create_access_token
+from backend.api.core.security import create_access_token
+from backend.api.dependencies.auth import get_password_hash, verify_password
 from backend.api.dependencies.database import get_db
+from backend.api.dependencies.rate_limit import get_rate_limit_dependency
 from backend.api.models.user import User
 from backend.api.schemas.user import UserResponse, UserCreate, Token, UserLogin
 
 router = APIRouter(prefix="/auth", tags=["User"])
 
 @router.post("/register", response_model=UserResponse,
+             dependencies=[Depends(get_rate_limit_dependency(times=3, seconds=60))],
              status_code = status.HTTP_201_CREATED)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user.email).first()
@@ -22,7 +25,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    dependencies=[Depends(get_rate_limit_dependency(times=5, seconds=60))],
+)
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_credentials.email).first()
 

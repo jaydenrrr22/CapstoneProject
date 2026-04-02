@@ -151,6 +151,7 @@ h3 {
 }
 
 .mobile-chart-card,
+.mobile-forecast-card,
 .mobile-transactions-card {
   padding: 14px;
   margin-bottom: 12px;
@@ -249,7 +250,8 @@ h3 {
   grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr);
   grid-template-areas:
     "budgets budgets"
-    "health transactions";
+    "health forecast"
+    "transactions forecast";
   gap: 16px;
   align-items: start;
 }
@@ -275,7 +277,8 @@ h3 {
 }
 
 .desktop-health-panel,
-.desktop-transactions-panel {
+.desktop-transactions-panel,
+.desktop-forecast-panel {
   background: var(--surface);
   padding: 20px;
 }
@@ -295,6 +298,11 @@ h3 {
 
 .desktop-transactions-panel {
   grid-area: transactions;
+}
+
+.desktop-forecast-panel {
+  grid-area: forecast;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.33) 0%, rgba(255, 255, 255, 0.12) 100%), var(--surface);
 }
 
 .tx-table {
@@ -420,6 +428,7 @@ h3 {
     grid-template-areas:
       "budgets"
       "health"
+      "forecast"
       "transactions";
   }
 
