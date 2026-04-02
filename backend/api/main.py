@@ -6,15 +6,17 @@ import uuid
 import redis.asyncio as redis
 
 from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi_limiter import FastAPILimiter
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import JSONResponse
 
 from .dependencies.database import get_db
 from .dependencies.auth import get_current_user
 from .dependencies.rate_limit import rate_limit_callback, set_rate_limiter_enabled
-from .models import model_loader
 from .models.user import User
 from .routers import index as indexRoute
 from .dependencies.config import conf
@@ -80,7 +82,6 @@ app.add_middleware(
 
 
 # ---------- LOAD MODELS / ROUTES ----------
-model_loader.index()
 indexRoute.load_routes(app)
 
 
@@ -134,6 +135,46 @@ def health_check(
             status_code=500,
             detail=f"Health check failed: {str(e)}"
         )
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    logger.warning(f"HTTP error on {request.url.path}: {exc.detail}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "status": "error",
+            "error_type": "HTTP_ERROR",
+            "message": exc.detail,
+            "path": request.url.path,
+        },
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning(f"Validation error on {request.url.path}: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "status": "error",
+            "error_type": "VALIDATION_ERROR",
+            "message": "Invalid input data provided",
+            "details": exc.errors(),
+            "path": request.url.path,
+        }
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.warning(f"Unhandled exception on {request.url.path}: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "error_type": "Internal Server Error",
+            "message": "An unexpected error occurred.",
+            "path": request.url.path,
+        }
+    )
 
 
 # ---------- LOCAL RUN ----------

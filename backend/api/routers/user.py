@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
 from backend.api.core.security import create_access_token
@@ -8,6 +10,8 @@ from backend.api.dependencies.auth import (
 )
 from backend.api.dependencies.database import get_db
 from backend.api.dependencies.rate_limit import get_rate_limit_dependency
+from backend.api.models.dataset import DatasetTransaction
+from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.user import UserResponse, UserCreate, Token, UserLogin
 
@@ -31,6 +35,31 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    if getattr(user, "dataset_id", None) is not None:
+        template_txs = db.query(DatasetTransaction).filter(
+            DatasetTransaction.template_id == user.dataset_id
+        ).all()
+
+        if template_txs:
+            new_tranaction = []
+            today = datetime.utcnow()
+
+            for t_tx in template_txs:
+                tx_date = today + timedelta(days=t_tx.day_offset)
+
+                new_tx = Transaction(
+                    user_id=new_user.id,
+                    store_name=t_tx.store_name,
+                    category=t_tx.category,
+                    cost=t_tx.cost,
+                    date=tx_date,
+                )
+                new_tranaction.append(new_tx)
+
+            db.add_all(new_tranaction)
+            db.commit()
+
     return new_user
 
 @router.post(
