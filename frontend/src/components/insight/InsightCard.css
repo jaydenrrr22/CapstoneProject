@@ -108,6 +108,28 @@
   align-items: center;
 }
 
+.insight-card__retry-btn {
+  border: none;
+  border-radius: 999px;
+  background: #22223b;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 0 14px;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.insight-card__retry-btn:hover:not(:disabled) {
+  background: #4a4e69;
+  transform: translateY(-1px);
+}
+
+.insight-card__retry-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .insight-card__toggle {
   border: none;
   border-radius: 999px;
@@ -201,9 +223,43 @@
   color: #4a4e69;
 }
 
+.insight-card__state {
+  display: grid;
+  gap: 8px;
+  min-height: 138px;
+  align-content: center;
+}
+
+.insight-card__state-title {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: #22223b;
+}
+
+.insight-card__state-message {
+  margin: 0;
+  color: #4a4e69;
+  line-height: 1.45;
+}
+
 .insight-card__error {
   background: rgba(180, 35, 24, 0.12);
   color: #6f0014;
+}
+
+.insight-card__error .insight-card__state-title,
+.insight-card__error .insight-card__state-message {
+  color: #6f0014;
+}
+
+.insight-card__retry-btn--inline {
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.prediction-insight-card .insight-card__details-inner {
+  min-height: 150px;
 }
 
 .insight-card__tone-positive {

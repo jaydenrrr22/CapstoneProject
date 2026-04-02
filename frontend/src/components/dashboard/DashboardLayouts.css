@@ -158,6 +158,10 @@ h3 {
   margin-bottom: 12px;
 }
 
+.mobile-predicted-card {
+  min-height: 220px;
+}
+
 .tx-list {
   display: grid;
   gap: 10px;
@@ -324,6 +328,7 @@ h3 {
 .desktop-predicted-panel {
   grid-area: predicted;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.12) 100%), var(--surface);
+  min-height: 260px;
 }
 
 .tx-table {

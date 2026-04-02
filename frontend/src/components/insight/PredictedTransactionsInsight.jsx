@@ -7,6 +7,7 @@ function PredictedTransactionsInsight({
   loading = false,
   error = "",
   defaultExpanded = true,
+  onRetry,
 }) {
   const validPredictions = (transactions || []).filter(
     (transaction) => transaction?.amount !== null && transaction?.amount !== undefined
@@ -16,22 +17,64 @@ function PredictedTransactionsInsight({
     (sum, transaction) => sum + Number(transaction.amount || 0),
     0
   );
+  const canRetry = typeof onRetry === "function";
+  const isFailureState = !loading && Boolean(error);
+  const isEmptyState = !loading && !error && validPredictions.length === 0;
+  const statusLabel = loading
+    ? "Refreshing predictions"
+    : isFailureState
+      ? "Prediction service unavailable"
+      : isEmptyState
+        ? "No predicted transactions yet"
+        : `${validPredictions.length} modeled transaction${validPredictions.length === 1 ? "" : "s"}`;
 
   return (
     <InsightCard
       title="Predicted Transactions"
       value={loading ? "Analyzing..." : String(validPredictions.length)}
-      description="Upcoming modeled charges and spending events detected from prediction history."
+      description={statusLabel}
       status={error ? "negative" : validPredictions.length > 0 ? "warning" : "neutral"}
       icon={<PredictionIcon />}
       defaultExpanded={defaultExpanded}
+      className="prediction-insight-card"
+      action={isFailureState && canRetry ? (
+        <button
+          type="button"
+          className="insight-card__retry-btn"
+          onClick={onRetry}
+          disabled={loading}
+        >
+          Retry
+        </button>
+      ) : null}
     >
       {loading ? (
-        <div className="insight-card__empty">Loading prediction history...</div>
+        <div className="insight-card__state insight-card__empty">
+          <p className="insight-card__state-title">Loading prediction history</p>
+          <p className="insight-card__state-message">We are calculating upcoming spending signals now.</p>
+        </div>
       ) : error ? (
-        <div className="insight-card__error" role="alert">{error}</div>
+        <div className="insight-card__state insight-card__error" role="alert">
+          <p className="insight-card__state-title">Could not load predictions</p>
+          <p className="insight-card__state-message">{error}</p>
+          {canRetry ? (
+            <button
+              type="button"
+              className="insight-card__retry-btn insight-card__retry-btn--inline"
+              onClick={onRetry}
+              disabled={loading}
+            >
+              Try again
+            </button>
+          ) : null}
+        </div>
       ) : validPredictions.length === 0 ? (
-        <div className="insight-card__empty">No predicted transactions available yet.</div>
+        <div className="insight-card__state insight-card__empty">
+          <p className="insight-card__state-title">No predicted transactions available</p>
+          <p className="insight-card__state-message">
+            Keep adding transactions. Predictions will appear after we detect recurring spending patterns.
+          </p>
+        </div>
       ) : (
         <div className="insight-card__list">
           <div className="insight-card__meta">
