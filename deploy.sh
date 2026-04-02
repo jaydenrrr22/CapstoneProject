@@ -5,6 +5,7 @@ set -u
 APP_DIR="$HOME/CapstoneProject"
 FRONTEND_DIR="$APP_DIR/frontend"
 FRONTEND_DIST_DIR="$FRONTEND_DIR/dist"
+WEB_ROOT_DIR="/var/www/trace"
 REQUIREMENTS_FILE="$APP_DIR/requirements.txt"
 
 SERVICE_NAME="trace-backend.service"
@@ -253,6 +254,19 @@ fi
 
 if [ -z "$(ls -A "$FRONTEND_DIST_DIR" 2>/dev/null)" ]; then
     fail_deploy "Frontend build output is empty: $FRONTEND_DIST_DIR"
+fi
+
+log "INFO" "Publishing frontend to nginx web root"
+if ! sudo -n mkdir -p "$WEB_ROOT_DIR"; then
+    fail_deploy "Unable to create web root directory: $WEB_ROOT_DIR"
+fi
+
+if ! sudo -n find "$WEB_ROOT_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +; then
+    fail_deploy "Unable to clear existing web root contents: $WEB_ROOT_DIR"
+fi
+
+if ! sudo -n cp -r "$FRONTEND_DIST_DIR"/. "$WEB_ROOT_DIR"/; then
+    fail_deploy "Unable to publish frontend build to $WEB_ROOT_DIR"
 fi
 
 log "INFO" "Validating nginx configuration"
