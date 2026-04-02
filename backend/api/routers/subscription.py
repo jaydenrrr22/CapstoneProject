@@ -36,6 +36,12 @@ def detect_subscriptions(
 
     detected_subscriptions = []
 
+    existing_subs = db.query(Subscription).filter(Subscription.user_id == current_user.id).all()
+
+    sub_lookup = {(sub.merchant.lower(), sub.amount): sub.id for sub in existing_subs}
+
+    new_subs_to_add = []
+
     for (merchant, cost), tx_list in grouped_tx.items():
         if len(tx_list) < 2:
             continue
@@ -57,27 +63,21 @@ def detect_subscriptions(
             frequency_val = "monthly" if is_monthly else "Unknown"
             merchant_name = merchant.capitalize()
 
-            existing_sub = db.query(Subscription).filter(
-                Subscription.user_id == current_user.id,
-                Subscription.merchant == merchant_name,
-                Subscription.amount == cost
-            ).first()
+            lookup_key = (merchant.lower(), cost)
 
-            if not existing_sub:
+            if lookup_key in sub_lookup:
+                sub_id = sub_lookup[lookup_key]
+            else:
                 new_sub = Subscription(
                     user_id=current_user.id,
                     merchant=merchant_name,
                     amount=cost,
                     frequency=frequency_val,
                     is_duplicate=is_duplicate,
-                    transaction_id=tx_ids
+                    transaction_id=tx_ids,
                 )
-                db.add(new_sub)
-                db.commit()
-                db.refresh(new_sub)
-                sub_id = new_sub.id
-            else:
-                sub_id = existing_sub.id
+                new_subs_to_add.append(new_sub)
+                sub_id = None
 
             detected_subscriptions.append({
                 "id": sub_id,
@@ -86,13 +86,24 @@ def detect_subscriptions(
                 "frequency": frequency_val,
                 "is_duplicate": is_duplicate,
                 "transaction_ids": tx_ids,
+                "new_sub_ref": new_sub if lookup_key not in sub_lookup else None
             })
+    if new_subs_to_add:
+        db.add_all(new_subs_to_add)
+        db.commit()
+
+        for sub_dict in detected_subscriptions:
+            if sub_dict.get("new_sub_ref"):
+                sub_dict["id"] = sub_dict["new_sub_ref"].id
+            sub_dict.pop("new_sub_ref", None)
 
     already_detected_ids = {
         tx_id
         for subscription in detected_subscriptions
         for tx_id in subscription["transaction_ids"]
     }
+
+    new_marked_subs = []
 
     for tx in transactions:
         category = (tx.category or "").strip().lower()
@@ -105,14 +116,11 @@ def detect_subscriptions(
             continue
 
         merchant_name = tx.store_name.strip().title()
+        lookup_key = (merchant_name.lower(), tx.cost)
 
-        existing_sub = db.query(Subscription).filter(
-            Subscription.user_id == current_user.id,
-            Subscription.merchant == merchant_name,
-            Subscription.amount == tx.cost
-        ).first()
-
-        if not existing_sub:
+        if lookup_key in sub_lookup:
+            sub_id = sub_lookup[lookup_key]
+        else:
             new_sub = Subscription(
                 user_id=current_user.id,
                 merchant=merchant_name,
@@ -121,20 +129,25 @@ def detect_subscriptions(
                 is_duplicate=False,
                 transaction_id=[tx.id]
             )
-            db.add(new_sub)
-            db.commit()
-            db.refresh(new_sub)
-            sub_id = new_sub.id
-        else:
-            sub_id = existing_sub.id
+            new_marked_subs.append(new_sub)
+            sub_id = None
 
-        detected_subscriptions.append({
-            "id": sub_id,
-            "merchant": merchant_name,
-            "amount": tx.cost,
-            "frequency": "Marked",
-            "is_duplicate": False,
-            "transaction_ids": [tx.id],
-        })
+            detected_subscriptions.append({
+                "id": sub_id,
+                "merchant": merchant_name,
+                "amount": tx.cost,
+                "frequency": "Marked",
+                "is_duplicate": False,
+                "transaction_ids": [tx.id],
+                "new_sub_ref": new_sub if lookup_key not in sub_lookup else None
+            })
+        if new_marked_subs:
+            db.add_all(new_marked_subs)
+            db.commit()
+
+            for sub_dict in detected_subscriptions:
+                if sub_dict.get("new_sub_ref"):
+                    sub_dict["id"] = sub_dict["new_sub_ref"].id
+                sub_dict.pop("new_sub_ref", None)
 
     return detected_subscriptions
