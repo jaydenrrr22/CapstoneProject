@@ -1,90 +1,36 @@
-cat << 'EOF' > README.md
 # Capstone Project Frontend
 
-This is a React + Vite-based frontend application for the Financial ML App.  
-It communicates with the FastAPI backend using Axios and implements JWT-based authentication.
+This frontend is built with React and Vite and talks to the FastAPI backend through the `/api` path.
 
-The frontend uses a Service Layer architecture to handle all API requests.
+## Development
 
----
+From the project root:
 
-## Setup Instructions
-
-### 1. Environment Setup
-
-Make sure you have Node.js installed (v18+ recommended).
-
-From the root of the project, navigate to the frontend folder:
-
+```bash
 cd frontend
-
-Install the required packages:
-
 npm install
-
-This will install all required dependencies including Axios.
-
-Install React Router:
-
-npm install react-router-dom
-
-Install Recharts for charts:
-
-npm install recharts
-
----
-
-### 2. Environment Variables
-
-Create a .env file inside the frontend folder:
-
-VITE_API_BASE_URL=http://127.0.0.1:8000
-
-This is required for the frontend to communicate with the backend during local development.
-
-If you run the frontend behind a local reverse proxy or configure a Vite dev-server proxy that forwards `/api` to the backend, you may instead set:
-
-VITE_API_BASE_URL=/api
-
-Production note:
-Never point `VITE_API_BASE_URL` at `127.0.0.1` or `localhost` for deployed builds. In production, the frontend should call `/api` so Nginx can proxy requests to the backend on the server.
-Note: This file is not tracked by Git. Each developer must create their own .env file.
-
-You can copy from .env.example if available:
-
-cp .env.example .env
-
----
-
-### 3. Start Development Server
-
-Run the Vite development server:
-
 npm run dev
+```
 
-The application will run locally at:
+The Vite dev server runs on `http://localhost:5173`.
 
-http://localhost:5173
+## API Routing
 
----
+The frontend always calls `/api`.
 
-## Deployment Notes
+- In local development, Vite proxies `/api` to the backend.
+- In production, Nginx proxies `/api` to the backend.
 
-When deploying to production (AWS EC2), update the .env file:
+Do not set `VITE_API_BASE_URL` for this app.
 
-VITE_API_BASE_URL=https://3.151.137.239
+## Build
 
-This ensures the frontend connects to the deployed backend instead of localhost.
+```bash
+cd frontend
+npm run build
+```
 
----
+## Notes
 
-## Architecture Notes
-
-- Uses a centralized API client (apiClient) for:
-  - Automatic JWT token attachment
-  - Global error handling (401 redirects to login)
-- All API calls should go through the service layer (/services)
-- Avoid using fetch directly in components
-
----
-EOF
+- Authentication uses the shared Axios service layer.
+- API requests should go through the existing client/service files rather than using `fetch` directly in components.
