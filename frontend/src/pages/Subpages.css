@@ -1,7 +1,7 @@
 .subpage-grid,
 .subpage-single-column {
-  --subpage-surface-top: rgba(255, 255, 255, 0.35);
-  --subpage-surface-bottom: rgba(255, 255, 255, 0.18);
+  --subpage-surface-top: #c9ada7;
+  --subpage-surface-bottom: #c9ada7;
   --subpage-inset: rgba(255, 255, 255, 0.3);
   --subpage-table-shell: rgba(255, 255, 255, 0.2);
   --subpage-table-head: rgba(255, 255, 255, 0.4);
@@ -28,9 +28,7 @@
   align-content: start;
   gap: 14px;
   backdrop-filter: blur(2px);
-  background:
-    linear-gradient(180deg, var(--subpage-surface-top) 0%, var(--subpage-surface-bottom) 100%),
-    var(--surface);
+  background: #c9ada7;
 }
 
 .subpage-form {

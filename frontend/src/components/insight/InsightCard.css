@@ -8,9 +8,7 @@
   padding: 16px;
   border-radius: 16px;
   border: 1px solid rgba(34, 34, 59, 0.12);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.14) 100%),
-    var(--insight-tint);
+  background: #c9ada7;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
   overflow: hidden;
 }
