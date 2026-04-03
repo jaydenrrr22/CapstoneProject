@@ -12,10 +12,7 @@
   gap: 14px;
   padding: clamp(18px, 2vw, 24px);
   border-radius: 18px;
-  background:
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.36), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.16) 100%),
-    #c9ada7;
+  background: #c9ada7;
   border: 1px solid rgba(34, 34, 59, 0.12);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
 }
@@ -75,9 +72,7 @@
 
 .intelligence-section-card {
   padding: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0.16) 100%),
-    var(--surface);
+  background: #c9ada7;
 }
 
 .intelligence-stack {
