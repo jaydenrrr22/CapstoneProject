@@ -107,6 +107,13 @@ def detect_spending_anomalies(db: Session = Depends(get_db),
 
     anomalies = []
 
+    existing_anomalies = db.query(AnomalyResult).filter(
+        AnomalyResult.user_id == current_user.id
+    ).all()
+    anomaly_tx_ids = {a.transaction_id for a in existing_anomalies}
+
+    new_anomalies_to_add = []
+
     for transaction in transactions:
         normalize_store = transaction.store_name.strip().lower()
         all_costs = merchant_cost[normalize_store]
@@ -127,10 +134,8 @@ def detect_spending_anomalies(db: Session = Depends(get_db),
         z_score = (transaction.cost - clean_mean) / clean_std_dev
 
         if z_score > 2.5 and transaction.cost >= 50 and transaction.cost > clean_mean:
-            existing_anomaly = db.query(AnomalyResult).filter(
-                AnomalyResult.transaction_id == transaction.id
-            ).first()
-            if not existing_anomaly:
+
+            if transaction.id not in anomaly_tx_ids:
                 new_anomaly = AnomalyResult(
                     user_id=current_user.id,
                     transaction_id=transaction.id,
@@ -141,9 +146,8 @@ def detect_spending_anomalies(db: Session = Depends(get_db),
                     anomaly_type="Spike",
                     created_at=transaction.date
                 )
-                db.add(new_anomaly)
-                db.commit()
-                db.refresh(new_anomaly)
+                new_anomalies_to_add.append(new_anomaly)
+                anomaly_tx_ids.add(transaction.id)
 
             anomalies.append({
                 "category": transaction.category,
@@ -153,5 +157,9 @@ def detect_spending_anomalies(db: Session = Depends(get_db),
                 "anomaly_type": "Spike",
                 "date": transaction.date,
             })
+
+    if new_anomalies_to_add:
+        db.add_all(new_anomalies_to_add)
+        db.commit()
 
     return anomalies

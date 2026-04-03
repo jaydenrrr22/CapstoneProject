@@ -3,14 +3,21 @@ import os
 import time
 import logging
 import uuid
+import redis.asyncio as redis
 
 from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi_limiter import FastAPILimiter
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from starlette.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import JSONResponse
 
 from .dependencies.database import get_db
-from .models import model_loader
+from .dependencies.auth import get_current_user
+from .dependencies.rate_limit import rate_limit_callback, set_rate_limiter_enabled
+from .models.user import User
 from .routers import index as indexRoute
 from .dependencies.config import conf
 from .logging_config import setup_logging
@@ -31,11 +38,38 @@ logger = logging.getLogger(__name__)
 START_TIME = time.time()
 
 
+@app.on_event("startup")
+async def on_startup() -> None:
+    try:
+        redis_client = redis.from_url(
+            conf.redis_url,
+            encoding="utf-8",
+            decode_responses=True,
+        )
+        await redis_client.ping()
+        await FastAPILimiter.init(redis_client, http_callback=rate_limit_callback)
+        app.state.redis = redis_client
+        set_rate_limiter_enabled(True)
+        logger.info("Rate limiting enabled with Redis backend")
+    except Exception as exc:
+        app.state.redis = None
+        set_rate_limiter_enabled(False)
+        logger.warning("Redis unavailable; rate limiting disabled: %s", exc)
+
+
+@app.on_event("shutdown")
+async def on_shutdown() -> None:
+    redis_client = getattr(app.state, "redis", None)
+    if redis_client is not None:
+        await redis_client.close()
+
+
 # ---------- SECURE CORS CONFIG ----------
 ALLOWED_ORIGINS = [
     "https://3.151.137.239",
     "https://ec2-3-151-137-239.us-east-2.compute.amazonaws.com",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(
@@ -48,7 +82,6 @@ app.add_middleware(
 
 
 # ---------- LOAD MODELS / ROUTES ----------
-model_loader.index()
 indexRoute.load_routes(app)
 
 
@@ -72,9 +105,18 @@ async def add_request_id(request: Request, call_next):
     return response
 
 
+# ---------- PUBLIC LIVENESS PROBE (unauthenticated, for deployment checks) ----------
+@app.get("/healthz", tags=["Health"])
+def liveness_probe():
+    return {"status": "ok"}
+
+
 # ---------- HEALTH CHECK ----------
 @app.get("/health", tags=["Health"])
-def health_check(db: Session = Depends(get_db)):
+def health_check(
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(get_current_user)
+):
     try:
         db.execute(text("SELECT 1"))
 
@@ -93,6 +135,46 @@ def health_check(db: Session = Depends(get_db)):
             status_code=500,
             detail=f"Health check failed: {str(e)}"
         )
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    logger.warning(f"HTTP error on {request.url.path}: {exc.detail}")
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "status": "error",
+            "error_type": "HTTP_ERROR",
+            "message": exc.detail,
+            "path": request.url.path,
+        },
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning(f"Validation error on {request.url.path}: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={
+            "status": "error",
+            "error_type": "VALIDATION_ERROR",
+            "message": "Invalid input data provided",
+            "details": exc.errors(),
+            "path": request.url.path,
+        }
+    )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.warning(f"Unhandled exception on {request.url.path}: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "error_type": "Internal Server Error",
+            "message": "An unexpected error occurred.",
+            "path": request.url.path,
+        }
+    )
 
 
 # ---------- LOCAL RUN ----------

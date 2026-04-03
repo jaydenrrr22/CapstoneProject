@@ -1,58 +1,65 @@
 import bcrypt
-import jwt
-from jwt import PyJWTError
-from datetime import timezone, datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from backend.api.dependencies.config import config
+from backend.api.core.security import create_access_token, verify_token
 from backend.api.models.user import User
 from backend.api.dependencies.database import get_db
 
-SECRET_KEY = config.secret_key
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+security = HTTPBearer(auto_error=False)
 
-security = HTTPBearer()
+MAX_BCRYPT_PASSWORD_BYTES = 72
+
+
+def validate_bcrypt_password(password: str) -> None:
+    if len(password.encode("utf-8")) > MAX_BCRYPT_PASSWORD_BYTES:
+        raise ValueError(
+            "Password cannot be longer than 72 bytes. Please use a shorter password."
+        )
 
 def get_password_hash(password: str) -> str:
+    validate_bcrypt_password(password)
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    validate_bcrypt_password(plain_password)
     return bcrypt.checkpw(
         plain_password.encode('utf-8'),
         hashed_password.encode('utf-8')
     )
 
-def create_access_token(data: dict) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
 def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
+        credentials: HTTPAuthorizationCredentials | None = Depends(security),
         db: Session = Depends(get_db)
 )->User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail={
+            "error": "authentication_failed",
+            "message": "Bearer token is missing, invalid, or expired",
+        },
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    token = credentials.credentials
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str | None = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-    except PyJWTError:
+    if credentials is None or credentials.scheme.lower() != "bearer":
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
+    token = credentials.credentials
+    if not token:
+        raise credentials_exception
+
+    try:
+        payload = verify_token(token)
+        user_id = payload.get("sub") or payload.get("user_id")
+        if user_id is None:
+            raise credentials_exception
+        user_id_int = int(user_id)
+    except (ValueError, TypeError):
+        raise credentials_exception
+
+    user = db.query(User).filter(User.id == user_id_int).first()
     if not user:
         raise credentials_exception
 

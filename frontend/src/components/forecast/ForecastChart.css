@@ -1,0 +1,270 @@
+.forecast-card {
+  display: grid;
+  gap: 14px;
+}
+
+.forecast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.forecast-header-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.forecast-header-copy p {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.forecast-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(34, 34, 59, 0.12);
+}
+
+.forecast-toggle button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-height: 34px;
+  min-width: 44px;
+  padding: 0 12px;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.forecast-toggle button:hover {
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.forecast-toggle button.active {
+  background: var(--brand);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(34, 34, 59, 0.18);
+}
+
+.forecast-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.forecast-stat {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.32);
+  border: 1px solid rgba(34, 34, 59, 0.1);
+}
+
+.forecast-stat span {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  margin-bottom: 5px;
+}
+
+.forecast-stat strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.forecast-stat strong.positive {
+  color: var(--success);
+}
+
+.forecast-stat strong.negative {
+  color: var(--danger);
+}
+
+.forecast-chart-shell {
+  min-height: clamp(280px, 50vw, 310px);
+  border-radius: 16px;
+  padding: 14px 14px 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(255, 255, 255, 0.2) 100%),
+    rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(34, 34, 59, 0.1);
+}
+
+.forecast-chart-shell.compact {
+  min-height: clamp(240px, 44vw, 280px);
+}
+
+.forecast-chart {
+  width: 100%;
+  height: clamp(198px, 42vw, 250px);
+}
+
+.forecast-chart-shell.compact .forecast-chart {
+  height: clamp(174px, 38vw, 220px);
+}
+
+.forecast-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 2px 4px 0;
+}
+
+.forecast-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.forecast-legend i {
+  width: 20px;
+  height: 3px;
+  border-radius: 999px;
+}
+
+.forecast-tooltip {
+  min-width: 180px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(23, 23, 43, 0.94);
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+}
+
+.forecast-tooltip time {
+  display: block;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.76rem;
+  margin-bottom: 8px;
+}
+
+.forecast-tooltip strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.forecast-tooltip p {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.forecast-tooltip .delta-positive {
+  color: #78d6a3;
+}
+
+.forecast-tooltip .delta-negative {
+  color: #ff9b8a;
+}
+
+.forecast-empty,
+.forecast-error {
+  min-height: clamp(280px, 50vw, 310px);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  border-radius: 16px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(34, 34, 59, 0.1);
+}
+
+.forecast-error {
+  color: #6f0014;
+  background: rgba(176, 0, 32, 0.1);
+}
+
+.forecast-skeleton {
+  min-height: clamp(280px, 50vw, 310px);
+  display: grid;
+  gap: 12px;
+}
+
+.forecast-skeleton.compact {
+  min-height: clamp(240px, 44vw, 280px);
+}
+
+.forecast-skeleton-bar,
+.forecast-skeleton-chart,
+.forecast-skeleton-stat {
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18) 25%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 0.18) 75%);
+  background-size: 220% 100%;
+  animation: forecastShimmer 1.4s ease-in-out infinite;
+}
+
+.forecast-skeleton-bar {
+  height: 18px;
+  width: 34%;
+}
+
+.forecast-skeleton-chart {
+  min-height: 210px;
+}
+
+.forecast-skeleton-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.forecast-skeleton-stat {
+  min-height: 60px;
+}
+
+@keyframes forecastShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .forecast-header {
+    flex-direction: column;
+  }
+
+  .forecast-summary,
+  .forecast-skeleton-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .forecast-toggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .forecast-toggle button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .forecast-chart-shell {
+    padding: 12px 10px 8px;
+  }
+
+  .forecast-legend {
+    gap: 10px;
+    padding: 2px 2px 0;
+  }
+
+  .forecast-legend span {
+    font-size: 0.76rem;
+  }
+}

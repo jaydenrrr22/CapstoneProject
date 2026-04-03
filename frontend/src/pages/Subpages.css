@@ -1,3 +1,14 @@
+.subpage-grid,
+.subpage-single-column {
+  --subpage-surface-top: rgba(255, 255, 255, 0.35);
+  --subpage-surface-bottom: rgba(255, 255, 255, 0.18);
+  --subpage-inset: rgba(255, 255, 255, 0.3);
+  --subpage-table-shell: rgba(255, 255, 255, 0.2);
+  --subpage-table-head: rgba(255, 255, 255, 0.4);
+  --subpage-table-row: rgba(255, 255, 255, 0.26);
+  --subpage-table-row-hover: rgba(255, 255, 255, 0.3);
+}
+
 .subpage-grid {
   display: grid;
   grid-template-columns: minmax(300px, 390px) minmax(460px, 1fr);
@@ -12,8 +23,14 @@
 
 .subpage-form-panel,
 .subpage-table-panel {
-  padding: 20px;
+  padding: clamp(16px, 1.8vw, 20px);
+  display: grid;
+  align-content: start;
+  gap: 14px;
   backdrop-filter: blur(2px);
+  background:
+    linear-gradient(180deg, var(--subpage-surface-top) 0%, var(--subpage-surface-bottom) 100%),
+    var(--surface);
 }
 
 .subpage-form {
@@ -55,6 +72,12 @@
   color: #22223b;
   font-family: inherit;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.subpage-inline-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .subpage-form input:focus,
@@ -129,6 +152,7 @@
   color: #6f0014;
   padding: 10px;
   border-radius: 8px;
+  border: 1px solid rgba(180, 35, 24, 0.18);
 }
 
 .subpage-filter-row {
@@ -136,6 +160,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .subpage-filter-row label {
@@ -147,7 +172,7 @@
   border: 1px solid rgba(34, 34, 59, 0.16);
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--subpage-table-shell);
 }
 
 .subpage-table-head,
@@ -160,7 +185,7 @@
 }
 
 .subpage-table-head {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--subpage-table-head);
   color: #22223b;
   font-weight: 700;
   font-size: 0.9rem;
@@ -168,12 +193,12 @@
 }
 
 .subpage-table-row {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--subpage-table-row);
   border-top: 1px solid rgba(34, 34, 59, 0.12);
 }
 
 .subpage-table-row:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: var(--subpage-table-row-hover);
 }
 
 .subpage-actions {
@@ -185,7 +210,7 @@
 
 .budgets-table-head,
 .budgets-table-row {
-  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px) minmax(180px, 1.25fr);
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 140px) minmax(220px, 1.4fr);
 }
 
 .transactions-table-head,
@@ -204,10 +229,10 @@
 }
 
 .subpage-metric-card {
-  margin-top: 16px;
+  margin-top: 2px;
   padding: 14px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  background: var(--subpage-inset);
   border: 1px solid rgba(34, 34, 59, 0.14);
 }
 
@@ -220,6 +245,49 @@
 .subpage-metric-card p {
   margin: 4px 0;
   color: #22223b;
+}
+
+.budget-progress-track {
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(34, 34, 59, 0.14);
+  margin: 8px 0 6px;
+}
+
+.budget-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #1f7a3a 0%, #38a169 100%);
+  transition: width 0.25s ease;
+}
+
+.budget-progress-fill.moderate {
+  background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%);
+}
+
+.budget-progress-fill.risk {
+  background: linear-gradient(90deg, #8c2b23 0%, #b42318 100%);
+}
+
+.budget-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #393a56;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.subscriptions-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.subscriptions-insight-grid--list {
+  margin-top: 16px;
 }
 
 @media (max-width: 980px) {

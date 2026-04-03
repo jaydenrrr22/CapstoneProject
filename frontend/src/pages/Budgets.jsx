@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import API from "../services/api";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
+import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 
 function Budgets() {
   const [budgets, setBudgets] = useState([]);
@@ -15,9 +16,11 @@ function Budgets() {
   const [saving, setSaving] = useState(false);
   const [editingBudgetId, setEditingBudgetId] = useState(null);
   const [editingAmount, setEditingAmount] = useState("");
+  const [editingPeriod, setEditingPeriod] = useState("");
   const [rowActionLoadingId, setRowActionLoadingId] = useState(null);
+  const [progressPeriod, setProgressPeriod] = useState("");
 
-  const loadBudgets = async () => {
+  const loadBudgets = useCallback(async (preferredProgressPeriod = "") => {
     setLoading(true);
     setError("");
     try {
@@ -26,10 +29,16 @@ function Budgets() {
       setBudgets(list);
 
       if (list.length > 0) {
-        const targetPeriod = list[0].period;
+        const targetPeriod = (preferredProgressPeriod && list.some((item) => item.period === preferredProgressPeriod))
+          ? preferredProgressPeriod
+          : (progressPeriod && list.some((item) => item.period === progressPeriod))
+            ? progressPeriod
+          : list[0].period;
+        setProgressPeriod(targetPeriod);
         const progressResponse = await API.get(`/budget/progress/${targetPeriod}`);
         setProgress(progressResponse.data);
       } else {
+        setProgressPeriod("");
         setProgress(null);
       }
     } catch (requestError) {
@@ -37,11 +46,11 @@ function Budgets() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [progressPeriod]);
 
   useEffect(() => {
     loadBudgets();
-  }, []);
+  }, [loadBudgets]);
 
   const createBudget = async (event) => {
     event.preventDefault();
@@ -55,7 +64,8 @@ function Budgets() {
       });
 
       setAmount("");
-      await loadBudgets();
+      await loadBudgets(period);
+      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
     } catch (requestError) {
       setError(normalizeApiError(requestError, "Could not create budget."));
     } finally {
@@ -66,6 +76,7 @@ function Budgets() {
   const loadProgressForPeriod = async (targetPeriod) => {
     try {
       const response = await API.get(`/budget/progress/${targetPeriod}`);
+      setProgressPeriod(targetPeriod);
       setProgress(response.data);
     } catch {
       setProgress(null);
@@ -75,17 +86,23 @@ function Budgets() {
   const startEditingBudget = (budget) => {
     setEditingBudgetId(budget.id);
     setEditingAmount(String(Number(budget.amount).toFixed(2)));
+    setEditingPeriod(budget.period);
   };
 
   const cancelEditingBudget = () => {
     setEditingBudgetId(null);
     setEditingAmount("");
+    setEditingPeriod("");
   };
 
   const saveBudgetAmount = async (budget) => {
     const nextAmount = Number(editingAmount);
     if (!Number.isFinite(nextAmount) || nextAmount <= 0) {
       setError("Please enter a valid amount greater than 0.");
+      return;
+    }
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(editingPeriod)) {
+      setError("Please select a valid period in YYYY-MM format.");
       return;
     }
 
@@ -95,10 +112,11 @@ function Budgets() {
     try {
       await API.put(`/budget/update/${budget.id}`, {
         amount: nextAmount,
-        period: budget.period,
+        period: editingPeriod,
       });
-      await loadBudgets();
-      await loadProgressForPeriod(budget.period);
+      await loadBudgets(editingPeriod);
+      await loadProgressForPeriod(editingPeriod);
+      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
       cancelEditingBudget();
     } catch (requestError) {
       setError(normalizeApiError(requestError, "Could not update budget."));
@@ -121,12 +139,18 @@ function Budgets() {
       if (editingBudgetId === budgetId) {
         cancelEditingBudget();
       }
+      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
     } catch (requestError) {
       setError(normalizeApiError(requestError, "Could not delete budget."));
     } finally {
       setRowActionLoadingId(null);
     }
   };
+
+  const progressUsed = progress ? Math.max(0, Math.min(100, Number(progress.percentage_used) || 0)) : 0;
+  const progressRemainingRatio = progress
+    ? Math.max(0, Math.min(100, Number((progress.remaining_balance / progress.budget_limit) * 100) || 0))
+    : 0;
 
   return (
     <div className="dashboard-shell desktop-shell">
@@ -163,13 +187,23 @@ function Budgets() {
             {error && <p className="subpage-error">{error}</p>}
 
             <button className="subpage-submit" type="submit" disabled={saving}>
-              {saving ? "Saving..." : "Save Budget"}
+              {saving ? "Saving..." : "Create Budget"}
             </button>
           </form>
 
           {progress && (
             <div className="subpage-metric-card">
-              <h4>Current Progress ({progress.month})</h4>
+              <h4>Budget Progress ({progress.month})</h4>
+              <div className="budget-progress-track" aria-label="Budget used">
+                <div
+                  className={`budget-progress-fill ${progress.status.toLowerCase()}`}
+                  style={{ width: `${progressUsed}%` }}
+                />
+              </div>
+              <div className="budget-progress-labels">
+                <span>Used: {progressUsed.toFixed(1)}%</span>
+                <span>Remaining: {progressRemainingRatio.toFixed(1)}%</span>
+              </div>
               <p>Budget Limit: ${progress.budget_limit.toFixed(2)}</p>
               <p>Total Spent: ${progress.total_spent.toFixed(2)}</p>
               <p>Remaining: ${progress.remaining_balance.toFixed(2)}</p>
@@ -182,6 +216,20 @@ function Budgets() {
           <div className="section-heading">
             <h3>Saved Budgets</h3>
           </div>
+
+          {budgets.length > 0 && (
+            <div className="subpage-filter-row">
+              <label>Progress Month:</label>
+              <select
+                value={progressPeriod || budgets[0].period}
+                onChange={(event) => loadProgressForPeriod(event.target.value)}
+              >
+                {budgets.map((budget) => (
+                  <option key={budget.id} value={budget.period}>{budget.period}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {loading ? (
             <p className="muted">Loading budgets...</p>
@@ -225,6 +273,12 @@ function Budgets() {
 
                     {editingBudgetId === budget.id ? (
                       <>
+                        <input
+                          className="subpage-inline-input"
+                          type="month"
+                          value={editingPeriod}
+                          onChange={(event) => setEditingPeriod(event.target.value)}
+                        />
                         <button
                           className="subpage-inline-btn"
                           type="button"

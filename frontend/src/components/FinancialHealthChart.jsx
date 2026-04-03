@@ -4,24 +4,73 @@ import "./FinancialHealthChart.css";
 
 function FinancialHealthChart({
   score,
-  width = 260,
-  height = 160,
-  innerRadius = 70,
-  outerRadius = 90,
-  labelSize = 28,
+  width = 360,
+  height = 220,
+  innerRadius = 86,
+  outerRadius = 108,
+  labelSize = 38,
 }) {
   const safeScore = Math.max(0, Math.min(100, Number(score) || 0));
   const [activeIndex, setActiveIndex] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(width);
+  const wrapRef = useRef(null);
 
   const tone = useMemo(() => {
     if (safeScore <= 40) {
-      return { color: "#ef4444", glow: "rgba(239,68,68,0.45)" };
+      return {
+        color: "#ef4444",
+        glow: "rgba(239,68,68,0.45)",
+        label: "At Risk",
+        className: "risk",
+      };
     }
     if (safeScore <= 70) {
-      return { color: "#f59e0b", glow: "rgba(245,158,11,0.45)" };
+      return {
+        color: "#f59e0b",
+        glow: "rgba(245,158,11,0.45)",
+        label: "Watch",
+        className: "watch",
+      };
     }
-    return { color: "#22c55e", glow: "rgba(34,197,94,0.42)" };
+    return {
+      color: "#22c55e",
+      glow: "rgba(34,197,94,0.42)",
+      label: "Strong",
+      className: "strong",
+    };
   }, [safeScore]);
+
+  useEffect(() => {
+    if (!wrapRef.current) {
+      return;
+    }
+
+    const updateWidth = () => {
+      if (wrapRef.current) {
+        setContainerWidth(wrapRef.current.clientWidth);
+      }
+    };
+
+    updateWidth();
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(wrapRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const resolvedWidth = Math.max(180, Math.min(width, containerWidth || width));
+  const scale = resolvedWidth / width;
+  const resolvedHeight = Math.round(height * scale);
+  const resolvedInnerRadius = Math.max(44, Math.round(innerRadius * scale));
+  const resolvedOuterRadius = Math.max(resolvedInnerRadius + 12, Math.round(outerRadius * scale));
+  const resolvedLabelSize = Math.max(24, Math.round(labelSize * scale));
 
   const data = useMemo(
     () => [
@@ -48,9 +97,9 @@ function FinancialHealthChart({
   ), []);
 
   return (
-    <div className="health-gauge-wrap" style={{ width: `${width}px` }}>
-      <div className="health-gauge-canvas" style={{ height: `${height}px` }}>
-        <PieChart width={width} height={height}>
+    <div ref={wrapRef} className="health-gauge-wrap">
+      <div className="health-gauge-canvas" style={{ height: `${resolvedHeight}px` }}>
+        <PieChart width={resolvedWidth} height={resolvedHeight}>
           <defs>
             <linearGradient id="healthGaugeTrack" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#f0f1f7" />
@@ -65,8 +114,8 @@ function FinancialHealthChart({
             data={data}
             startAngle={180}
             endAngle={0}
-            innerRadius={innerRadius}
-            outerRadius={outerRadius}
+            innerRadius={resolvedInnerRadius}
+            outerRadius={resolvedOuterRadius}
             dataKey="value"
             activeIndex={activeIndex}
             activeShape={renderActiveShape}
@@ -84,8 +133,9 @@ function FinancialHealthChart({
         </PieChart>
 
         <div className="health-gauge-center" style={{ color: tone.color }}>
-          <span style={{ fontSize: `${labelSize}px` }}>{safeScore.toFixed(1)}</span>
+          <span style={{ fontSize: `${resolvedLabelSize}px` }}>{safeScore.toFixed(1)}</span>
           <small>/100</small>
+          <em className={`health-gauge-status ${tone.className}`}>{tone.label}</em>
         </div>
       </div>
 
