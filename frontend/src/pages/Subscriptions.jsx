@@ -1,15 +1,31 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import SubscriptionInsightCard from "../components/insight/SubscriptionInsightCard";
+import InsightCard from "../components/insight/InsightCard";
+import { SubscriptionIcon } from "../components/insight/InsightIcons";
+import useDemoMode from "../hooks/useDemoMode";
 import API from "../services/api";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 
 function Subscriptions() {
+  const { currentDataset, isDemoMode } = useDemoMode();
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const totalMonthly = subscriptions.reduce(
+    (sum, subscription) => sum + Number(subscription.amount || 0),
+    0
+  );
 
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = useCallback(async () => {
+    if (isDemoMode) {
+      setSubscriptions(currentDataset?.subscriptions || []);
+      setLoading(false);
+      setError("");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -21,11 +37,11 @@ function Subscriptions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentDataset, isDemoMode]);
 
   useEffect(() => {
     loadSubscriptions();
-  }, []);
+  }, [loadSubscriptions]);
 
   return (
     <div className="dashboard-shell desktop-shell">
@@ -45,23 +61,45 @@ function Subscriptions() {
           ) : subscriptions.length === 0 ? (
             <p className="muted">No recurring subscriptions detected yet.</p>
           ) : (
-            <div className="subpage-table subscriptions-table">
-              <div className="subpage-table-head subscriptions-table-head">
-                <span>Merchant</span>
-                <span>Amount</span>
-                <span>Frequency</span>
-                <span>Flag</span>
+            <>
+              <div className="subscriptions-insight-grid">
+                <SubscriptionInsightCard
+                  count={subscriptions.length}
+                  totalMonthly={totalMonthly}
+                  description="Recurring merchants detected across your recorded transaction history."
+                />
               </div>
 
+              <div className="subscriptions-insight-grid subscriptions-insight-grid--list">
               {subscriptions.map((item, index) => (
-                <div key={`${item.merchant}-${index}`} className="subpage-table-row subscriptions-table-row">
-                  <span>{item.merchant}</span>
-                  <span>${Number(item.amount).toFixed(2)}</span>
-                  <span>{item.frequency}</span>
-                  <span>{String(item.frequency).toLowerCase() === "marked" ? "Marked" : item.is_duplicate ? "Duplicate" : "Detected"}</span>
-                </div>
+                <InsightCard
+                  key={`${item.merchant}-${index}`}
+                  title={item.merchant || "Subscription"}
+                  value={`$${Number(item.amount || 0).toFixed(2)}`}
+                  description={`${item.frequency || "Recurring"} cadence detected`}
+                  status={item.is_duplicate ? "warning" : "neutral"}
+                  icon={<SubscriptionIcon />}
+                >
+                  <div className="insight-card__meta">
+                    <div className="insight-card__meta-row">
+                      <span>Frequency</span>
+                      <strong>{item.frequency || "Unknown"}</strong>
+                    </div>
+                    <div className="insight-card__meta-row">
+                      <span>Flag</span>
+                      <strong>
+                        {String(item.frequency).toLowerCase() === "marked"
+                          ? "Marked"
+                          : item.is_duplicate
+                            ? "Duplicate"
+                            : "Detected"}
+                      </strong>
+                    </div>
+                  </div>
+                </InsightCard>
               ))}
-            </div>
+              </div>
+            </>
           )}
         </section>
       </div>

@@ -1,12 +1,16 @@
 import { useState } from "react";
 import "./Login.css";
-import { registerUser } from "../services/authService";
+import { loginUser, registerUser } from "../services/authService";
 import { Link, useNavigate } from "react-router-dom";
 import traceHeaderLogo from "../assets/trace_header.png";
 import { normalizeApiError } from "../utils/normalizeApiError";
+import useDemoMode from "../hooks/useDemoMode";
+import useAuth from "../hooks/useAuth";
 
 function CreateAccount() {
   const navigate = useNavigate();
+  const { beginModeOnboarding } = useDemoMode();
+  const { login } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,7 +41,15 @@ function CreateAccount() {
         email,
         password,
       });
-      navigate("/login", { replace: true });
+
+      beginModeOnboarding();
+      const authData = await loginUser({
+        email,
+        password,
+      });
+
+      login(authData.access_token);
+      navigate("/mode-select", { replace: true });
     } catch (error) {
       console.error(
         "Registration error:",

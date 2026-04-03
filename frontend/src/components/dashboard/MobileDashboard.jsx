@@ -1,7 +1,11 @@
+import { lazy, memo, Suspense } from "react";
 import { NavLink } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
-import ForecastChart from "../forecast/ForecastChart";
 import "./DashboardLayouts.css";
+
+const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
+const PredictedTransactionsInsight = lazy(() => import("../insight/PredictedTransactionsInsight"));
+const SubscriptionInsightCard = lazy(() => import("../insight/SubscriptionInsightCard"));
 
 function MobileDashboard({
   loadingHealth,
@@ -17,13 +21,12 @@ function MobileDashboard({
   selectedBudgetLimit,
   subscriptionInsight,
   predictedTransactions,
+  loadingPredictions,
+  predictionError,
+  onRetryPredictions,
 }) {
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
-
-  const validPredictions = (predictedTransactions || []).filter(
-    (tx) => tx.amount !== null && tx.amount !== undefined
-  );
 
   return (
     <div className="dashboard-shell mobile-shell">
@@ -36,10 +39,13 @@ function MobileDashboard({
           <p>Spent This Period</p>
           <h2>{spentTotal}</h2>
         </article>
-        <article className="budget-chip card-surface">
-          <p>Subscriptions</p>
-          <h2>{subscriptionInsight.count}</h2>
-        </article>
+        <Suspense fallback={<p className="muted">Loading insights...</p>}>
+          <SubscriptionInsightCard
+            count={subscriptionInsight.count}
+            totalMonthly={subscriptionInsight.totalMonthly}
+            className="budget-chip budget-chip--insight"
+          />
+        </Suspense>
       </section>
 
       <section className="card-surface mobile-chart-card">
@@ -76,11 +82,6 @@ function MobileDashboard({
 
             <FinancialHealthChart
               score={health.score}
-              width={250}
-              height={160}
-              innerRadius={64}
-              outerRadius={84}
-              labelSize={28}
             />
           </>
         ) : (
@@ -89,14 +90,16 @@ function MobileDashboard({
       </section>
 
       <section className="card-surface mobile-forecast-card">
-        <ForecastChart
-          transactions={forecastTransactions}
-          selectedPeriod={selectedPeriod}
-          budgetLimit={selectedBudgetLimit}
-          loading={loadingForecast}
-          error={forecastError}
-          compact
-        />
+        <Suspense fallback={<p className="muted">Loading forecast...</p>}>
+          <ForecastChart
+            transactions={forecastTransactions}
+            selectedPeriod={selectedPeriod}
+            budgetLimit={selectedBudgetLimit}
+            loading={loadingForecast}
+            error={forecastError}
+            compact
+          />
+        </Suspense>
       </section>
 
       <section className="card-surface mobile-transactions-card">
@@ -118,23 +121,15 @@ function MobileDashboard({
       </section>
 
       <section className="card-surface mobile-predicted-card">
-        <div className="section-heading">
-          <h3>Upcoming Predicted Transactions</h3>
-        </div>
-        <div className="tx-list">
-          {validPredictions.length > 0 ? (
-            validPredictions.map((tx) => (
-              <div key={tx.id} className="tx-row">
-                <span>{tx.name}</span>
-                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
-                </span>
-              </div>
-            ))
-          ) : (
-            <p className="muted">No predicted transactions.</p>
-          )}
-        </div>
+        <Suspense fallback={<p className="muted">Loading insights...</p>}>
+          <PredictedTransactionsInsight
+            transactions={predictedTransactions}
+            loading={loadingPredictions}
+            error={predictionError}
+            onRetry={onRetryPredictions}
+            defaultExpanded={false}
+          />
+        </Suspense>
       </section>
 
       <nav className="mobile-bottom-nav" aria-label="Primary">
@@ -147,4 +142,4 @@ function MobileDashboard({
   );
 }
 
-export default MobileDashboard;
+export default memo(MobileDashboard);
