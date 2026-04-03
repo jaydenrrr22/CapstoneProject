@@ -1,9 +1,11 @@
+import { lazy, memo, Suspense } from "react";
 import { NavLink } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
-import ForecastChart from "../forecast/ForecastChart";
-import PredictedTransactionsInsight from "../insight/PredictedTransactionsInsight";
-import SubscriptionInsightCard from "../insight/SubscriptionInsightCard";
 import "./DashboardLayouts.css";
+
+const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
+const PredictedTransactionsInsight = lazy(() => import("../insight/PredictedTransactionsInsight"));
+const SubscriptionInsightCard = lazy(() => import("../insight/SubscriptionInsightCard"));
 
 function MobileDashboard({
   loadingHealth,
@@ -37,11 +39,13 @@ function MobileDashboard({
           <p>Spent This Period</p>
           <h2>{spentTotal}</h2>
         </article>
-        <SubscriptionInsightCard
-          count={subscriptionInsight.count}
-          totalMonthly={subscriptionInsight.totalMonthly}
-          className="budget-chip budget-chip--insight"
-        />
+        <Suspense fallback={<p className="muted">Loading insights...</p>}>
+          <SubscriptionInsightCard
+            count={subscriptionInsight.count}
+            totalMonthly={subscriptionInsight.totalMonthly}
+            className="budget-chip budget-chip--insight"
+          />
+        </Suspense>
       </section>
 
       <section className="card-surface mobile-chart-card">
@@ -86,14 +90,16 @@ function MobileDashboard({
       </section>
 
       <section className="card-surface mobile-forecast-card">
-        <ForecastChart
-          transactions={forecastTransactions}
-          selectedPeriod={selectedPeriod}
-          budgetLimit={selectedBudgetLimit}
-          loading={loadingForecast}
-          error={forecastError}
-          compact
-        />
+        <Suspense fallback={<p className="muted">Loading forecast...</p>}>
+          <ForecastChart
+            transactions={forecastTransactions}
+            selectedPeriod={selectedPeriod}
+            budgetLimit={selectedBudgetLimit}
+            loading={loadingForecast}
+            error={forecastError}
+            compact
+          />
+        </Suspense>
       </section>
 
       <section className="card-surface mobile-transactions-card">
@@ -115,13 +121,15 @@ function MobileDashboard({
       </section>
 
       <section className="card-surface mobile-predicted-card">
-        <PredictedTransactionsInsight
-          transactions={predictedTransactions}
-          loading={loadingPredictions}
-          error={predictionError}
-          onRetry={onRetryPredictions}
-          defaultExpanded={false}
-        />
+        <Suspense fallback={<p className="muted">Loading insights...</p>}>
+          <PredictedTransactionsInsight
+            transactions={predictedTransactions}
+            loading={loadingPredictions}
+            error={predictionError}
+            onRetry={onRetryPredictions}
+            defaultExpanded={false}
+          />
+        </Suspense>
       </section>
 
       <nav className="mobile-bottom-nav" aria-label="Primary">
@@ -134,4 +142,4 @@ function MobileDashboard({
   );
 }
 
-export default MobileDashboard;
+export default memo(MobileDashboard);
