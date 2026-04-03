@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -32,7 +32,7 @@ function DecisionTooltip({ active, payload }) {
     <div className="decision-modal__tooltip">
       <time>{formatTooltipDate(point.isoDate)}</time>
       <strong>Current path: {formatCurrency(point.baseline, { precise: true })}</strong>
-      <strong>After decision: {formatCurrency(point.decision, { precise: true })}</strong>
+      <strong>After decision: {formatCurrency(point.decisionSelected, { precise: true })}</strong>
       <p>
         Impact:
         {" "}
@@ -59,6 +59,8 @@ export default function DecisionModal({
   open,
   title = "Decision Intelligence",
   loading = false,
+  busy = false,
+  busyLabel = "Working...",
   error = "",
   simulation = null,
   confirmLabel = "Confirm Action",
@@ -68,6 +70,47 @@ export default function DecisionModal({
   onCancel,
   onAdjust,
 }) {
+  const [selectedScenarioType, setSelectedScenarioType] = useState("");
+  const isBusy = loading || busy;
+  const recommendationStatus = simulation?.recommendation?.status || "neutral";
+  const canConfirm = !isBusy && typeof onConfirm === "function";
+  const defaultScenarioType = useMemo(() => {
+    if (!simulation?.scenarios?.length) {
+      return "";
+    }
+
+    return simulation.scenarios.find((scenario) => scenario.scenario_type === "Base Case")?.scenario_type
+      || simulation.scenarios[0]?.scenario_type
+      || "";
+  }, [simulation]);
+  const resolvedScenarioType = simulation?.scenarios?.some(
+    (scenario) => scenario.scenario_type === selectedScenarioType,
+  )
+    ? selectedScenarioType
+    : defaultScenarioType;
+  const activeScenario = useMemo(() => {
+    if (!simulation?.scenarios?.length) {
+      return null;
+    }
+
+    return simulation.scenarios.find((scenario) => scenario.scenario_type === resolvedScenarioType)
+      || simulation.scenarios[0];
+  }, [resolvedScenarioType, simulation]);
+  const activeImpact = activeScenario?.impactFromCurrent ?? simulation?.monthlyImpact ?? 0;
+  const activeProjectedSpend = activeScenario?.projected_spent_this_period ?? simulation?.projectedSpent ?? 0;
+  const activeRemainingBudget = activeScenario?.remaining_budget_after_purchase ?? simulation?.remainingBudget ?? null;
+  const activeUsageAfter = activeScenario?.projected_percentage_used ?? simulation?.usageAfter ?? null;
+  const activeRiskLevel = activeScenario?.risk_level ?? simulation?.riskLevel ?? "Unknown";
+  const chartData = useMemo(() => (
+    (simulation?.chartData || []).map((point) => ({
+      ...point,
+      decisionSelected: point.isoDate >= simulation?.actionDate
+        ? point.baseline + activeImpact
+        : point.baseline,
+      deltaFromBaseline: point.isoDate >= simulation?.actionDate ? activeImpact : 0,
+    }))
+  ), [activeImpact, simulation]);
+
   useEffect(() => {
     if (!open) {
       return undefined;
@@ -77,7 +120,7 @@ export default function DecisionModal({
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
-      if (event.key === "Escape" && !loading && typeof onCancel === "function") {
+      if (event.key === "Escape" && !isBusy && typeof onCancel === "function") {
         onCancel();
       }
     };
@@ -88,20 +131,17 @@ export default function DecisionModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [loading, onCancel, open]);
+  }, [isBusy, onCancel, open]);
 
   if (!open) {
     return null;
   }
 
   const handleBackdropClick = (event) => {
-    if (event.target === event.currentTarget && !loading && typeof onCancel === "function") {
+    if (event.target === event.currentTarget && !isBusy && typeof onCancel === "function") {
       onCancel();
     }
   };
-
-  const recommendationStatus = simulation?.recommendation?.status || "neutral";
-  const canConfirm = !loading && typeof onConfirm === "function";
 
   return (
     <div className="decision-modal__overlay" onClick={handleBackdropClick} role="presentation">
@@ -125,7 +165,7 @@ export default function DecisionModal({
             type="button"
             className="decision-modal__close"
             onClick={onCancel}
-            disabled={loading}
+            disabled={isBusy}
             aria-label="Close decision preview"
           >
             Close
@@ -149,20 +189,36 @@ export default function DecisionModal({
               </div>
               <div className="decision-modal__metric">
                 <span>After this action</span>
-                <strong>{formatCurrency(simulation.projectedSpent, { precise: true })}</strong>
+                <strong>{formatCurrency(activeProjectedSpend, { precise: true })}</strong>
               </div>
               <div className="decision-modal__metric">
                 <span>Decision impact</span>
-                <strong className={simulation.monthlyImpact > 0 ? "is-negative" : simulation.monthlyImpact < 0 ? "is-positive" : ""}>
-                  {formatCurrencyDelta(simulation.monthlyImpact)}
+                <strong className={activeImpact > 0 ? "is-negative" : activeImpact < 0 ? "is-positive" : ""}>
+                  {formatCurrencyDelta(activeImpact)}
                 </strong>
               </div>
             </div>
 
+            {simulation.scenarios?.length ? (
+              <div className="decision-modal__scenario-selector" aria-label="Projection scenarios">
+                {simulation.scenarios.map((scenario) => (
+                  <button
+                    key={scenario.scenario_type}
+                    type="button"
+                    className={`decision-modal__scenario-pill${scenario.scenario_type === activeScenario?.scenario_type ? " is-active" : ""}`}
+                    onClick={() => setSelectedScenarioType(scenario.scenario_type)}
+                  >
+                    <strong>{scenario.scenario_type}</strong>
+                    <span>{scenario.risk_level}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <div className="decision-modal__chart-shell">
               <div className="decision-modal__chart">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={simulation.chartData} margin={{ top: 10, right: 8, bottom: 4, left: 0 }}>
+                  <LineChart data={chartData} margin={{ top: 10, right: 8, bottom: 4, left: 0 }}>
                     <CartesianGrid stroke="rgba(34, 34, 59, 0.08)" vertical={false} />
                     <XAxis
                       dataKey="isoDate"
@@ -202,9 +258,9 @@ export default function DecisionModal({
                       isAnimationActive={false}
                     />
                     <Line
-                      key={simulation.chartKey}
+                      key={`${simulation.chartKey}-${activeScenario?.scenario_type || "default"}`}
                       type="monotone"
-                      dataKey="decision"
+                      dataKey="decisionSelected"
                       stroke="#22223b"
                       strokeWidth={3}
                       strokeDasharray="7 5"
@@ -220,7 +276,7 @@ export default function DecisionModal({
 
               <div className="decision-modal__legend" aria-label="Simulation legend">
                 <span><i className="baseline" /> Current path</span>
-                <span><i className="decision" /> If you proceed</span>
+                <span><i className="decision" /> Selected scenario</span>
                 {Number.isFinite(simulation.budgetLimit) ? <span><i className="budget" /> Budget line</span> : null}
               </div>
             </div>
@@ -235,29 +291,34 @@ export default function DecisionModal({
               <div>
                 <span>Budget use</span>
                 <strong>
-                  {simulation.usageBefore !== null && simulation.usageAfter !== null
-                    ? `${simulation.usageBefore.toFixed(1)}% -> ${simulation.usageAfter.toFixed(1)}%`
+                  {simulation.usageBefore !== null && activeUsageAfter !== null
+                    ? `${simulation.usageBefore.toFixed(1)}% -> ${activeUsageAfter.toFixed(1)}%`
                     : "Unavailable"}
                 </strong>
               </div>
               <div>
                 <span>Remaining budget</span>
-                <strong>{simulation.remainingBudget !== null ? formatCurrency(simulation.remainingBudget, { precise: true }) : "Unavailable"}</strong>
+                <strong>{activeRemainingBudget !== null ? formatCurrency(activeRemainingBudget, { precise: true }) : "Unavailable"}</strong>
               </div>
               <div>
                 <span>Risk level</span>
-                <strong>{simulation.riskLevel || "Unknown"}</strong>
+                <strong>{activeRiskLevel || "Unknown"}</strong>
               </div>
             </div>
 
             {simulation.scenarios?.length ? (
               <div className="decision-modal__scenarios">
                 {simulation.scenarios.map((scenario) => (
-                  <div key={scenario.scenario_type} className="decision-modal__scenario">
+                  <button
+                    type="button"
+                    key={scenario.scenario_type}
+                    className={`decision-modal__scenario${scenario.scenario_type === activeScenario?.scenario_type ? " is-active" : ""}`}
+                    onClick={() => setSelectedScenarioType(scenario.scenario_type)}
+                  >
                     <span>{scenario.scenario_type}</span>
                     <strong>{formatCurrency(scenario.projected_spent_this_period, { precise: true })}</strong>
                     <small>{scenario.risk_level}</small>
-                  </div>
+                  </button>
                 ))}
               </div>
             ) : null}
@@ -274,7 +335,7 @@ export default function DecisionModal({
             type="button"
             className="decision-modal__button secondary"
             onClick={onCancel}
-            disabled={loading}
+            disabled={isBusy}
           >
             {cancelLabel}
           </button>
@@ -284,7 +345,7 @@ export default function DecisionModal({
               type="button"
               className="decision-modal__button tertiary"
               onClick={onAdjust}
-              disabled={loading}
+              disabled={isBusy}
             >
               {adjustLabel}
             </button>
@@ -296,7 +357,7 @@ export default function DecisionModal({
             onClick={onConfirm}
             disabled={!canConfirm}
           >
-            {loading ? "Preparing preview..." : confirmLabel}
+            {busy ? busyLabel : loading ? "Preparing preview..." : confirmLabel}
           </button>
         </div>
       </div>

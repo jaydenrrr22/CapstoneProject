@@ -1,28 +1,17 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
+import useDemoMode from "../hooks/useDemoMode";
 import traceHeaderLogo from "../assets/trace_icon.png";
+import { PRIMARY_NAV_ITEMS, getPageTitle, isSectionPathActive } from "../constants/routes";
 import "./AppTopNav.css";
-
-const TITLE_BY_PATH = {
-  "/dashboard": "Dashboard",
-  "/intelligence": "Intelligence Overview",
-  "/transactions": "Transactions",
-  "/transaction": "Transactions",
-  "/subscriptions": "Subscriptions",
-  "/budgets": "Budgets",
-  "/team": "Meet the Team",
-  "/legal/privacy": "Privacy Policy",
-  "/legal/terms": "Terms of Service",
-  "/legal/cookies": "Cookie Policy",
-  "/login": "Login",
-  "/signup": "Create Account",
-};
 
 function AppTopNav() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
+  const { currentDataset, isDemoMode, selectNormalMode } = useDemoMode();
 
-  const title = TITLE_BY_PATH[location.pathname] || "Trace";
+  const title = getPageTitle(location.pathname);
 
   return (
     <header className="app-top-nav" role="banner">
@@ -32,17 +21,27 @@ function AppTopNav() {
           <div>
             <p className="app-top-nav-eyebrow">Financial Workspace</p>
             <h1 className="app-top-nav-title">{title}</h1>
+            {isDemoMode ? (
+              <p className="app-top-nav-mode-pill">
+                Demo Mode
+                {currentDataset?.label ? ` | ${currentDataset.label}` : ""}
+              </p>
+            ) : null}
           </div>
         </div>
 
         <nav className="app-top-nav-links" aria-label="Primary">
           {isAuthenticated ? (
             <>
-              <NavLink to="/dashboard">Home</NavLink>
-              <NavLink to="/intelligence">Intelligence</NavLink>
-              <NavLink to="/transactions">Transactions</NavLink>
-              <NavLink to="/subscriptions">Subscriptions</NavLink>
-              <NavLink to="/budgets">Budgets</NavLink>
+              {PRIMARY_NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.key}
+                  to={item.to}
+                  className={isSectionPathActive(location.pathname, item.matchPrefix) ? "active" : undefined}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
             </>
           ) : (
             <>
@@ -53,9 +52,23 @@ function AppTopNav() {
         </nav>
 
         {isAuthenticated ? (
-          <button className="app-top-nav-logout" onClick={() => logout()}>
-            Logout
-          </button>
+          <div className="app-top-nav-actions">
+            {isDemoMode ? (
+              <button
+                type="button"
+                className="app-top-nav-exit-demo"
+                onClick={() => {
+                  selectNormalMode();
+                  navigate("/dashboard", { replace: true });
+                }}
+              >
+                Exit Demo
+              </button>
+            ) : null}
+            <button className="app-top-nav-logout" onClick={() => logout()}>
+              Logout
+            </button>
+          </div>
         ) : (
           <div className="app-top-nav-spacer" />
         )}

@@ -120,6 +120,54 @@
   font-weight: 600;
 }
 
+.decision-modal__scenario-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.decision-modal__scenario-pill,
+.decision-modal__scenario {
+  border: 1px solid rgba(34, 34, 59, 0.1);
+  background: rgba(255, 255, 255, 0.34);
+  color: #22223b;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.decision-modal__scenario-pill:hover,
+.decision-modal__scenario:hover {
+  transform: translateY(-1px);
+}
+
+.decision-modal__scenario-pill {
+  border-radius: 999px;
+  padding: 10px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.decision-modal__scenario-pill strong,
+.decision-modal__scenario-pill span {
+  display: block;
+}
+
+.decision-modal__scenario-pill span {
+  color: #4a4e69;
+  font-size: 0.82rem;
+}
+
+.decision-modal__scenario-pill.is-active,
+.decision-modal__scenario.is-active {
+  border-color: rgba(34, 34, 59, 0.24);
+  background: rgba(34, 34, 59, 0.12);
+}
+
+.decision-modal__scenario {
+  text-align: left;
+}
+
 .decision-modal__chart-shell {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.48);

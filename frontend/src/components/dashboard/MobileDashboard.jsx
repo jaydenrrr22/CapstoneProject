@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
+import { PRIMARY_NAV_ITEMS, isSectionPathActive } from "../../constants/routes";
 import "./DashboardLayouts.css";
 
 const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
@@ -25,6 +26,7 @@ function MobileDashboard({
   predictionError,
   onRetryPredictions,
 }) {
+  const location = useLocation();
   const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
   const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
 
@@ -133,10 +135,15 @@ function MobileDashboard({
       </section>
 
       <nav className="mobile-bottom-nav" aria-label="Primary">
-        <NavLink to="/dashboard">Home</NavLink>
-        <NavLink to="/transactions">Transactions</NavLink>
-        <NavLink to="/subscriptions">Subscriptions</NavLink>
-        <NavLink to="/budgets">Budgets</NavLink>
+        {PRIMARY_NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.key}
+            to={item.to}
+            className={isSectionPathActive(location.pathname, item.matchPrefix) ? "active" : undefined}
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );

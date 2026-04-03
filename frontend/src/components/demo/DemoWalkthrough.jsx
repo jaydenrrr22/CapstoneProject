@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import useDemoMode from "../../hooks/useDemoMode";
 import "./DemoWalkthrough.css";
 
@@ -18,7 +19,8 @@ const STEPS = [
 ];
 
 function DemoWalkthrough() {
-  const { dismissWalkthrough, isDemoMode, walkthroughDismissed } = useDemoMode();
+  const navigate = useNavigate();
+  const { dismissWalkthrough, isDemoMode, selectNormalMode, walkthroughDismissed } = useDemoMode();
   const [stepIndex, setStepIndex] = useState(0);
 
   const step = useMemo(() => STEPS[stepIndex], [stepIndex]);
@@ -39,6 +41,16 @@ function DemoWalkthrough() {
       </div>
 
       <div className="demo-walkthrough__actions">
+        <button
+          type="button"
+          className="demo-walkthrough__exit"
+          onClick={() => {
+            selectNormalMode();
+            navigate("/dashboard", { replace: true });
+          }}
+        >
+          Exit Demo
+        </button>
         <button type="button" onClick={dismissWalkthrough}>Dismiss</button>
         <button
           type="button"

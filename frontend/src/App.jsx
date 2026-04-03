@@ -69,7 +69,7 @@ function AppRoutes() {
           )}
         />
         <Route
-          path="/intelligence"
+          path="/intelligence/*"
           element={(
             <ProtectedRoute>
               <IntelligenceDashboard />

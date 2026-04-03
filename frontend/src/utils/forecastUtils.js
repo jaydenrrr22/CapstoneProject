@@ -87,6 +87,24 @@ export function getPeriodKey(value) {
   return `${year}-${month}`;
 }
 
+export function getCurrentPeriodKey() {
+  return getPeriodKey(new Date());
+}
+
+export function resolveDefaultPeriod(periods = [], preferredPeriod = "") {
+  if (preferredPeriod && periods.includes(preferredPeriod)) {
+    return preferredPeriod;
+  }
+
+  const currentPeriod = getCurrentPeriodKey();
+
+  if (periods.includes(currentPeriod)) {
+    return currentPeriod;
+  }
+
+  return periods[0] || "";
+}
+
 export function toISODate(value) {
   const date = toDate(value);
 

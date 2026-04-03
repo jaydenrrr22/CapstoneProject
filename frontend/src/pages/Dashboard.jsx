@@ -6,10 +6,12 @@ import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import { normalizeApiError } from "../utils/normalizeApiError";
+import { resolveDefaultPeriod } from "../utils/forecastUtils";
 import useIntelligence from "../hooks/useIntelligence";
 import useDemoMode from "../hooks/useDemoMode";
-import { buildDemoHealth, getAvailablePeriods, getBudgetLimitMap, getSubscriptionInsight } from "../demo/demoUtils";
+import { buildDemoHealth, detectDemoSubscriptions, getAvailablePeriods, getBudgetLimitMap, getSubscriptionInsight } from "../demo/demoUtils";
 import DemoWalkthrough from "../components/demo/DemoWalkthrough";
+import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
 
 function Dashboard() {
   const { token } = useAuth();
@@ -51,6 +53,10 @@ function Dashboard() {
     () => getAvailablePeriods(currentDataset?.budget || []),
     [currentDataset]
   );
+  const demoSubscriptions = useMemo(
+    () => detectDemoSubscriptions(currentDataset?.transactions || []),
+    [currentDataset]
+  );
   const activePredictions = isDemoMode ? currentDataset?.predictions || [] : predictions;
   const activeLoadingPredictions = isDemoMode ? false : loadingPredictions;
   const activePredictionError = isDemoMode ? "" : predictionError;
@@ -82,14 +88,7 @@ function Dashboard() {
 
     try {
       const response = await API.get("/prediction/history");
-
-      const mapped = (response.data || []).map((item, index) => ({
-        id: item.id || `pred-${index}`,
-        name: item.target_data || "Predicted Transaction",
-        amount: Number(item.predicted_spending) || 0,
-      }));
-
-      setPredictions(mapped);
+      setPredictions(mapIntelligenceHistoryRecords(response.data || []));
     } catch (error) {
       setPredictionError(
         normalizeApiError(error, "Failed to load predicted transactions.")
@@ -112,7 +111,7 @@ function Dashboard() {
 
   const loadSubscriptionInsight = useCallback(async () => {
     if (isDemoMode) {
-      setSubscriptionInsight(getSubscriptionInsight(currentDataset?.subscriptions || []));
+      setSubscriptionInsight(getSubscriptionInsight(demoSubscriptions));
       return;
     }
 
@@ -134,7 +133,7 @@ function Dashboard() {
         totalMonthly: 0,
       });
     }
-  }, [currentDataset, isDemoMode]);
+  }, [demoSubscriptions, isDemoMode]);
 
   const loadBaseDashboardData = useCallback(
     async (preferredPeriod = "", shouldSyncSelectedPeriod = true) => {
@@ -177,9 +176,7 @@ function Dashboard() {
         const resolvedPeriod =
           periods.length === 0
             ? ""
-            : periods.includes(preferredPeriod)
-            ? preferredPeriod
-            : periods[0];
+            : resolveDefaultPeriod(periods, preferredPeriod);
 
         if (shouldSyncSelectedPeriod && resolvedPeriod) {
           setSelectedPeriod(resolvedPeriod);
@@ -235,9 +232,9 @@ function Dashboard() {
       setAvailablePeriods(demoAvailablePeriods);
       setBudgetLimitsByPeriod(demoBudgetMap);
       setTransactions(currentDataset?.transactions || []);
-      setSubscriptionInsight(getSubscriptionInsight(currentDataset?.subscriptions || []));
+      setSubscriptionInsight(getSubscriptionInsight(demoSubscriptions));
       setSelectedPeriod((current) =>
-        demoAvailablePeriods.includes(current) ? current : demoAvailablePeriods[0] || ""
+        resolveDefaultPeriod(demoAvailablePeriods, current)
       );
       return;
     }
@@ -248,7 +245,7 @@ function Dashboard() {
     }
 
     loadBaseDashboardData();
-  }, [currentDataset, demoAvailablePeriods, demoBudgetMap, isDemoMode, loadBaseDashboardData, token]);
+  }, [currentDataset, demoAvailablePeriods, demoBudgetMap, demoSubscriptions, isDemoMode, loadBaseDashboardData, token]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -284,6 +281,8 @@ function Dashboard() {
 
         await loadHealth(resolvedPeriod);
       }
+
+      await loadPredictions();
     };
 
     const debouncedDashboardRefresh = () => {
@@ -311,7 +310,7 @@ function Dashboard() {
         debouncedDashboardRefresh
       );
     };
-  }, [isDemoMode, loadBaseDashboardData, loadHealth, selectedPeriod, token]);
+  }, [isDemoMode, loadBaseDashboardData, loadHealth, loadPredictions, selectedPeriod, token]);
 
   const selectedBudgetLimit = selectedPeriod
     ? (isDemoMode ? demoBudgetMap[selectedPeriod] : budgetLimitsByPeriod[selectedPeriod]) ?? null

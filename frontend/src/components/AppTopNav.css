@@ -47,6 +47,17 @@
   font-family: "Itim", cursive;
 }
 
+.app-top-nav-mode-pill {
+  display: inline-flex;
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(34, 34, 59, 0.12);
+  color: #22223b;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .app-top-nav-links {
   display: flex;
   gap: 8px;
@@ -77,8 +88,28 @@
   cursor: pointer;
 }
 
+.app-top-nav-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-top-nav-exit-demo {
+  border: none;
+  border-radius: 10px;
+  background: rgba(34, 34, 59, 0.12);
+  color: #22223b;
+  font-weight: 700;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
 .app-top-nav-logout:hover {
   background: #4a4e69;
+}
+
+.app-top-nav-exit-demo:hover {
+  background: rgba(34, 34, 59, 0.2);
 }
 
 .app-top-nav-spacer {
@@ -105,5 +136,10 @@
 
   .app-top-nav-logout {
     justify-self: start;
+  }
+
+  .app-top-nav-actions {
+    justify-self: start;
+    flex-wrap: wrap;
   }
 }
