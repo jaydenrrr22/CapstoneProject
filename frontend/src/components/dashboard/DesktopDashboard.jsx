@@ -1,8 +1,10 @@
+import { lazy, memo, Suspense } from "react";
 import FinancialHealthChart from "../FinancialHealthChart";
-import ForecastChart from "../forecast/ForecastChart";
-import PredictedTransactionsInsight from "../insight/PredictedTransactionsInsight";
-import SubscriptionInsightCard from "../insight/SubscriptionInsightCard";
 import "./DashboardLayouts.css";
+
+const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
+const PredictedTransactionsInsight = lazy(() => import("../insight/PredictedTransactionsInsight"));
+const SubscriptionInsightCard = lazy(() => import("../insight/SubscriptionInsightCard"));
 
 function DesktopDashboard({
   loadingHealth,
@@ -37,11 +39,13 @@ function DesktopDashboard({
             <p>Spent This Period</p>
             <h2>{spentTotal}</h2>
           </article>
-          <SubscriptionInsightCard
-            count={subscriptionInsight.count}
-            totalMonthly={subscriptionInsight.totalMonthly}
-            className="budget-stat budget-stat--insight"
-          />
+          <Suspense fallback={<p className="muted">Loading insights...</p>}>
+            <SubscriptionInsightCard
+              count={subscriptionInsight.count}
+              totalMonthly={subscriptionInsight.totalMonthly}
+              className="budget-stat budget-stat--insight"
+            />
+          </Suspense>
         </section>
 
         <section className="desktop-health-panel card-surface">
@@ -119,26 +123,30 @@ function DesktopDashboard({
         </section>
 
         <section className="desktop-forecast-panel card-surface">
-          <ForecastChart
-            transactions={forecastTransactions}
-            selectedPeriod={selectedPeriod}
-            budgetLimit={selectedBudgetLimit}
-            loading={loadingForecast}
-            error={forecastError}
-          />
+          <Suspense fallback={<p className="muted">Loading forecast...</p>}>
+            <ForecastChart
+              transactions={forecastTransactions}
+              selectedPeriod={selectedPeriod}
+              budgetLimit={selectedBudgetLimit}
+              loading={loadingForecast}
+              error={forecastError}
+            />
+          </Suspense>
         </section>
 
         <section className="desktop-predicted-panel card-surface">
-          <PredictedTransactionsInsight
-            transactions={predictedTransactions}
-            loading={loadingPredictions}
-            error={predictionError}
-            onRetry={onRetryPredictions}
-          />
+          <Suspense fallback={<p className="muted">Loading insights...</p>}>
+            <PredictedTransactionsInsight
+              transactions={predictedTransactions}
+              loading={loadingPredictions}
+              error={predictionError}
+              onRetry={onRetryPredictions}
+            />
+          </Suspense>
         </section>
       </div>
     </div>
   );
 }
 
-export default DesktopDashboard;
+export default memo(DesktopDashboard);

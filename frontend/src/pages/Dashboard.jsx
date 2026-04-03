@@ -25,6 +25,7 @@ function Dashboard() {
 
   const isMobile = useIsMobile(768);
   const skipNextHealthLoadRef = useRef(false);
+  const refreshTimeoutRef = useRef(null);
 
   const [health, setHealth] = useState(null);
   const [healthError, setHealthError] = useState("");
@@ -285,15 +286,29 @@ function Dashboard() {
       }
     };
 
+    const debouncedDashboardRefresh = () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+
+      refreshTimeoutRef.current = setTimeout(() => {
+        handleDashboardRefresh();
+      }, 300);
+    };
+
     window.addEventListener(
       DASHBOARD_REFRESH_EVENT,
-      handleDashboardRefresh
+      debouncedDashboardRefresh
     );
 
     return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+
       window.removeEventListener(
         DASHBOARD_REFRESH_EVENT,
-        handleDashboardRefresh
+        debouncedDashboardRefresh
       );
     };
   }, [isDemoMode, loadBaseDashboardData, loadHealth, selectedPeriod, token]);
