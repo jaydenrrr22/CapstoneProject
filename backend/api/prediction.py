@@ -53,7 +53,11 @@ def run_prediction(
                     "Unit": "Count",
                 }],
             )
-            return entry["response"]
+            cached_response = entry["response"].copy()
+            cached_response["cached"] = True
+            if "latency" in cached_response:
+                cached_response["latency"] = 0
+            return cached_response
 
         logger.info("CACHE EXPIRED")
         del CACHE[cache_key]
