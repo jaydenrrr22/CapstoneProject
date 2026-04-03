@@ -34,6 +34,34 @@ body {
   min-height: 100vh;
 }
 
+.global-error-banner {
+  position: sticky;
+  top: 12px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(180, 35, 24, 0.92);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.global-error-banner span {
+  overflow-wrap: anywhere;
+}
+
+.global-error-banner button {
+  min-height: 34px;
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-weight: 700;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
