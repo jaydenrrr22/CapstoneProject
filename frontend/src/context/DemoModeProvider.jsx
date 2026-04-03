@@ -5,8 +5,17 @@ import { getDemoDatasetById } from "../demo/demoDatasets";
 const MODE_SELECTION_KEY = "trace_mode_selection";
 const DEMO_MODE_KEY = "trace_is_demo_mode";
 const DATASET_KEY = "trace_demo_dataset";
+const TRANSACTIONS_KEY = "trace_demo_transactions";
 const WALKTHROUGH_KEY = "trace_demo_walkthrough_dismissed";
 const MODE_ONBOARDING_KEY = "trace_mode_onboarding_pending";
+
+function createDemoTransactionId() {
+  return `demo-tx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function persistDemoTransactions(nextTransactionsByDataset) {
+  window.localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(nextTransactionsByDataset));
+}
 
 export function DemoModeProvider({ children }) {
   const [hasSelectedMode, setHasSelectedMode] = useState(
@@ -21,6 +30,19 @@ export function DemoModeProvider({ children }) {
   const [selectedDemoDataset, setSelectedDemoDataset] = useState(
     () => window.localStorage.getItem(DATASET_KEY) || "college-student"
   );
+  const [demoTransactionsByDataset, setDemoTransactionsByDataset] = useState(() => {
+    const storedValue = window.localStorage.getItem(TRANSACTIONS_KEY);
+
+    if (!storedValue) {
+      return {};
+    }
+
+    try {
+      return JSON.parse(storedValue);
+    } catch {
+      return {};
+    }
+  });
   const [walkthroughDismissed, setWalkthroughDismissed] = useState(
     () => window.localStorage.getItem(WALKTHROUGH_KEY) === "true"
   );
@@ -91,23 +113,99 @@ export function DemoModeProvider({ children }) {
     setWalkthroughDismissed(true);
   }, []);
 
+  const createDemoTransaction = useCallback((transaction) => {
+    const nextTransaction = {
+      ...transaction,
+      id: transaction.id || createDemoTransactionId(),
+    };
+
+    let nextTransactionsByDataset = {};
+
+    setDemoTransactionsByDataset((previous) => {
+      const baseTransactions = previous[selectedDemoDataset] || getDemoDatasetById(selectedDemoDataset).transactions || [];
+      nextTransactionsByDataset = {
+        ...previous,
+        [selectedDemoDataset]: [...baseTransactions, nextTransaction],
+      };
+
+      persistDemoTransactions(nextTransactionsByDataset);
+      return nextTransactionsByDataset;
+    });
+
+    return nextTransactionsByDataset[selectedDemoDataset] || [nextTransaction];
+  }, [selectedDemoDataset]);
+
+  const updateDemoTransaction = useCallback((transactionId, updates) => {
+    let nextTransactionsByDataset = {};
+
+    setDemoTransactionsByDataset((previous) => {
+      const baseTransactions = previous[selectedDemoDataset] || getDemoDatasetById(selectedDemoDataset).transactions || [];
+      nextTransactionsByDataset = {
+        ...previous,
+        [selectedDemoDataset]: baseTransactions.map((transaction) =>
+          transaction.id === transactionId
+            ? { ...transaction, ...updates, id: transaction.id }
+            : transaction
+        ),
+      };
+
+      persistDemoTransactions(nextTransactionsByDataset);
+      return nextTransactionsByDataset;
+    });
+
+    return nextTransactionsByDataset[selectedDemoDataset] || [];
+  }, [selectedDemoDataset]);
+
+  const deleteDemoTransaction = useCallback((transactionId) => {
+    let nextTransactionsByDataset = {};
+
+    setDemoTransactionsByDataset((previous) => {
+      const baseTransactions = previous[selectedDemoDataset] || getDemoDatasetById(selectedDemoDataset).transactions || [];
+      nextTransactionsByDataset = {
+        ...previous,
+        [selectedDemoDataset]: baseTransactions.filter((transaction) => transaction.id !== transactionId),
+      };
+
+      persistDemoTransactions(nextTransactionsByDataset);
+      return nextTransactionsByDataset;
+    });
+
+    return nextTransactionsByDataset[selectedDemoDataset] || [];
+  }, [selectedDemoDataset]);
+
   const value = useMemo(
-    () => ({
-      currentDataset: isDemoMode ? getDemoDatasetById(selectedDemoDataset) : null,
-      beginModeOnboarding,
-      dismissWalkthrough,
-      hasSelectedMode,
-      isDemoMode,
-      needsModeSelection,
-      resetModeSelection,
-      selectDemoMode,
-      selectedDemoDataset,
-      selectNormalMode,
-      setSelectedDemoDataset,
-      walkthroughDismissed,
-    }),
+    () => {
+      const baseDataset = isDemoMode ? getDemoDatasetById(selectedDemoDataset) : null;
+      const currentDataset = baseDataset
+        ? {
+          ...baseDataset,
+          transactions: demoTransactionsByDataset[selectedDemoDataset] || baseDataset.transactions,
+        }
+        : null;
+
+      return {
+        currentDataset,
+        beginModeOnboarding,
+        createDemoTransaction,
+        deleteDemoTransaction,
+        dismissWalkthrough,
+        hasSelectedMode,
+        isDemoMode,
+        needsModeSelection,
+        resetModeSelection,
+        selectDemoMode,
+        selectedDemoDataset,
+        selectNormalMode,
+        setSelectedDemoDataset,
+        updateDemoTransaction,
+        walkthroughDismissed,
+      };
+    },
     [
+      createDemoTransaction,
+      deleteDemoTransaction,
       beginModeOnboarding,
+      demoTransactionsByDataset,
       dismissWalkthrough,
       hasSelectedMode,
       isDemoMode,
@@ -116,6 +214,7 @@ export function DemoModeProvider({ children }) {
       selectDemoMode,
       selectedDemoDataset,
       selectNormalMode,
+      updateDemoTransaction,
       walkthroughDismissed,
     ]
   );

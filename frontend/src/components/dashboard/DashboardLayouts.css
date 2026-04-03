@@ -192,7 +192,7 @@ h3 {
   background: var(--brand);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   min-height: 62px;
   z-index: 30;
 }

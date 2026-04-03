@@ -38,6 +38,7 @@
   justify-content: space-between;
   gap: 10px;
   margin-top: 14px;
+  flex-wrap: wrap;
 }
 
 .demo-walkthrough__actions button {
@@ -49,7 +50,12 @@
   cursor: pointer;
 }
 
-.demo-walkthrough__actions button:first-child {
+.demo-walkthrough__exit {
+  background: rgba(140, 43, 35, 0.12);
+  color: #7a1510;
+}
+
+.demo-walkthrough__actions button:nth-child(2) {
   background: rgba(34, 34, 59, 0.1);
   color: #22223b;
 }

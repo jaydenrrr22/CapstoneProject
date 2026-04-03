@@ -14,9 +14,10 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import JSONResponse
 
-from .dependencies.database import get_db
+from .dependencies.database import Base, engine, get_db
 from .dependencies.auth import get_current_user
 from .dependencies.rate_limit import rate_limit_callback, set_rate_limiter_enabled
+from .models import budget, dataset, insight, intelligence, prediction, subscription, transaction, user  # noqa: F401
 from .models.user import User
 from .routers import index as indexRoute
 from .dependencies.config import conf
@@ -40,6 +41,8 @@ START_TIME = time.time()
 
 @app.on_event("startup")
 async def on_startup() -> None:
+    Base.metadata.create_all(bind=engine)
+
     try:
         redis_client = redis.from_url(
             conf.redis_url,

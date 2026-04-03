@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Optional, List
 
 from pydantic import BaseModel, Field
@@ -5,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class SimulationRequest(BaseModel):
     amount: float = Field(gt=0)
+    action_date: Optional[date] = None
     category: Optional[str] = None
     transaction_type: str = "spend"
     frequency: str

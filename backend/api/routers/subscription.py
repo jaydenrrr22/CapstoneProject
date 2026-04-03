@@ -49,10 +49,14 @@ def detect_subscriptions(
         is_monthly = True
         is_duplicate = False
         tx_ids = [tx_list[0].id]
+        total_interval_days = 0
+        interval_count = 0
 
         for i in range(1, len(tx_list)):
             days_diff = (tx_list[i].date - tx_list[i - 1].date).days
             tx_ids.append(tx_list[i].id)
+            total_interval_days += days_diff
+            interval_count += 1
 
             if days_diff <= 3:
                 is_duplicate = True
@@ -85,6 +89,10 @@ def detect_subscriptions(
                 "amount": cost,
                 "frequency": frequency_val,
                 "is_duplicate": is_duplicate,
+                "charge_count": len(tx_ids),
+                "first_charge_date": tx_list[0].date,
+                "last_charge_date": tx_list[-1].date,
+                "average_interval_days": round(total_interval_days / interval_count) if interval_count > 0 else None,
                 "transaction_ids": tx_ids,
                 "new_sub_ref": new_sub if lookup_key not in sub_lookup else None
             })
@@ -138,16 +146,21 @@ def detect_subscriptions(
                 "amount": tx.cost,
                 "frequency": "Marked",
                 "is_duplicate": False,
+                "charge_count": 1,
+                "first_charge_date": tx.date,
+                "last_charge_date": tx.date,
+                "average_interval_days": None,
                 "transaction_ids": [tx.id],
                 "new_sub_ref": new_sub if lookup_key not in sub_lookup else None
             })
-        if new_marked_subs:
-            db.add_all(new_marked_subs)
-            db.commit()
 
-            for sub_dict in detected_subscriptions:
-                if sub_dict.get("new_sub_ref"):
-                    sub_dict["id"] = sub_dict["new_sub_ref"].id
-                sub_dict.pop("new_sub_ref", None)
+    if new_marked_subs:
+        db.add_all(new_marked_subs)
+        db.commit()
+
+        for sub_dict in detected_subscriptions:
+            if sub_dict.get("new_sub_ref"):
+                sub_dict["id"] = sub_dict["new_sub_ref"].id
+            sub_dict.pop("new_sub_ref", None)
 
     return detected_subscriptions
