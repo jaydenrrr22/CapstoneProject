@@ -258,10 +258,13 @@ def analyze_transaction_decision(
     db: Session,
     user_id: int,
     request: IntelligenceAnalyzeRequest,
+    *,
+    emit_prediction_metrics: bool = True,
 ) -> IntelligenceResponse:
 
-    start_time = time.time()
-    safe_put_metric("Trace/Prediction", "PredictionRequests", 1)
+    if emit_prediction_metrics:
+        safe_put_metric("Trace/Prediction", "PredictionRequests", 1)
+    start_time = time.time() if emit_prediction_metrics else None
 
     action_date = request.action_date or _utc_now().date()
     budget = _resolve_budget_for_date(db, user_id, action_date)
@@ -373,14 +376,11 @@ def analyze_transaction_decision(
             source=request.source,
         )
 
-    # Calculate latency
-    latency = time.time() - start_time
-
-    # Track latency (non-blocking)
-    safe_put_metric("Trace/Prediction", "PredictionLatency", latency, unit="Seconds")
-
-    # Local fallback logging
-    logger.info(f"Intelligence analysis completed in {latency:.4f}s")
+    # Calculate and emit latency metrics (non-blocking, only when requested)
+    if emit_prediction_metrics and start_time is not None:
+        latency = time.time() - start_time
+        safe_put_metric("Trace/Prediction", "PredictionLatency", latency, unit="Seconds")
+        logger.info(f"Intelligence analysis completed in {latency:.4f}s")
  
     return response
 
