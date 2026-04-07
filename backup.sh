@@ -4,7 +4,7 @@ set -euo pipefail
 # Config — load credentials from environment variables (no hardcoded secrets)
 DB_NAME="${DB_NAME:-trace_db}"
 DB_USER="${DB_USER:-trace_user}"
-DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD environment variable must be set}"
+DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD must be set in the environment or .env file}"
 BACKUP_DIR="${BACKUP_DIR:-$HOME/backups}"
 
 # Create backup directory if it doesn't exist

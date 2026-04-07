@@ -264,7 +264,7 @@ def analyze_transaction_decision(
 
     if emit_prediction_metrics:
         safe_put_metric("Trace/Prediction", "PredictionRequests", 1)
-    start_time = time.time() if emit_prediction_metrics else None
+    start_time = time.time()
 
     action_date = request.action_date or _utc_now().date()
     budget = _resolve_budget_for_date(db, user_id, action_date)
@@ -377,7 +377,7 @@ def analyze_transaction_decision(
         )
 
     # Calculate and emit latency metrics (non-blocking, only when requested)
-    if emit_prediction_metrics and start_time is not None:
+    if emit_prediction_metrics:
         latency = time.time() - start_time
         safe_put_metric("Trace/Prediction", "PredictionLatency", latency, unit="Seconds")
         logger.info(f"Intelligence analysis completed in {latency:.4f}s")

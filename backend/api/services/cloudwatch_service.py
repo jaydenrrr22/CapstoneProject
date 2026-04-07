@@ -1,10 +1,12 @@
 import boto3
 import logging
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 
 _cloudwatch_unavailable_logged = False
+_executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="cloudwatch")
 
 try:
     cloudwatch = boto3.client("cloudwatch", region_name="us-east-2")
@@ -36,5 +38,4 @@ def safe_put_metric(namespace, metric_name, value, unit="Count"):
         except Exception as e:
             logger.error(f"CloudWatch metric failed: {e}")
 
-    thread = threading.Thread(target=_emit, daemon=True)
-    thread.start()
+    _executor.submit(_emit)
