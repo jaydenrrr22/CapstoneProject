@@ -23,6 +23,11 @@ from backend.api.schemas.intelligence import (
     IntelligenceScenario,
 )
 from backend.api.schemas.summary import ForecastDetail, HealthScoreDetail
+from backend.api.services.cloudwatch_service import safe_put_metric
+import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _utc_now() -> datetime:
@@ -254,6 +259,10 @@ def analyze_transaction_decision(
     user_id: int,
     request: IntelligenceAnalyzeRequest,
 ) -> IntelligenceResponse:
+
+    start_time = time.time()
+    safe_put_metric("Trace/Prediction", "PredictionRequests", 1)
+
     action_date = request.action_date or _utc_now().date()
     budget = _resolve_budget_for_date(db, user_id, action_date)
 
@@ -364,6 +373,15 @@ def analyze_transaction_decision(
             source=request.source,
         )
 
+    # Calculate latency
+    latency = time.time() - start_time
+
+    # Track latency (non-blocking)
+    safe_put_metric("Trace/Prediction", "PredictionLatency", latency, unit="Seconds")
+
+    # Local fallback logging
+    logger.info(f"Intelligence analysis completed in {latency:.4f}s")
+ 
     return response
 
 
