@@ -189,6 +189,10 @@ if ! acquire_lock; then
 fi
 
 log "INFO" "Saving rollback commit"
+
+CURRENT_COMMIT=$(git rev-parse HEAD)
+log "INFO" "Current commit: $CURRENT_COMMIT"
+
 if ! git rev-parse HEAD >"$ROLLBACK_FILE"; then
     fail_deploy "Unable to record rollback commit"
 fi
@@ -200,6 +204,9 @@ fi
 if ! git pull origin "$BRANCH"; then
     fail_deploy "Failed to pull latest code from origin/$BRANCH"
 fi
+
+NEW_COMMIT=$(git rev-parse HEAD)
+log "INFO" "Deployed commit: $NEW_COMMIT"
 
 log "INFO" "Installing backend dependencies"
 if ! activate_venv; then
