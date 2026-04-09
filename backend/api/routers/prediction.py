@@ -21,6 +21,13 @@ from backend.api.services.intelligence_service import (
     save_history_record,
 )
 
+from collections import defaultdict
+from time import time
+
+REQUEST_TRACKER = defaultdict(list)
+REQUEST_LIMIT = 20
+REQUEST_WINDOW = 10  # seconds
+
 router = APIRouter(prefix="/prediction", tags=["Prediction"])
 
 PredictionHistoryCreatePayload = Union[IntelligenceHistoryCreateRequest, PredictionCreateResponse]

@@ -1,0 +1,9 @@
+[wildcard-dns-detect] [dns] [info] 3C8Ehj3E7vBQ5VFlg2Qc4r2wINN-3C8Ehj3E7vBQ5VFlg2Qc4r2wINN.traceapp.duckdns.org ["3.151.137.239"]
+[waf-detect:nginxgeneric] [http] [info] https://traceapp.duckdns.org
+[tls-version] [ssl] [info] traceapp.duckdns.org:443 ["tls12"]
+[tls-version] [ssl] [info] traceapp.duckdns.org:443 ["tls13"]
+[http-missing-security-headers:missing-content-type] [http] [info] https://traceapp.duckdns.org
+[tech-detect:nginx] [http] [info] https://traceapp.duckdns.org
+[ssl-issuer] [ssl] [info] traceapp.duckdns.org:443 ["Let's Encrypt"]
+[ssl-dns-names] [ssl] [info] traceapp.duckdns.org:443 ["traceapp.duckdns.org"]
+[txt-fingerprint] [dns] [info] traceapp.duckdns.org [""""]
