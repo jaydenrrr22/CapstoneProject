@@ -1,9 +1,10 @@
 import logging
+import os
 
 logger = logging.getLogger("security")
 logger.setLevel(logging.INFO)
 
-handler = logging.FileHandler("/home/ubuntu/security.log")
+handler = logging.FileHandler(os.path.join(os.getcwd(), "security.log"))
 formatter = logging.Formatter(
     '{"timestamp":"%(asctime)s","event":"%(message)s"}'
 )

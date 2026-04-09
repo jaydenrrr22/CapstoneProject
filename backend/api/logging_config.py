@@ -29,10 +29,10 @@ def setup_logging():
     formatter = JSONFormatter()
 
     # File handlers
-    app_handler = logging.FileHandler("/home/ubuntu/app.log")
+    app_handler = logging.FileHandler("app.log")
     app_handler.setFormatter(formatter)
 
-    security_handler = logging.FileHandler("/home/ubuntu/security.log")
+    security_handler = logging.FileHandler(os.path.join(os.getcwd(), "security.log"))
     security_handler.setFormatter(formatter)
 
     # App logger
