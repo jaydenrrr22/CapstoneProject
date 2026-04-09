@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Itim&family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Itim&family=Nunito:wght@500;600;700;800&display=swap');
 
 /* Container for the whole login form */
 .login-container {
@@ -6,21 +6,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Outfit', Arial, sans-serif;
-
-  background-color: #4A4E69;
-
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
+    linear-gradient(135deg, #22223b 0%, #22223b 42%, #4a4e69 100%);
   padding: 20px;
 }
 
 .auth-stack {
-  width: 320px;
+  width: min(360px, 100%);
   animation: authFadeUp 380ms ease both;
 }
 
 .trace-logo {
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
   display: block;
   margin: 0 auto 14px;
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.4));
@@ -28,12 +28,15 @@
 }
 
 .auth-title-card {
-  width: 320px;
+  width: 100%;
   box-sizing: border-box;
-  padding: 13px 20px;
-  background-color: #C9ADA7;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  padding: 14px 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
+    #c9ada7;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 16px 34px rgba(10, 10, 20, 0.2);
 
   text-align: center;
   margin-bottom: 20px;
@@ -45,20 +48,23 @@
 .auth-form-card {
   display: flex;
   flex-direction: column;
-  width: 320px;
+  width: 100%;
   box-sizing: border-box;
   padding: 28px;
-  background-color: #C9ADA7;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
+    #c9ada7;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.24);
   gap: 12px;
 }
 
 .auth-form-card input {
   padding: 12px;
-  border: none;
-  border-radius: 8px;
-  background-color: #e9e9ef;
+  border: 1px solid rgba(34, 34, 59, 0.16);
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.68);
   color: #22223B;
   caret-color: #22223B;
   font-size: 15px;
@@ -90,7 +96,7 @@
   font-weight: 700;
   font-size: 0.86rem;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -100,7 +106,8 @@
 
 .auth-form-card input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(34, 34, 59, 0.25);
+  border-color: rgba(34, 34, 59, 0.3);
+  box-shadow: 0 0 0 3px rgba(34, 34, 59, 0.14);
 }
 
 .auth-form-card button[type="submit"] {
@@ -108,7 +115,7 @@
   background-color: #22223B;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -127,8 +134,8 @@
 
 .auth-warning-text {
   margin: 0;
-  padding: 9px 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
   background: rgba(243, 227, 181, 0.75);
   color: #6d4b00;
   font-size: 0.9rem;
@@ -137,8 +144,8 @@
 
 .auth-error-text {
   margin: 0;
-  padding: 9px 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
   background: rgba(176, 0, 32, 0.1);
   color: #6f0014;
   font-size: 0.9rem;
@@ -165,7 +172,7 @@
   padding-left: 18px;
   display: grid;
   gap: 4px;
-  color: #4a4e69;
+  color: #393a56;
   font-size: 0.85rem;
 }
 
