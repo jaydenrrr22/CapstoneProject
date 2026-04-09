@@ -23,10 +23,32 @@ def validate_bcrypt_password(password: str) -> None:
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    try:
+        if not isinstance(password, str):
+            password = str(password)
+
+        safe_password = password[:72] 
+        return pwd_context.hash(safe_password)
+
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Password processing error"
+        )
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        if not isinstance(plain_password, str):
+            plain_password = str(plain_password)
+
+        # truncate for bcrypt safety
+        safe_password = plain_password[:72]
+
+        return pwd_context.verify(safe_password, hashed_password)
+
+    except Exception:
+        #  CRITICAL: never crash login
+        return False
 
 def get_current_user(
         credentials: HTTPAuthorizationCredentials | None = Depends(security),
