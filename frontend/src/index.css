@@ -102,3 +102,22 @@ button:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.72);
   outline-offset: 2px;
 }
+
+.route-loading-shell {
+  min-height: calc(100vh - 160px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.route-loading-card {
+  border: 1px solid rgba(34, 34, 59, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
+    #c9ada7;
+  color: #22223b;
+  box-shadow: var(--shadow-soft);
+  padding: 14px 18px;
+  font-weight: 800;
+}

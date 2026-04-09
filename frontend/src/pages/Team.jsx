@@ -1,13 +1,3 @@
-import "./StaticPages.css";
+import MeetTheTeam from "./MeetTheTeam";
 
-function Team() {
-  return (
-    <main className="static-page-shell">
-      <section className="static-page-card">
-        <h1>page for introducing team and app mission</h1>
-      </section>
-    </main>
-  );
-}
-
-export default Team;
+export default MeetTheTeam;

@@ -28,11 +28,17 @@ class JSONFormatter(logging.Formatter):
 def setup_logging():
     formatter = JSONFormatter()
 
-    # File handlers
-    app_handler = logging.FileHandler("/home/ubuntu/app.log")
+    # Centralise log directory: honour LOG_DIR env var, fall back to CWD.
+    # On EC2 the systemd unit sets LOG_DIR=/home/ubuntu to preserve the
+    # original log locations (/home/ubuntu/app.log, /home/ubuntu/security.log).
+    log_dir = os.environ.get("LOG_DIR", os.getcwd())
+    os.makedirs(log_dir, mode=0o750, exist_ok=True)
+
+    # File handlers – both paths derived from the same log_dir
+    app_handler = logging.FileHandler(os.path.join(log_dir, "app.log"))
     app_handler.setFormatter(formatter)
 
-    security_handler = logging.FileHandler("/home/ubuntu/security.log")
+    security_handler = logging.FileHandler(os.path.join(log_dir, "security.log"))
     security_handler.setFormatter(formatter)
 
     # App logger
