@@ -1,6 +1,7 @@
 import { lazy, memo, Suspense } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
+import { PRIMARY_NAV_ITEMS, isSectionPathActive } from "../../constants/routes";
 import "./DashboardLayouts.css";
 
 const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
@@ -20,13 +21,31 @@ function MobileDashboard({
   forecastError,
   selectedBudgetLimit,
   subscriptionInsight,
+  loadingSubscriptions,
+  subscriptionError,
   predictedTransactions,
   loadingPredictions,
   predictionError,
   onRetryPredictions,
+  loadingBaseData,
+  baseDataError,
 }) {
-  const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
-  const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
+  const location = useLocation();
+  const hasBaseDataError = Boolean(baseDataError);
+  const budgetTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.budget_limit).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
+  const spentTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.total_spent).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
 
   return (
     <div className="dashboard-shell mobile-shell">
@@ -44,6 +63,8 @@ function MobileDashboard({
             count={subscriptionInsight.count}
             totalMonthly={subscriptionInsight.totalMonthly}
             className="budget-chip budget-chip--insight"
+            loading={loadingSubscriptions}
+            error={subscriptionError}
           />
         </Suspense>
       </section>
@@ -107,16 +128,22 @@ function MobileDashboard({
           <h3>Recent Transactions</h3>
         </div>
         <div className="tx-list">
-          {transactions.map((tx) => (
-            <div key={tx.id} className="tx-row">
-              <span>{tx.name}</span>
-              <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
-              </span>
-            </div>
-          ))}
-
-          {transactions.length === 0 && <p className="muted">No transactions yet.</p>}
+          {loadingBaseData ? (
+            <p className="muted">Loading recent transactions...</p>
+          ) : hasBaseDataError ? (
+            <p className="health-error" role="alert">{baseDataError}</p>
+          ) : transactions.length === 0 ? (
+            <p className="muted">No transactions yet.</p>
+          ) : (
+            transactions.map((tx) => (
+              <div key={tx.id} className="tx-row">
+                <span>{tx.name}</span>
+                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -133,10 +160,15 @@ function MobileDashboard({
       </section>
 
       <nav className="mobile-bottom-nav" aria-label="Primary">
-        <NavLink to="/dashboard">Home</NavLink>
-        <NavLink to="/transactions">Transactions</NavLink>
-        <NavLink to="/subscriptions">Subscriptions</NavLink>
-        <NavLink to="/budgets">Budgets</NavLink>
+        {PRIMARY_NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.key}
+            to={item.to}
+            className={isSectionPathActive(location.pathname, item.matchPrefix) ? "active" : undefined}
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );

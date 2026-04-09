@@ -2,11 +2,20 @@
   margin: 2px auto 0;
   width: 100%;
   max-width: 100%;
+  display: grid;
+  gap: 8px;
 }
 
 .health-gauge-canvas {
   position: relative;
   width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.health-gauge-canvas .recharts-wrapper {
+  margin: 0 auto;
 }
 
 .health-gauge-center {

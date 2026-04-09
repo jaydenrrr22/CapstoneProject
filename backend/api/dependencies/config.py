@@ -3,7 +3,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-# Load the repo-root .env explicitly so values resolve regardless of current working directory.
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 load_dotenv(dotenv_path=ENV_PATH)
 

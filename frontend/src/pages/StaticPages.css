@@ -3,15 +3,20 @@
   display: grid;
   place-items: center;
   padding: 24px 14px;
-  background: linear-gradient(135deg, #22223b 0%, #22223b 40%, #4a4e69 60%, #4a4e69 100%);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
+    linear-gradient(135deg, #22223b 0%, #22223b 40%, #4a4e69 60%, #4a4e69 100%);
 }
 
 .static-page-card {
   width: min(900px, 96vw);
-  background: #efe8e5;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
+    #c9ada7;
   border: 1px solid rgba(34, 34, 59, 0.16);
-  border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.35);
+  border-radius: 18px;
+  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.24);
   padding: clamp(18px, 2vw, 30px);
 }
 
@@ -48,13 +53,15 @@
   text-decoration: none;
   color: #ffffff;
   background: #22223b;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 10px 14px;
   font-weight: 700;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .static-page-link:hover {
   background: #4a4e69;
+  transform: translateY(-1px);
 }
 
 .team-grid {
@@ -65,10 +72,10 @@
 }
 
 .team-card {
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(34, 34, 59, 0.14);
-  background: rgba(255, 255, 255, 0.44);
-  padding: 12px;
+  background: rgba(255, 255, 255, 0.34);
+  padding: 14px;
 }
 
 .team-card h3 {

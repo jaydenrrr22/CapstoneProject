@@ -4,8 +4,11 @@ import useAuth from "./useAuth";
 import useForecastData from "./useForecastData";
 import useIntelligence from "./useIntelligence";
 import useDemoMode from "./useDemoMode";
+import { resolveDefaultPeriod } from "../utils/forecastUtils";
 import { normalizeApiError } from "../utils/normalizeApiError";
-import { getAvailablePeriods, getBudgetLimitMap } from "../demo/demoUtils";
+import { detectDemoSubscriptions, getAvailablePeriods, getBudgetLimitMap } from "../demo/demoUtils";
+import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
+import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
 
 function toMonthPeriod(dateValue) {
   const date = new Date(dateValue);
@@ -44,6 +47,10 @@ export default function useIntelligenceOverviewData() {
     () => (isDemoMode ? currentDataset?.predictions || [] : predictions || []),
     [currentDataset, isDemoMode, predictions]
   );
+  const demoSubscriptions = useMemo(
+    () => detectDemoSubscriptions(currentDataset?.transactions || []),
+    [currentDataset]
+  );
   const activeLoadingPredictions = isDemoMode ? false : loadingPredictions;
   const activePredictionError = isDemoMode ? "" : predictionError;
 
@@ -59,14 +66,7 @@ export default function useIntelligenceOverviewData() {
 
     try {
       const response = await API.get("/prediction/history");
-
-      const mapped = (response.data || []).map((item, index) => ({
-        id: item.id || `pred-${index}`,
-        name: item.target_data || "Predicted Transaction",
-        amount: Number(item.predicted_spending) || 0,
-      }));
-
-      setPredictions(mapped);
+      setPredictions(mapIntelligenceHistoryRecords(response.data || []));
     } catch (error) {
       setPredictionError(
         normalizeApiError(error, "Failed to load predicted transactions.")
@@ -83,9 +83,9 @@ export default function useIntelligenceOverviewData() {
       const periods = getAvailablePeriods(budgets);
 
       setBudgetLimitsByPeriod(getBudgetLimitMap(budgets));
-      setSelectedPeriod(periods[0] || "");
+      setSelectedPeriod(resolveDefaultPeriod(periods));
       setTransactions(currentDataset?.transactions || []);
-      setSubscriptions(currentDataset?.subscriptions || []);
+      setSubscriptions(demoSubscriptions);
       setAnomalies(currentDataset?.anomalies || []);
       setOverviewError("");
       setLoadingOverview(false);
@@ -131,7 +131,7 @@ export default function useIntelligenceOverviewData() {
         .sort((left, right) => right.localeCompare(left));
 
       setBudgetLimitsByPeriod(budgetMap);
-      setSelectedPeriod(periods[0] || "");
+      setSelectedPeriod(resolveDefaultPeriod(periods));
       setTransactions(transactionResponse.data || []);
       setSubscriptions(subscriptionResponse.data || []);
       setAnomalies(anomalyResponse.data || []);
@@ -147,7 +147,7 @@ export default function useIntelligenceOverviewData() {
       setLoadingSubscriptions(false);
       setLoadingAnomalies(false);
     }
-  }, [currentDataset, isDemoMode, token]);
+  }, [currentDataset, demoSubscriptions, isDemoMode, token]);
 
   useEffect(() => {
     loadOverview();
@@ -160,6 +160,23 @@ export default function useIntelligenceOverviewData() {
 
     loadPredictions();
   }, [loadPredictions, token]);
+
+  useEffect(() => {
+    if (!token || isDemoMode) {
+      return undefined;
+    }
+
+    const handleRefresh = () => {
+      loadOverview();
+      loadPredictions();
+    };
+
+    window.addEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
+
+    return () => {
+      window.removeEventListener(DASHBOARD_REFRESH_EVENT, handleRefresh);
+    };
+  }, [isDemoMode, loadOverview, loadPredictions, token]);
 
   const selectedBudgetLimit = selectedPeriod ? budgetLimitsByPeriod[selectedPeriod] ?? null : null;
 

@@ -1,15 +1,15 @@
 .site-footer {
   border-top: 1px solid rgba(34, 34, 59, 0.16);
-  background: #c9ada7;
+  background: rgba(201, 173, 167, 0.94);
   padding: 0;
 }
 
 .site-footer-inner {
   width: min(1320px, 97vw);
   margin: 0 auto;
-  padding: 16px 14px 18px;
+  padding: 18px 14px 20px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .site-footer-brand {
@@ -37,8 +37,9 @@
   color: #22223b;
   font-weight: 700;
   font-size: 0.9rem;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .site-footer-links a:hover,

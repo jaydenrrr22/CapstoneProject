@@ -1,5 +1,13 @@
 // Standardized API error handler for consistent UI messages
 export const normalizeApiError = (error, fallbackMessage = "Something went wrong.") => {
+  if (error?.code === "ERR_NETWORK") {
+    return "Unable to reach the server. Please check your connection and try again.";
+  }
+
+  if (error?.code === "ECONNABORTED") {
+    return "The request timed out. Please try again.";
+  }
+
   const detail = error?.response?.data?.detail;
 
   // Case 1: simple string
@@ -31,5 +39,5 @@ export const normalizeApiError = (error, fallbackMessage = "Something went wrong
   }
 
   // Default fallback
-  return fallbackMessage;
+  return error?.message || fallbackMessage;
 };

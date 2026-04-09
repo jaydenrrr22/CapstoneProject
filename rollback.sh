@@ -50,7 +50,16 @@ deactivate
 sudo systemctl restart "$SERVICE_NAME"
 
 if systemctl is-active --quiet "$SERVICE_NAME"; then
-    echo "Rollback completed successfully." | tee -a "$LOG_FILE"
+    echo "Service is running. Verifying application health..." | tee -a "$LOG_FILE"
+
+    sleep 3
+
+    if curl -s http://127.0.0.1:8000/healthz | grep -q "ok"; then
+        echo "Rollback completed successfully and app is healthy." | tee -a "$LOG_FILE"
+    else
+        echo "ERROR: Service running but health check failed." | tee -a "$LOG_FILE"
+        exit 1
+    fi
 else
     echo "ERROR: Service failed after rollback." | tee -a "$LOG_FILE"
     exit 1

@@ -1,39 +1,52 @@
-import { useCallback, useEffect, useState } from "react";
-import SubscriptionInsightCard from "../components/insight/SubscriptionInsightCard";
-import InsightCard from "../components/insight/InsightCard";
-import { SubscriptionIcon } from "../components/insight/InsightIcons";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import useDemoMode from "../hooks/useDemoMode";
 import API from "../services/api";
 import { normalizeApiError } from "../utils/normalizeApiError";
+import { detectDemoSubscriptions } from "../demo/demoUtils";
+import {
+  buildSubscriptionSpyReports,
+  buildSubscriptionSpySummary,
+  filterSubscriptionSpyReports,
+  SUBSCRIPTION_SPY_FILTERS,
+} from "../utils/subscriptionSpy";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
+
+function formatCurrency(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
+}
 
 function Subscriptions() {
   const { currentDataset, isDemoMode } = useDemoMode();
   const [subscriptions, setSubscriptions] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const totalMonthly = subscriptions.reduce(
-    (sum, subscription) => sum + Number(subscription.amount || 0),
-    0
-  );
+  const [activeFilter, setActiveFilter] = useState("all");
 
   const loadSubscriptions = useCallback(async () => {
-    if (isDemoMode) {
-      setSubscriptions(currentDataset?.subscriptions || []);
-      setLoading(false);
-      setError("");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
+    if (isDemoMode) {
+      const demoTransactions = currentDataset?.transactions || [];
+      setTransactions(demoTransactions);
+      setSubscriptions(detectDemoSubscriptions(demoTransactions));
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await API.get("/subscription/detect");
-      setSubscriptions(response.data);
+      const [subscriptionResponse, transactionResponse] = await Promise.all([
+        API.get("/subscription/detect"),
+        API.get("/transaction/get"),
+      ]);
+
+      setSubscriptions(subscriptionResponse.data || []);
+      setTransactions(transactionResponse.data || []);
     } catch (requestError) {
-      setError(normalizeApiError(requestError, "Could not detect subscriptions."));
+      setError(normalizeApiError(requestError, "Could not build Subscription Spy."));
     } finally {
       setLoading(false);
     }
@@ -43,62 +56,156 @@ function Subscriptions() {
     loadSubscriptions();
   }, [loadSubscriptions]);
 
+  const spyReports = useMemo(
+    () => buildSubscriptionSpyReports({ subscriptions, transactions }),
+    [subscriptions, transactions]
+  );
+  const spySummary = useMemo(
+    () => buildSubscriptionSpySummary(spyReports),
+    [spyReports]
+  );
+  const filteredReports = useMemo(
+    () => filterSubscriptionSpyReports(spyReports, activeFilter),
+    [activeFilter, spyReports]
+  );
+  const filterCounts = useMemo(() => (
+    SUBSCRIPTION_SPY_FILTERS.reduce((accumulator, filter) => {
+      accumulator[filter.id] = filterSubscriptionSpyReports(spyReports, filter.id).length;
+      return accumulator;
+    }, {})
+  ), [spyReports]);
+
   return (
     <div className="dashboard-shell desktop-shell">
       <div className="subpage-single-column">
-        <section className="card-surface subpage-table-panel">
+        <section className="card-surface subpage-table-panel subscriptions-page-panel">
           <div className="section-heading">
-            <h3>Detected Recurring Charges</h3>
-            <button className="subpage-inline-btn" type="button" onClick={loadSubscriptions}>
-              Refresh
-            </button>
+            <div>
+              <h3>Subscription Spy</h3>
+              <p className="muted transaction-entry-copy">
+                Trace scans recurring charges, estimates what they cost over a year, flags urgent cleanup,
+                and tells you where to look if you want to cancel.
+              </p>
+            </div>
+
+            <div className="subscriptions-page-actions">
+              <Link className="subpage-inline-btn ghost" to="/transactions">
+                Open Ledger
+              </Link>
+              <button className="subpage-inline-btn" type="button" onClick={loadSubscriptions}>
+                Refresh
+              </button>
+            </div>
           </div>
 
           {loading ? (
-            <p className="muted">Analyzing transactions...</p>
+            <p className="muted">Analyzing recurring charges...</p>
           ) : error ? (
             <p className="subpage-error">{error}</p>
-          ) : subscriptions.length === 0 ? (
+          ) : spyReports.length === 0 ? (
             <p className="muted">No recurring subscriptions detected yet.</p>
           ) : (
             <>
-              <div className="subscriptions-insight-grid">
-                <SubscriptionInsightCard
-                  count={subscriptions.length}
-                  totalMonthly={totalMonthly}
-                  description="Recurring merchants detected across your recorded transaction history."
-                />
+              <div className="subscriptions-summary-grid" aria-label="Subscription Spy summary">
+                <div className="subscriptions-summary-card">
+                  <span>Subscriptions found</span>
+                  <strong>{spySummary.count}</strong>
+                </div>
+                <div className="subscriptions-summary-card">
+                  <span>Monthly spend</span>
+                  <strong>{formatCurrency(spySummary.monthlyTotal)}</strong>
+                </div>
+                <div className="subscriptions-summary-card">
+                  <span>Estimated annual cost</span>
+                  <strong>{formatCurrency(spySummary.annualTotal)}</strong>
+                </div>
+                <div className="subscriptions-summary-card">
+                  <span>Review now</span>
+                  <strong>{spySummary.priorityCount}</strong>
+                </div>
               </div>
 
-              <div className="subscriptions-insight-grid subscriptions-insight-grid--list">
-              {subscriptions.map((item, index) => (
-                <InsightCard
-                  key={`${item.merchant}-${index}`}
-                  title={item.merchant || "Subscription"}
-                  value={`$${Number(item.amount || 0).toFixed(2)}`}
-                  description={`${item.frequency || "Recurring"} cadence detected`}
-                  status={item.is_duplicate ? "warning" : "neutral"}
-                  icon={<SubscriptionIcon />}
-                >
-                  <div className="insight-card__meta">
-                    <div className="insight-card__meta-row">
-                      <span>Frequency</span>
-                      <strong>{item.frequency || "Unknown"}</strong>
-                    </div>
-                    <div className="insight-card__meta-row">
-                      <span>Flag</span>
-                      <strong>
-                        {String(item.frequency).toLowerCase() === "marked"
-                          ? "Marked"
-                          : item.is_duplicate
-                            ? "Duplicate"
-                            : "Detected"}
-                      </strong>
-                    </div>
-                  </div>
-                </InsightCard>
-              ))}
+              <div className="subscription-spy-filter-row" aria-label="Subscription Spy filters">
+                {SUBSCRIPTION_SPY_FILTERS.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    className={`subscription-spy-filter${activeFilter === filter.id ? " is-active" : ""}`}
+                    onClick={() => setActiveFilter(filter.id)}
+                  >
+                    <strong>{filter.label}</strong>
+                    <span>{filterCounts[filter.id] || 0}</span>
+                  </button>
+                ))}
               </div>
+
+              {filteredReports.length === 0 ? (
+                <p className="muted">No subscriptions match this filter.</p>
+              ) : (
+                <div className="subscription-spy-list" role="list" aria-label="Subscription Spy reports">
+                  {filteredReports.map((report) => (
+                    <article
+                      key={report.id}
+                      className={`subscription-spy-card is-${report.statusTone}`}
+                      role="listitem"
+                    >
+                      <div className="subscription-spy-card__header">
+                        <div>
+                          <p className="subscription-spy-card__eyebrow">{report.useCase.label}</p>
+                          <h4>{report.merchant}</h4>
+                          <p>{report.recommendation.headline}</p>
+                        </div>
+
+                        <div className="subscription-spy-card__amounts">
+                          <strong>{formatCurrency(report.amount)}</strong>
+                          <span>{formatCurrency(report.annualCost)} estimated / year</span>
+                        </div>
+                      </div>
+
+                      <div className="subscription-spy-card__facts">
+                        <span>Frequency: {report.frequencyLabel}</span>
+                        <span>Flag: {report.flagLabel}</span>
+                        <span>Last charge: {report.lastChargeDateLabel}</span>
+                        <span>Next likely bill: {report.nextChargeDateLabel}</span>
+                        <span>Matched charges: {report.matchedChargeCount}</span>
+                      </div>
+
+                      <div className="subscription-spy-card__body">
+                        <div className="subscription-spy-card__note">
+                          <span className="subscription-spy-card__label">Use case</span>
+                          <p>{report.useCase.detail}</p>
+                        </div>
+
+                        <div className="subscription-spy-card__guidance-grid">
+                          <div className="subscription-spy-card__guidance">
+                            <span>Where to cancel</span>
+                            <strong>{report.guide.provider}</strong>
+                            <p>{report.guide.cancelPath}</p>
+                          </div>
+
+                          <div className="subscription-spy-card__guidance">
+                            <span>Watch for</span>
+                            <p>{report.guide.watchout}</p>
+                          </div>
+                        </div>
+
+                        {report.recentCharges.length > 0 ? (
+                          <div className="subscription-spy-card__charges">
+                            <span className="subscription-spy-card__label">Recent matching charges</span>
+                            <div className="subscription-spy-card__charge-list">
+                              {report.recentCharges.map((charge) => (
+                                <span key={charge.id}>
+                                  {charge.dateLabel} - {formatCurrency(charge.amount)}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </>
           )}
         </section>

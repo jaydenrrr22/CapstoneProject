@@ -1,4 +1,5 @@
 import ForecastChart from "../components/forecast/ForecastChart";
+import AppBreadcrumbs from "../components/AppBreadcrumbs";
 import IntelligenceGrid from "../components/intelligence/IntelligenceGrid";
 import InsightCard from "../components/insight/InsightCard";
 import PredictedTransactionsInsight from "../components/insight/PredictedTransactionsInsight";
@@ -53,6 +54,8 @@ function IntelligenceDashboard() {
   return (
     <div className="dashboard-shell intelligence-page">
       <div className="intelligence-shell">
+        <AppBreadcrumbs />
+
         <IntelligenceGrid>
           <section className="intelligence-panel intelligence-panel--hero">
             <div className="intelligence-hero">

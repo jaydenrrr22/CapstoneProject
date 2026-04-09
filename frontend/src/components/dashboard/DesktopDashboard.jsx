@@ -19,13 +19,30 @@ function DesktopDashboard({
   forecastError,
   selectedBudgetLimit,
   subscriptionInsight,
+  loadingSubscriptions,
+  subscriptionError,
   predictedTransactions,
   loadingPredictions,
   predictionError,
   onRetryPredictions,
+  loadingBaseData,
+  baseDataError,
 }) {
-  const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
-  const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
+  const hasBaseDataError = Boolean(baseDataError);
+  const budgetTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.budget_limit).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
+  const spentTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.total_spent).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
 
   return (
     <div className="dashboard-shell desktop-shell">
@@ -44,6 +61,8 @@ function DesktopDashboard({
               count={subscriptionInsight.count}
               totalMonthly={subscriptionInsight.totalMonthly}
               className="budget-stat budget-stat--insight"
+              loading={loadingSubscriptions}
+              error={subscriptionError}
             />
           </Suspense>
         </section>
@@ -109,16 +128,22 @@ function DesktopDashboard({
             <h3>Recent Transactions</h3>
           </div>
           <div className="tx-table simple-list">
-            {transactions.map((tx) => (
-              <div key={tx.id} className="tx-table-row">
-                <span>{tx.name}</span>
-                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
-                </span>
-              </div>
-            ))}
-
-            {transactions.length === 0 && <p className="muted tx-empty">No transactions yet.</p>}
+            {loadingBaseData ? (
+              <p className="muted tx-empty">Loading recent transactions...</p>
+            ) : hasBaseDataError ? (
+              <p className="health-error tx-empty" role="alert">{baseDataError}</p>
+            ) : transactions.length === 0 ? (
+              <p className="muted tx-empty">No transactions yet.</p>
+            ) : (
+              transactions.map((tx) => (
+                <div key={tx.id} className="tx-table-row">
+                  <span>{tx.name}</span>
+                  <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                    {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </section>
 

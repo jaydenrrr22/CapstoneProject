@@ -15,13 +15,16 @@ import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import TransactionPage from "./pages/Transaction";
 import AppTopNav from "./components/AppTopNav";
 import Footer from "./components/Footer";
+import ErrorBoundary from "./components/ErrorBoundary";
+import GlobalErrorBanner from "./components/GlobalErrorBanner";
 
 function AppRoutes() {
   const location = useLocation();
   const hideChrome = ["/", "/login", "/signup", "/mode-select"].includes(location.pathname);
 
   return (
-    <>
+    <ErrorBoundary resetKey={location.pathname}>
+      <GlobalErrorBanner />
       {!hideChrome && <AppTopNav />}
 
       <Routes>
@@ -69,7 +72,7 @@ function AppRoutes() {
           )}
         />
         <Route
-          path="/intelligence"
+          path="/intelligence/*"
           element={(
             <ProtectedRoute>
               <IntelligenceDashboard />
@@ -148,7 +151,7 @@ function AppRoutes() {
       </Routes>
 
       {!hideChrome && <Footer />}
-    </>
+    </ErrorBoundary>
   );
 }
 
