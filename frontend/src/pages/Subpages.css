@@ -28,7 +28,12 @@
   align-content: start;
   gap: 14px;
   backdrop-filter: blur(2px);
-  background: #c9ada7;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
+    #c9ada7;
+  border-radius: 18px;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  box-shadow: 0 16px 34px rgba(10, 10, 20, 0.16);
 }
 
 .subpage-form {
@@ -64,9 +69,9 @@
 .subpage-filter-row select,
 .subpage-inline-input {
   border: 1px solid rgba(34, 34, 59, 0.18);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.62);
   color: #22223b;
   font-family: inherit;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
@@ -91,7 +96,7 @@
 .subpage-submit,
 .subpage-inline-btn {
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   background: #22223b;
   color: #ffffff;
   font-weight: 700;
@@ -152,8 +157,8 @@
   margin: 0;
   background: rgba(176, 0, 32, 0.12);
   color: #6f0014;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 12px;
   border: 1px solid rgba(180, 35, 24, 0.18);
 }
 
@@ -172,7 +177,7 @@
 
 .subpage-table {
   border: 1px solid rgba(34, 34, 59, 0.16);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
   background: var(--subpage-table-shell);
 }
@@ -232,8 +237,8 @@
 
 .subpage-metric-card {
   margin-top: 2px;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 14px;
   background: var(--subpage-inset);
   border: 1px solid rgba(34, 34, 59, 0.14);
 }
@@ -351,8 +356,8 @@
 .transaction-entry-advanced {
   display: grid;
   gap: 12px;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(34, 34, 59, 0.1);
 }

@@ -1,6 +1,8 @@
 .mode-select-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #22223b 0%, #22223b 40%, #4a4e69 60%, #4a4e69 100%);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
+    linear-gradient(135deg, #22223b 0%, #22223b 40%, #4a4e69 60%, #4a4e69 100%);
   padding: 24px;
   display: grid;
   place-items: center;
@@ -20,7 +22,8 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.16)),
     #c9ada7;
   color: #22223b;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  box-shadow: 0 18px 40px rgba(10, 10, 20, 0.22);
 }
 
 .mode-select-header p,
@@ -58,8 +61,10 @@
   padding: 22px;
   border-radius: 20px;
   border: 1px solid rgba(34, 34, 59, 0.12);
-  background: #c9ada7;
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent),
+    #c9ada7;
+  box-shadow: 0 18px 36px rgba(10, 10, 20, 0.2);
   color: #22223b;
 }
 
@@ -101,7 +106,7 @@
   text-align: left;
   border: 1px solid rgba(34, 34, 59, 0.12);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.3);
   padding: 14px;
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
@@ -109,7 +114,7 @@
 
 .dataset-picker button.active {
   border-color: rgba(34, 34, 59, 0.36);
-  background: rgba(255, 255, 255, 0.54);
+  background: rgba(255, 255, 255, 0.46);
 }
 
 .dataset-picker button:hover {
@@ -139,6 +144,7 @@
   padding: 0 18px;
   font-weight: 700;
   cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .mode-card__actions button:first-child {
@@ -149,6 +155,10 @@
 .mode-card__actions button:last-child {
   background: rgba(34, 34, 59, 0.1);
   color: #22223b;
+}
+
+.mode-card__actions button:hover {
+  transform: translateY(-1px);
 }
 
 .mode-card__highlights {

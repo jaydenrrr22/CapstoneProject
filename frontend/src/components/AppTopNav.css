@@ -2,9 +2,10 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #c9ada7;
+  background: rgba(201, 173, 167, 0.94);
   border-bottom: 1px solid rgba(34, 34, 59, 0.15);
-  box-shadow: 0 8px 18px rgba(10, 10, 20, 0.2);
+  box-shadow: 0 10px 24px rgba(10, 10, 20, 0.16);
+  backdrop-filter: blur(12px);
 }
 
 .app-top-nav-inner {
@@ -69,8 +70,9 @@
   color: #22223b;
   font-weight: 700;
   font-size: 0.9rem;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .app-top-nav-links a:hover,
@@ -80,11 +82,11 @@
 
 .app-top-nav-logout {
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #22223b;
   color: #ffffff;
   font-weight: 700;
-  padding: 10px 14px;
+  padding: 10px 15px;
   cursor: pointer;
 }
 
@@ -96,11 +98,11 @@
 
 .app-top-nav-exit-demo {
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(34, 34, 59, 0.12);
   color: #22223b;
   font-weight: 700;
-  padding: 10px 14px;
+  padding: 10px 15px;
   cursor: pointer;
 }
 

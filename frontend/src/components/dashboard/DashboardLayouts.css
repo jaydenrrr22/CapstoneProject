@@ -1,10 +1,11 @@
-@import url("https://fonts.googleapis.com/css2?family=Itim&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Itim&family=Nunito:wght@500;600;700;800&display=swap");
 
 :root {
   --bg-1: #22223b;
   --bg-2: #4a4e69;
   --surface: #c9ada7;
   --surface-muted: #dcc3bc;
+  --surface-glass: rgba(255, 255, 255, 0.28);
   --ink: #22223b;
   --ink-soft: #393a56;
   --line: rgba(34, 34, 59, 0.16);
@@ -12,20 +13,22 @@
   --brand-strong: #4a4e69;
   --danger: #b42318;
   --success: #1f7a3a;
-  --shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+  --shadow: 0 16px 34px rgba(10, 10, 20, 0.18);
 }
 
 .dashboard-shell {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--bg-1) 0%, var(--bg-1) 40%, var(--bg-2) 60%, var(--bg-2) 100%);
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 28%),
+    linear-gradient(135deg, var(--bg-1) 0%, var(--bg-1) 40%, var(--bg-2) 60%, var(--bg-2) 100%);
   color: var(--ink);
-  font-family: Arial, sans-serif;
+  font-family: "Nunito", "Segoe UI", sans-serif;
 }
 
 .card-surface {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  border-radius: 16px;
   box-shadow: var(--shadow);
 }
 
@@ -63,12 +66,12 @@ h3 {
 }
 
 .health-period-select {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(34, 34, 59, 0.14);
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.56);
   color: #22223b;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .health-period-select:focus {
@@ -133,10 +136,11 @@ h3 {
 }
 
 .budget-chip {
-  padding: 14px 13px;
-  min-height: 94px;
+  padding: 16px 14px;
+  min-height: 102px;
   display: grid;
   align-content: center;
+  gap: 2px;
 }
 
 .budget-chip p {
@@ -154,9 +158,9 @@ h3 {
 .mobile-forecast-card,
 .mobile-transactions-card,
 .mobile-predicted-card {
-  padding: clamp(13px, 3.8vw, 16px);
-  margin-bottom: 12px;
-  border-radius: 14px;
+  padding: clamp(14px, 3.8vw, 18px);
+  margin-bottom: 14px;
+  border-radius: 16px;
 }
 
 .mobile-predicted-card {
@@ -172,9 +176,10 @@ h3 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--surface-muted);
-  border-radius: 10px;
-  padding: 11px 12px;
+  background: var(--surface-glass);
+  border: 1px solid rgba(34, 34, 59, 0.08);
+  border-radius: 12px;
+  padding: 12px 13px;
   gap: 10px;
 }
 
@@ -188,9 +193,10 @@ h3 {
   left: 12px;
   right: 12px;
   bottom: 12px;
-  border-radius: 12px;
-  background: var(--brand);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+  border-radius: 16px;
+  background: rgba(34, 34, 59, 0.94);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   min-height: 62px;
@@ -208,7 +214,7 @@ h3 {
 }
 
 .mobile-bottom-nav a.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .mobile-bottom-nav a:hover {
@@ -274,11 +280,14 @@ h3 {
   grid-area: budgets;
   display: grid;
   grid-template-columns: repeat(3, minmax(200px, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .budget-stat {
-  padding: 14px;
+  padding: 16px;
+  min-height: 104px;
+  display: grid;
+  align-content: start;
 }
 
 .budget-stat--insight,
@@ -299,8 +308,9 @@ h3 {
 }
 
 .budget-stat h2 {
-  margin-top: 6px;
-  font-size: 1.35rem;
+  margin-top: 8px;
+  font-size: clamp(1.3rem, 2vw, 1.55rem);
+  letter-spacing: -0.02em;
 }
 
 .desktop-health-panel,
@@ -308,7 +318,7 @@ h3 {
 .desktop-forecast-panel,
 .desktop-predicted-panel {
   background: var(--surface);
-  padding: clamp(16px, 1.8vw, 20px);
+  padding: clamp(18px, 1.8vw, 22px);
 }
 
 .desktop-health-panel {
@@ -340,20 +350,17 @@ h3 {
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .tx-table-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  padding: 11px 14px;
-}
-
-.simple-list {
-  background: rgba(255, 255, 255, 0.2);
+  padding: 12px 14px;
 }
 
 .tx-table-row {
-  background: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.24);
   border-top: 1px solid var(--line);
 }
 
@@ -368,7 +375,7 @@ h3 {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.34);
   border: 1px solid rgba(34, 34, 59, 0.12);
 }
 
@@ -405,10 +412,10 @@ h3 {
 }
 
 .health-metrics-grid div {
-  background: rgba(255, 255, 255, 0.34);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.38);
+  border-radius: 12px;
   border: 1px solid rgba(34, 34, 59, 0.14);
-  padding: 11px 12px;
+  padding: 12px 13px;
 }
 
 .health-metrics-grid p {
@@ -424,8 +431,8 @@ h3 {
 
 .health-error {
   margin: 0;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 12px;
   background: rgba(176, 0, 32, 0.12);
   color: #6f0014;
 }
