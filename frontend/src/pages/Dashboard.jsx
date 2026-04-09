@@ -44,6 +44,8 @@ function Dashboard() {
     count: 0,
     totalMonthly: 0,
   });
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState(true);
+  const [subscriptionError, setSubscriptionError] = useState("");
 
   const demoBudgetMap = useMemo(
     () => getBudgetLimitMap(currentDataset?.budget || []),
@@ -111,9 +113,14 @@ function Dashboard() {
 
   const loadSubscriptionInsight = useCallback(async () => {
     if (isDemoMode) {
+      setLoadingSubscriptions(false);
+      setSubscriptionError("");
       setSubscriptionInsight(getSubscriptionInsight(demoSubscriptions));
       return;
     }
+
+    setLoadingSubscriptions(true);
+    setSubscriptionError("");
 
     try {
       const response = await API.get("/subscription/detect");
@@ -127,11 +134,16 @@ function Dashboard() {
         count: subscriptions.length,
         totalMonthly,
       });
-    } catch {
+    } catch (error) {
+      setSubscriptionError(
+        normalizeApiError(error, "Could not load recurring subscription insights.")
+      );
       setSubscriptionInsight({
         count: 0,
         totalMonthly: 0,
       });
+    } finally {
+      setLoadingSubscriptions(false);
     }
   }, [demoSubscriptions, isDemoMode]);
 
@@ -229,6 +241,8 @@ function Dashboard() {
     if (isDemoMode) {
       setLoadingBaseData(false);
       setBaseDataError("");
+      setLoadingSubscriptions(false);
+      setSubscriptionError("");
       setAvailablePeriods(demoAvailablePeriods);
       setBudgetLimitsByPeriod(demoBudgetMap);
       setTransactions(currentDataset?.transactions || []);
@@ -334,10 +348,14 @@ function Dashboard() {
           forecastError={forecastError}
           selectedBudgetLimit={selectedBudgetLimit}
           subscriptionInsight={subscriptionInsight}
+          loadingSubscriptions={loadingSubscriptions}
+          subscriptionError={subscriptionError}
           predictedTransactions={activePredictions}
           loadingPredictions={activeLoadingPredictions}
           predictionError={activePredictionError}
           onRetryPredictions={loadPredictions}
+          loadingBaseData={loadingBaseData}
+          baseDataError={baseDataError}
         />
         <DemoWalkthrough />
       </>
@@ -359,10 +377,14 @@ function Dashboard() {
         forecastError={forecastError}
         selectedBudgetLimit={selectedBudgetLimit}
         subscriptionInsight={subscriptionInsight}
+        loadingSubscriptions={loadingSubscriptions}
+        subscriptionError={subscriptionError}
         predictedTransactions={activePredictions}
         loadingPredictions={activeLoadingPredictions}
         predictionError={activePredictionError}
         onRetryPredictions={loadPredictions}
+        loadingBaseData={loadingBaseData}
+        baseDataError={baseDataError}
       />
       <DemoWalkthrough />
     </>
