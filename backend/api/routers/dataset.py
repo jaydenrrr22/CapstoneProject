@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from backend.api.dependencies.auth import get_current_user
 from backend.api.dependencies.database import get_db
-from backend.api.models.dataset import DatasetTemplate, DatasetTransaction
+from backend.api.models.budget import Budget
+from backend.api.models.dataset import DatasetTemplate, DatasetTransaction, DatasetBudget
 from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.dataset import DatasetTemplateResponse, ApplyDatasetResponse
@@ -43,7 +44,7 @@ def apply_dataset(
         tx_date = today + timedelta(days = t_tx.day_offset)
 
         new_tx = Transaction(
-            user_id = current_user.id,
+            user_id=current_user.id,
             store_name=t_tx.store_name,
             category=t_tx.category,
             cost=t_tx.cost,
@@ -52,6 +53,21 @@ def apply_dataset(
         new_transactions.append(new_tx)
 
     db.add_all(new_transactions)
+
+    template_budgets = db.query(DatasetBudget).filter(DatasetBudget.template_id == template_id).all()
+
+    new_budgets = []
+    for t_budge in template_budgets:
+        new_budget = Budget(
+            user_id=current_user.id,
+            amount=t_budge.amount,
+            period=t_budge.period,
+        )
+        new_budgets.append(new_budget)
+
+    if new_budgets:
+        db.add(new_budgets)
+
     db.commit()
 
     return ApplyDatasetResponse(

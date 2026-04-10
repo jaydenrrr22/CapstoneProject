@@ -25,3 +25,11 @@ class DatasetTransaction(Base):
 
     day_offset = Column(Integer, nullable=False, default=0)
     template = relationship("DatasetTemplate", back_populates="transactions")
+
+class DatasetBudget(Base):
+    __tablename__ = "dataset_budget"
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey("dataset_template.id",
+                                             ondelete="CASCADE"), nullable=False)
+    amount = Column(Float, nullable=False)
+    period = Column(String(50), nullable=False)
