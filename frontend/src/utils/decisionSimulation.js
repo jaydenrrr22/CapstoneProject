@@ -1,6 +1,5 @@
 import {
   addDays,
-  formatCurrency,
   getPeriodKey,
   parsePeriodStart,
   toDate,
@@ -54,96 +53,59 @@ function calculateDomain(values, budgetLimit) {
   return [minValue - padding, maxValue + padding];
 }
 
-function formatPercentage(value) {
+function toFiniteNumber(value, fallback = null) {
   const numericValue = Number(value);
-
-  if (!Number.isFinite(numericValue)) {
-    return "0%";
-  }
-
-  return `${numericValue.toFixed(1)}%`;
+  return Number.isFinite(numericValue) ? numericValue : fallback;
 }
 
-function resolveStatus(projectedUsage, remainingBudget, monthlyImpact) {
-  if (Number.isFinite(projectedUsage) && projectedUsage > 100) {
-    return "negative";
-  }
-
-  if (Number.isFinite(remainingBudget) && remainingBudget < 0) {
-    return "negative";
-  }
-
-  if (Number.isFinite(projectedUsage) && projectedUsage >= 85) {
-    return "warning";
-  }
-
-  if (Number.isFinite(monthlyImpact) && monthlyImpact < 0) {
+function resolveRecommendationStatus({
+  monthlyImpact,
+  projectedUsage,
+  remainingBudget,
+  riskLevel,
+  riskScore,
+}) {
+  if (monthlyImpact < 0) {
     return "positive";
+  }
+
+  if (String(riskLevel || "").toLowerCase() === "risk") {
+    return "negative";
+  }
+
+  if (remainingBudget !== null && remainingBudget < 0) {
+    return "negative";
+  }
+
+  if (projectedUsage !== null && projectedUsage >= 100) {
+    return "negative";
+  }
+
+  if (String(riskLevel || "").toLowerCase() === "moderate" || (riskScore !== null && riskScore >= 0.45)) {
+    return "warning";
   }
 
   return "positive";
 }
 
-function buildRecommendation({
-  apiSimulation,
-  monthlyImpact,
-  averageDailySpend,
-}) {
-  if (!apiSimulation) {
+function normalizeScenarios(currentSpent, scenarios = []) {
+  return scenarios.map((scenario) => {
+    const projectedSpentThisPeriod = toFiniteNumber(scenario?.projected_spent_this_period, currentSpent);
+    const projectedPercentageUsed = toFiniteNumber(scenario?.projected_percentage_used);
+    const remainingBudgetAfterPurchase = toFiniteNumber(scenario?.remaining_budget_after_purchase);
+    const balanceChange = toFiniteNumber(scenario?.balance_change, null);
+    const impactFromCurrent = roundCurrency(projectedSpentThisPeriod - currentSpent);
+
     return {
-      headline: "Preview is temporarily unavailable.",
-      detail: "You can still continue, but the simulation service did not return enough data to score this decision.",
-      status: "neutral",
+      balanceChange: balanceChange ?? roundCurrency(-impactFromCurrent),
+      impactFromCurrent,
+      projected_spent_this_period: projectedSpentThisPeriod,
+      projected_percentage_used: projectedPercentageUsed,
+      remaining_budget_after_purchase: remainingBudgetAfterPurchase,
+      risk_level: String(scenario?.risk_level || "Unknown"),
+      scenario_type: scenario?.scenario_type || "Scenario",
     };
-  }
-
-  const projectedUsage = Number(apiSimulation.projected_percentage_used);
-  const remainingBudget = Number(apiSimulation.remaining_budget_after_purchase);
-  const riskLevel = String(apiSimulation.risk_level || "").toLowerCase();
-  const normalizedAverageSpend = Math.max(0, Number(averageDailySpend) || 0);
-  const daysUntilExhaustion = remainingBudget > 0 && normalizedAverageSpend > 0
-    ? Math.floor(remainingBudget / normalizedAverageSpend)
-    : null;
-
-  const status = resolveStatus(projectedUsage, remainingBudget, monthlyImpact);
-
-  if (projectedUsage > 100 || remainingBudget < 0) {
-    return {
-      headline: `This decision pushes you ${formatPercentage(Math.max(0, projectedUsage - 100))} over budget.`,
-      detail: `You would overshoot the current monthly budget by ${formatCurrency(Math.abs(remainingBudget), { precise: true })}. ${apiSimulation.recommendation || ""}`.trim(),
-      status: "negative",
-    };
-  }
-
-  if (daysUntilExhaustion !== null && daysUntilExhaustion <= 10) {
-    return {
-      headline: `At your current pace, you could run out of budget in about ${daysUntilExhaustion} days.`,
-      detail: `This action leaves ${formatCurrency(remainingBudget, { precise: true })} for the rest of the period. ${apiSimulation.recommendation || ""}`.trim(),
-      status: "warning",
-    };
-  }
-
-  if (projectedUsage >= 85 || riskLevel === "risk" || riskLevel === "moderate") {
-    return {
-      headline: `This keeps you near ${formatPercentage(projectedUsage)} of your budget threshold.`,
-      detail: `${formatCurrency(remainingBudget, { precise: true })} would remain after the action. ${apiSimulation.recommendation || ""}`.trim(),
-      status: "warning",
-    };
-  }
-
-  if (monthlyImpact < 0) {
-    return {
-      headline: "This improves your near-term cash position.",
-      detail: `The decision creates ${formatCurrency(Math.abs(monthlyImpact), { precise: true })} of extra room in this period and keeps you within a safe range.`,
-      status: "positive",
-    };
-  }
-
-  return {
-    headline: "This is within your safe spending range.",
-    detail: `${formatCurrency(remainingBudget, { precise: true })} should remain in the current budget after this action. ${apiSimulation.recommendation || ""}`.trim(),
-    status,
-  };
+  });
 }
 
 export function buildDecisionSimulationModel({
@@ -156,20 +118,18 @@ export function buildDecisionSimulationModel({
   const periodStart = parsePeriodStart(periodKey) || new Date(actionDate.getFullYear(), actionDate.getMonth(), 1);
   const periodEnd = getMonthEnd(actionDate);
   const historicalTotals = buildHistoricalTotals(transactions, periodKey, actionDate);
+  const details = apiSimulation?.details || {};
 
   const fallbackCurrentSpent = Array.from(historicalTotals.values()).reduce((sum, value) => sum + value, 0);
-  const currentSpent = Number.isFinite(Number(apiSimulation?.current_spent_this_period))
-    ? Number(apiSimulation.current_spent_this_period)
-    : fallbackCurrentSpent;
-  const projectedSpent = Number.isFinite(Number(apiSimulation?.projected_spent_this_period))
-    ? Number(apiSimulation.projected_spent_this_period)
-    : currentSpent + Number(pendingTransaction?.cost || 0);
+  const currentSpent = toFiniteNumber(details.current_spent_this_period, fallbackCurrentSpent);
+  const projectedSpent = toFiniteNumber(
+    details.projected_spent_this_period,
+    currentSpent + Number(pendingTransaction?.cost || 0),
+  );
   const monthlyImpact = roundCurrency(projectedSpent - currentSpent);
   const observedDays = Math.max(1, actionDate.getDate());
   const averageDailySpend = roundCurrency(currentSpent / observedDays);
-  const budgetLimit = Number.isFinite(Number(apiSimulation?.current_monthly_budget))
-    ? Number(apiSimulation.current_monthly_budget)
-    : null;
+  const budgetLimit = toFiniteNumber(details.budget_limit, null);
 
   const chartData = [];
   const values = [];
@@ -222,11 +182,12 @@ export function buildDecisionSimulationModel({
     cursor = addDays(cursor, 1);
   }
 
-  const recommendation = buildRecommendation({
-    apiSimulation,
-    monthlyImpact,
-    averageDailySpend,
-  });
+  const remainingBudget = toFiniteNumber(details.remaining_budget_after_purchase, null);
+  const usageBefore = toFiniteNumber(details.current_percentage_used, null);
+  const usageAfter = toFiniteNumber(details.projected_percentage_used, null);
+  const riskLevel = String(details.risk_level || "unknown");
+  const riskScore = toFiniteNumber(apiSimulation?.risk_score, null);
+  const scenarios = normalizeScenarios(currentSpent, details.scenarios || []);
 
   return {
     actionDate: toISODate(actionDate),
@@ -238,17 +199,22 @@ export function buildDecisionSimulationModel({
     currentSpent: roundCurrency(currentSpent),
     monthlyImpact,
     projectedSpent: roundCurrency(projectedSpent),
-    recommendation,
-    remainingBudget: Number.isFinite(Number(apiSimulation?.remaining_budget_after_purchase))
-      ? Number(apiSimulation.remaining_budget_after_purchase)
-      : null,
-    riskLevel: String(apiSimulation?.risk_level || "unknown"),
-    scenarios: Array.isArray(apiSimulation?.scenarios) ? apiSimulation.scenarios : [],
-    usageAfter: Number.isFinite(Number(apiSimulation?.projected_percentage_used))
-      ? Number(apiSimulation.projected_percentage_used)
-      : null,
-    usageBefore: Number.isFinite(Number(apiSimulation?.current_percentage_used))
-      ? Number(apiSimulation.current_percentage_used)
-      : null,
+    rawAnalysis: apiSimulation,
+    recommendation: {
+      headline: apiSimulation?.recommendation || "Preview generated successfully.",
+      detail: apiSimulation?.explanation || "Review the projected impact before saving.",
+      status: resolveRecommendationStatus({
+        monthlyImpact,
+        projectedUsage: usageAfter,
+        remainingBudget,
+        riskLevel,
+        riskScore,
+      }),
+    },
+    remainingBudget,
+    riskLevel,
+    scenarios,
+    usageAfter,
+    usageBefore,
   };
 }

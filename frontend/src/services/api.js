@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getStoredToken, clearStoredToken } from "./tokenService";
+import { emitGlobalApiError } from "../utils/globalErrors";
 
 const API = axios.create({
   baseURL: "/api",
@@ -37,6 +38,11 @@ API.interceptors.response.use(
 
       // Notify app to redirect (handled in AuthProvider)
       window.dispatchEvent(new Event("auth:unauthorized"));
+      return Promise.reject(error);
+    }
+
+    if (!status || status >= 500) {
+      emitGlobalApiError(error);
     }
 
     // Let components handle all other errors (400, 403, 500, etc.)

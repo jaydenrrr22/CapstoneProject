@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { PieChart, Pie, Cell, Sector } from "recharts";
 import "./FinancialHealthChart.css";
 
@@ -77,12 +77,12 @@ function FinancialHealthChart({
       { name: "Health Score", value: safeScore, color: tone.color },
       { name: "Remaining Gap", value: 100 - safeScore, color: "#e5e7eb" },
     ],
-    [safeScore, tone.color],
+    [safeScore, tone.color]
   );
 
   const activeSlice = data[activeIndex] || data[0];
 
-  const renderActiveShape = (props) => (
+  const renderActiveShape = useCallback((props) => (
     <g>
       <Sector
         cx={props.cx}
@@ -94,7 +94,7 @@ function FinancialHealthChart({
         fill={props.fill}
       />
     </g>
-  );
+  ), []);
 
   return (
     <div ref={wrapRef} className="health-gauge-wrap">
@@ -154,4 +154,4 @@ function FinancialHealthChart({
   );
 }
 
-export default FinancialHealthChart;
+export default memo(FinancialHealthChart);

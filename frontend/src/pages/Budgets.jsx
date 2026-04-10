@@ -4,8 +4,11 @@ import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
+import useDemoMode from "../hooks/useDemoMode";
+import { buildDemoBudgetProgress } from "../demo/demoUtils";
 
 function Budgets() {
+  const { currentDataset, isDemoMode } = useDemoMode();
   const [budgets, setBudgets] = useState([]);
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,6 +26,29 @@ function Budgets() {
   const loadBudgets = useCallback(async (preferredProgressPeriod = "") => {
     setLoading(true);
     setError("");
+
+    if (isDemoMode) {
+      const list = [...(currentDataset?.budget || [])].sort((a, b) => b.period.localeCompare(a.period));
+      setBudgets(list);
+
+      if (list.length > 0) {
+        const targetPeriod = (preferredProgressPeriod && list.some((item) => item.period === preferredProgressPeriod))
+          ? preferredProgressPeriod
+          : (progressPeriod && list.some((item) => item.period === progressPeriod))
+            ? progressPeriod
+            : list[0].period;
+
+        setProgressPeriod(targetPeriod);
+        setProgress(buildDemoBudgetProgress(targetPeriod, list, currentDataset?.transactions || []));
+      } else {
+        setProgressPeriod("");
+        setProgress(null);
+      }
+
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await API.get("/budget/get");
       const list = [...response.data].sort((a, b) => b.period.localeCompare(a.period));
@@ -46,7 +72,7 @@ function Budgets() {
     } finally {
       setLoading(false);
     }
-  }, [progressPeriod]);
+  }, [currentDataset, isDemoMode, progressPeriod]);
 
   useEffect(() => {
     loadBudgets();
@@ -54,6 +80,12 @@ function Budgets() {
 
   const createBudget = async (event) => {
     event.preventDefault();
+
+    if (isDemoMode) {
+      setError("Budget editing is disabled in demo mode so the sample story stays consistent.");
+      return;
+    }
+
     setSaving(true);
     setError("");
 
@@ -74,6 +106,12 @@ function Budgets() {
   };
 
   const loadProgressForPeriod = async (targetPeriod) => {
+    if (isDemoMode) {
+      setProgressPeriod(targetPeriod);
+      setProgress(buildDemoBudgetProgress(targetPeriod, budgets, currentDataset?.transactions || []));
+      return;
+    }
+
     try {
       const response = await API.get(`/budget/progress/${targetPeriod}`);
       setProgressPeriod(targetPeriod);
@@ -96,6 +134,11 @@ function Budgets() {
   };
 
   const saveBudgetAmount = async (budget) => {
+    if (isDemoMode) {
+      setError("Budget editing is disabled in demo mode so the sample story stays consistent.");
+      return;
+    }
+
     const nextAmount = Number(editingAmount);
     if (!Number.isFinite(nextAmount) || nextAmount <= 0) {
       setError("Please enter a valid amount greater than 0.");
@@ -126,6 +169,11 @@ function Budgets() {
   };
 
   const deleteBudget = async (budgetId) => {
+    if (isDemoMode) {
+      setError("Budget editing is disabled in demo mode so the sample story stays consistent.");
+      return;
+    }
+
     if (!window.confirm("Delete this budget? This cannot be undone.")) {
       return;
     }
@@ -186,7 +234,13 @@ function Budgets() {
 
             {error && <p className="subpage-error">{error}</p>}
 
-            <button className="subpage-submit" type="submit" disabled={saving}>
+            {isDemoMode && (
+              <p className="muted">
+                Demo mode uses sample budgets tied to the selected scenario. Switch to normal mode to create or edit real budgets.
+              </p>
+            )}
+
+            <button className="subpage-submit" type="submit" disabled={saving || isDemoMode}>
               {saving ? "Saving..." : "Create Budget"}
             </button>
           </form>
@@ -301,6 +355,7 @@ function Budgets() {
                         className="subpage-inline-btn"
                         type="button"
                         onClick={() => startEditingBudget(budget)}
+                        disabled={isDemoMode}
                       >
                         Edit
                       </button>
@@ -310,7 +365,7 @@ function Budgets() {
                       className="subpage-inline-btn danger"
                       type="button"
                       onClick={() => deleteBudget(budget.id)}
-                      disabled={rowActionLoadingId === budget.id}
+                      disabled={rowActionLoadingId === budget.id || isDemoMode}
                     >
                       Delete
                     </button>

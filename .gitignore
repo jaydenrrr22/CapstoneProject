@@ -16,3 +16,7 @@ deploy.log
 
 # Local runtime logs
 trace-backend.log
+
+# AWS local artifacts
+backend/api/aws/
+backend/api/awscliv2.zip

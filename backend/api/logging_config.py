@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 
-class JsonFormatter(logging.Formatter):
+class JSONFormatter(logging.Formatter):
     def format(self, record):
         log_record = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -12,24 +12,45 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
 
-        if hasattr(record, "request_id"):
-            log_record["request_id"] = record.request_id
+        # Include ALL extra fields automatically
+        for key, value in record.__dict__.items():
+            if key not in (
+                "name", "msg", "args", "levelname", "levelno",
+                "pathname", "filename", "module", "exc_info",
+                "exc_text", "stack_info", "lineno", "funcName",
+                "created", "msecs", "relativeCreated", "thread",
+                "threadName", "processName", "process"
+            ):
+                log_record[key] = value
 
         return json.dumps(log_record)
 
-
 def setup_logging():
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    formatter = JSONFormatter()
 
-    if os.path.exists ("home/ubuntu"):
-        log_path = "home/ubuntu/trace-backend.log"
-    else:
-        log_path = "trace-backend.log"
+    # Centralise log directory: honour LOG_DIR env var, fall back to CWD.
+    # On EC2 the systemd unit sets LOG_DIR=/home/ubuntu to preserve the
+    # original log locations (/home/ubuntu/app.log, /home/ubuntu/security.log).
+    log_dir = os.environ.get("LOG_DIR", os.getcwd())
+    os.makedirs(log_dir, mode=0o750, exist_ok=True)
 
-    file_handler = logging.FileHandler(log_path)
+    # File handlers – both paths derived from the same log_dir
+    app_handler = logging.FileHandler(os.path.join(log_dir, "app.log"))
+    app_handler.setFormatter(formatter)
 
-    formatter = JsonFormatter()
-    file_handler.setFormatter(formatter)
+    security_handler = logging.FileHandler(os.path.join(log_dir, "security.log"))
+    security_handler.setFormatter(formatter)
 
-    logger.addHandler(file_handler)
+    # App logger
+    app_logger = logging.getLogger("app")
+    app_logger.setLevel(logging.INFO)
+    app_logger.handlers = []  # prevent duplicate logs
+    app_logger.addHandler(app_handler)
+
+    # Security logger
+    security_logger = logging.getLogger("security")
+    security_logger.setLevel(logging.WARNING)
+    security_logger.handlers = []
+    security_logger.addHandler(security_handler)
+
+    return app_logger, security_logger

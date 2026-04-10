@@ -5,7 +5,7 @@ from typing import Any
 from jose import ExpiredSignatureError, JWTError, jwt
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def get_secret_key() -> str:

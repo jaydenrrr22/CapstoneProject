@@ -5,6 +5,7 @@ After=network.target
 [Service]
 User=ubuntu
 WorkingDirectory=/home/ubuntu/CapstoneProject
+Environment="LOG_DIR=/home/ubuntu"
 ExecStart=/home/ubuntu/CapstoneProject/venv/bin/uvicorn backend.api.main:app --host 0.0.0.0 --port 8000
 
 Restart=always

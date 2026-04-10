@@ -1,12 +1,23 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --bg-1: #22223b;
+  --bg-2: #4a4e69;
+  --surface: #c9ada7;
+  --surface-muted: #dcc3bc;
+  --surface-soft: rgba(255, 255, 255, 0.34);
+  --ink: #22223b;
+  --ink-soft: #4a4e69;
+  --line: rgba(34, 34, 59, 0.14);
+  --brand: #22223b;
+  --brand-strong: #4a4e69;
+  --danger: #b42318;
+  --success: #1f7a3a;
+  --shadow-soft: 0 10px 24px rgba(10, 10, 20, 0.14);
+  --shadow-medium: 0 16px 34px rgba(10, 10, 20, 0.18);
+  font-family: "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  color: var(--ink);
+  background-color: var(--bg-1);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,11 +26,12 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: inherit;
   text-decoration: inherit;
 }
+
 a:hover {
-  color: #535bf2;
+  color: inherit;
 }
 
 body {
@@ -27,6 +39,10 @@ body {
   width: 100%;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 30%),
+    linear-gradient(135deg, var(--bg-1) 0%, var(--bg-1) 42%, var(--bg-2) 100%);
 }
 
 #root {
@@ -34,9 +50,32 @@ body {
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.global-error-banner {
+  position: sticky;
+  top: 12px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(180, 35, 24, 0.92);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+}
+
+.global-error-banner span {
+  overflow-wrap: anywhere;
+}
+
+.global-error-banner button {
+  min-height: 34px;
+  border: none;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-weight: 700;
 }
 
 button {
@@ -46,27 +85,39 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--brand);
+  color: #ffffff;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+button:hover {
+  background-color: var(--brand-strong);
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 2px;
+}
+
+.route-loading-shell {
+  min-height: calc(100vh - 160px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.route-loading-card {
+  border: 1px solid rgba(34, 34, 59, 0.16);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
+    #c9ada7;
+  color: #22223b;
+  box-shadow: var(--shadow-soft);
+  padding: 14px 18px;
+  font-weight: 800;
 }

@@ -5,13 +5,13 @@
   display: grid;
   gap: 14px;
   min-width: 0;
-  padding: 16px;
+  padding: 18px;
   border-radius: 16px;
   border: 1px solid rgba(34, 34, 59, 0.12);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.14) 100%),
-    var(--insight-tint);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.16);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
+    #c9ada7;
+  box-shadow: 0 16px 30px rgba(10, 10, 20, 0.16);
   overflow: hidden;
 }
 
@@ -65,7 +65,7 @@
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.52);
+  background: rgba(255, 255, 255, 0.46);
   color: #22223b;
 }
 
@@ -91,7 +91,7 @@
 .insight-card__description {
   margin: 0;
   color: #4a4e69;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
@@ -155,7 +155,7 @@
 .insight-card__value {
   margin: 0;
   color: #22223b;
-  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-size: clamp(1.45rem, 2vw, 2rem);
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.05;
@@ -189,7 +189,7 @@
   align-items: center;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.38);
   border: 1px solid rgba(34, 34, 59, 0.1);
 }
 
@@ -203,7 +203,7 @@
   gap: 6px;
   padding: 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.38);
   border: 1px solid rgba(34, 34, 59, 0.1);
 }
 
@@ -219,7 +219,7 @@
 .insight-card__error {
   padding: 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.3);
   color: #4a4e69;
 }
 

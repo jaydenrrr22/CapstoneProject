@@ -1,8 +1,10 @@
+import { lazy, memo, Suspense } from "react";
 import FinancialHealthChart from "../FinancialHealthChart";
-import ForecastChart from "../forecast/ForecastChart";
-import PredictedTransactionsInsight from "../insight/PredictedTransactionsInsight";
-import SubscriptionInsightCard from "../insight/SubscriptionInsightCard";
 import "./DashboardLayouts.css";
+
+const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
+const PredictedTransactionsInsight = lazy(() => import("../insight/PredictedTransactionsInsight"));
+const SubscriptionInsightCard = lazy(() => import("../insight/SubscriptionInsightCard"));
 
 function DesktopDashboard({
   loadingHealth,
@@ -17,13 +19,30 @@ function DesktopDashboard({
   forecastError,
   selectedBudgetLimit,
   subscriptionInsight,
+  loadingSubscriptions,
+  subscriptionError,
   predictedTransactions,
   loadingPredictions,
   predictionError,
   onRetryPredictions,
+  loadingBaseData,
+  baseDataError,
 }) {
-  const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
-  const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
+  const hasBaseDataError = Boolean(baseDataError);
+  const budgetTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.budget_limit).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
+  const spentTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.total_spent).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
 
   return (
     <div className="dashboard-shell desktop-shell">
@@ -37,11 +56,15 @@ function DesktopDashboard({
             <p>Spent This Period</p>
             <h2>{spentTotal}</h2>
           </article>
-          <SubscriptionInsightCard
-            count={subscriptionInsight.count}
-            totalMonthly={subscriptionInsight.totalMonthly}
-            className="budget-stat budget-stat--insight"
-          />
+          <Suspense fallback={<p className="muted">Loading insights...</p>}>
+            <SubscriptionInsightCard
+              count={subscriptionInsight.count}
+              totalMonthly={subscriptionInsight.totalMonthly}
+              className="budget-stat budget-stat--insight"
+              loading={loadingSubscriptions}
+              error={subscriptionError}
+            />
+          </Suspense>
         </section>
 
         <section className="desktop-health-panel card-surface">
@@ -105,40 +128,50 @@ function DesktopDashboard({
             <h3>Recent Transactions</h3>
           </div>
           <div className="tx-table simple-list">
-            {transactions.map((tx) => (
-              <div key={tx.id} className="tx-table-row">
-                <span>{tx.name}</span>
-                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
-                </span>
-              </div>
-            ))}
-
-            {transactions.length === 0 && <p className="muted tx-empty">No transactions yet.</p>}
+            {loadingBaseData ? (
+              <p className="muted tx-empty">Loading recent transactions...</p>
+            ) : hasBaseDataError ? (
+              <p className="health-error tx-empty" role="alert">{baseDataError}</p>
+            ) : transactions.length === 0 ? (
+              <p className="muted tx-empty">No transactions yet.</p>
+            ) : (
+              transactions.map((tx) => (
+                <div key={tx.id} className="tx-table-row">
+                  <span>{tx.name}</span>
+                  <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                    {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </section>
 
         <section className="desktop-forecast-panel card-surface">
-          <ForecastChart
-            transactions={forecastTransactions}
-            selectedPeriod={selectedPeriod}
-            budgetLimit={selectedBudgetLimit}
-            loading={loadingForecast}
-            error={forecastError}
-          />
+          <Suspense fallback={<p className="muted">Loading forecast...</p>}>
+            <ForecastChart
+              transactions={forecastTransactions}
+              selectedPeriod={selectedPeriod}
+              budgetLimit={selectedBudgetLimit}
+              loading={loadingForecast}
+              error={forecastError}
+            />
+          </Suspense>
         </section>
 
         <section className="desktop-predicted-panel card-surface">
-          <PredictedTransactionsInsight
-            transactions={predictedTransactions}
-            loading={loadingPredictions}
-            error={predictionError}
-            onRetry={onRetryPredictions}
-          />
+          <Suspense fallback={<p className="muted">Loading insights...</p>}>
+            <PredictedTransactionsInsight
+              transactions={predictedTransactions}
+              loading={loadingPredictions}
+              error={predictionError}
+              onRetry={onRetryPredictions}
+            />
+          </Suspense>
         </section>
       </div>
     </div>
   );
 }
 
-export default DesktopDashboard;
+export default memo(DesktopDashboard);

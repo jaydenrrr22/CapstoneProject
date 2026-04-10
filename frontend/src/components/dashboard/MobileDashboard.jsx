@@ -1,9 +1,12 @@
-import { NavLink } from "react-router-dom";
+import { lazy, memo, Suspense } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
-import ForecastChart from "../forecast/ForecastChart";
-import PredictedTransactionsInsight from "../insight/PredictedTransactionsInsight";
-import SubscriptionInsightCard from "../insight/SubscriptionInsightCard";
+import { PRIMARY_NAV_ITEMS, isSectionPathActive } from "../../constants/routes";
 import "./DashboardLayouts.css";
+
+const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
+const PredictedTransactionsInsight = lazy(() => import("../insight/PredictedTransactionsInsight"));
+const SubscriptionInsightCard = lazy(() => import("../insight/SubscriptionInsightCard"));
 
 function MobileDashboard({
   loadingHealth,
@@ -18,13 +21,31 @@ function MobileDashboard({
   forecastError,
   selectedBudgetLimit,
   subscriptionInsight,
+  loadingSubscriptions,
+  subscriptionError,
   predictedTransactions,
   loadingPredictions,
   predictionError,
   onRetryPredictions,
+  loadingBaseData,
+  baseDataError,
 }) {
-  const budgetTotal = health ? `$${Number(health.budget_limit).toFixed(2)}` : "--";
-  const spentTotal = health ? `$${Number(health.total_spent).toFixed(2)}` : "--";
+  const location = useLocation();
+  const hasBaseDataError = Boolean(baseDataError);
+  const budgetTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.budget_limit).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
+  const spentTotal = loadingHealth || loadingBaseData
+    ? "Loading..."
+    : health
+      ? `$${Number(health.total_spent).toFixed(2)}`
+      : hasBaseDataError
+        ? "Unavailable"
+        : "--";
 
   return (
     <div className="dashboard-shell mobile-shell">
@@ -37,11 +58,15 @@ function MobileDashboard({
           <p>Spent This Period</p>
           <h2>{spentTotal}</h2>
         </article>
-        <SubscriptionInsightCard
-          count={subscriptionInsight.count}
-          totalMonthly={subscriptionInsight.totalMonthly}
-          className="budget-chip budget-chip--insight"
-        />
+        <Suspense fallback={<p className="muted">Loading insights...</p>}>
+          <SubscriptionInsightCard
+            count={subscriptionInsight.count}
+            totalMonthly={subscriptionInsight.totalMonthly}
+            className="budget-chip budget-chip--insight"
+            loading={loadingSubscriptions}
+            error={subscriptionError}
+          />
+        </Suspense>
       </section>
 
       <section className="card-surface mobile-chart-card">
@@ -86,14 +111,16 @@ function MobileDashboard({
       </section>
 
       <section className="card-surface mobile-forecast-card">
-        <ForecastChart
-          transactions={forecastTransactions}
-          selectedPeriod={selectedPeriod}
-          budgetLimit={selectedBudgetLimit}
-          loading={loadingForecast}
-          error={forecastError}
-          compact
-        />
+        <Suspense fallback={<p className="muted">Loading forecast...</p>}>
+          <ForecastChart
+            transactions={forecastTransactions}
+            selectedPeriod={selectedPeriod}
+            budgetLimit={selectedBudgetLimit}
+            loading={loadingForecast}
+            error={forecastError}
+            compact
+          />
+        </Suspense>
       </section>
 
       <section className="card-surface mobile-transactions-card">
@@ -101,37 +128,50 @@ function MobileDashboard({
           <h3>Recent Transactions</h3>
         </div>
         <div className="tx-list">
-          {transactions.map((tx) => (
-            <div key={tx.id} className="tx-row">
-              <span>{tx.name}</span>
-              <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
-              </span>
-            </div>
-          ))}
-
-          {transactions.length === 0 && <p className="muted">No transactions yet.</p>}
+          {loadingBaseData ? (
+            <p className="muted">Loading recent transactions...</p>
+          ) : hasBaseDataError ? (
+            <p className="health-error" role="alert">{baseDataError}</p>
+          ) : transactions.length === 0 ? (
+            <p className="muted">No transactions yet.</p>
+          ) : (
+            transactions.map((tx) => (
+              <div key={tx.id} className="tx-row">
+                <span>{tx.name}</span>
+                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
+                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                </span>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
       <section className="card-surface mobile-predicted-card">
-        <PredictedTransactionsInsight
-          transactions={predictedTransactions}
-          loading={loadingPredictions}
-          error={predictionError}
-          onRetry={onRetryPredictions}
-          defaultExpanded={false}
-        />
+        <Suspense fallback={<p className="muted">Loading insights...</p>}>
+          <PredictedTransactionsInsight
+            transactions={predictedTransactions}
+            loading={loadingPredictions}
+            error={predictionError}
+            onRetry={onRetryPredictions}
+            defaultExpanded={false}
+          />
+        </Suspense>
       </section>
 
       <nav className="mobile-bottom-nav" aria-label="Primary">
-        <NavLink to="/dashboard">Home</NavLink>
-        <NavLink to="/transactions">Transactions</NavLink>
-        <NavLink to="/subscriptions">Subscriptions</NavLink>
-        <NavLink to="/budgets">Budgets</NavLink>
+        {PRIMARY_NAV_ITEMS.map((item) => (
+          <NavLink
+            key={item.key}
+            to={item.to}
+            className={isSectionPathActive(location.pathname, item.matchPrefix) ? "active" : undefined}
+          >
+            {item.label}
+          </NavLink>
+        ))}
       </nav>
     </div>
   );
 }
 
-export default MobileDashboard;
+export default memo(MobileDashboard);

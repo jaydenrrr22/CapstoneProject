@@ -1,0 +1,30 @@
+[swagger-api] [http] [info] https://3.151.137.239/docs [paths="/docs"]
+[waf-detect:nginxgeneric] [http] [info] https://3.151.137.239
+[ssh-auth-methods] [javascript] [info] 3.151.137.239:22 ["["publickey"]"]
+[ssh-server-enumeration] [javascript] [info] 3.151.137.239:22 ["SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.15"]
+[ssh-sha1-hmac-algo] [javascript] [info] 3.151.137.239:22
+[openssh-detect] [tcp] [info] 3.151.137.239:22 ["SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13.15"]
+[tls-version] [ssl] [info] 3.151.137.239:443 ["tls12"]
+[tls-version] [ssl] [info] 3.151.137.239:443 ["tls13"]
+[openapi] [http] [info] https://3.151.137.239/openapi.json
+[http-missing-security-headers:content-security-policy] [http] [info] https://3.151.137.239
+[http-missing-security-headers:permissions-policy] [http] [info] https://3.151.137.239
+[http-missing-security-headers:x-frame-options] [http] [info] https://3.151.137.239
+[http-missing-security-headers:x-permitted-cross-domain-policies] [http] [info] https://3.151.137.239
+[http-missing-security-headers:clear-site-data] [http] [info] https://3.151.137.239
+[http-missing-security-headers:cross-origin-embedder-policy] [http] [info] https://3.151.137.239
+[http-missing-security-headers:cross-origin-opener-policy] [http] [info] https://3.151.137.239
+[http-missing-security-headers:strict-transport-security] [http] [info] https://3.151.137.239
+[http-missing-security-headers:x-content-type-options] [http] [info] https://3.151.137.239
+[http-missing-security-headers:referrer-policy] [http] [info] https://3.151.137.239
+[http-missing-security-headers:cross-origin-resource-policy] [http] [info] https://3.151.137.239
+[http-missing-security-headers:missing-content-type] [http] [info] https://3.151.137.239
+[weak-hsts-detect] [http] [info] https://3.151.137.239
+[nginx-eol:version] [http] [info] https://3.151.137.239 ["1.24.0"]
+[nginx-version] [http] [info] https://3.151.137.239 ["nginx/1.24.0"]
+[tech-detect:nginx] [http] [info] https://3.151.137.239
+[fastapi-docs] [http] [info] https://3.151.137.239/docs
+[fastapi-docs] [http] [info] https://3.151.137.239/openapi.json
+[ptr-fingerprint] [dns] [info] 239.137.151.3.in-addr.arpa ["ec2-3-151-137-239.us-east-2.compute.amazonaws.com."]
+[self-signed-ssl] [ssl] [low] 3.151.137.239:443
+[ssl-dns-names] [ssl] [info] 3.151.137.239:443 ["ip-172-31-21-36.us-east-2.compute.internal"]

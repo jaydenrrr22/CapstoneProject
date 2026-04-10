@@ -72,7 +72,7 @@ function PredictedTransactionsInsight({
         <div className="insight-card__state insight-card__empty">
           <p className="insight-card__state-title">No predicted transactions available</p>
           <p className="insight-card__state-message">
-            Keep adding transactions. Predictions will appear after we detect recurring spending patterns.
+            Run an intelligence analysis or keep building history. Saved intelligence results will appear here.
           </p>
         </div>
       ) : (
