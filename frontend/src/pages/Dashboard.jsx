@@ -10,7 +10,6 @@ import { resolveDefaultPeriod } from "../utils/forecastUtils";
 import useIntelligence from "../hooks/useIntelligence";
 import useDemoMode from "../hooks/useDemoMode";
 import { buildDemoHealth, detectDemoSubscriptions, getAvailablePeriods, getBudgetLimitMap, getSubscriptionInsight } from "../demo/demoUtils";
-import DemoWalkthrough from "../components/demo/DemoWalkthrough";
 import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
 
 function Dashboard() {
@@ -357,7 +356,6 @@ function Dashboard() {
           loadingBaseData={loadingBaseData}
           baseDataError={baseDataError}
         />
-        <DemoWalkthrough />
       </>
     );
   }
@@ -386,7 +384,6 @@ function Dashboard() {
         loadingBaseData={loadingBaseData}
         baseDataError={baseDataError}
       />
-      <DemoWalkthrough />
     </>
   );
 }

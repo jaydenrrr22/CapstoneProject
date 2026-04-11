@@ -2,6 +2,7 @@ import { lazy, memo, Suspense } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import FinancialHealthChart from "../FinancialHealthChart";
 import { PRIMARY_NAV_ITEMS, isSectionPathActive } from "../../constants/routes";
+import { isIncomeAmount } from "../../utils/finance";
 import "./DashboardLayouts.css";
 
 const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
@@ -30,6 +31,33 @@ function MobileDashboard({
   loadingBaseData,
   baseDataError,
 }) {
+  const formatSignedCurrency = (value) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return "--";
+    }
+
+    return `${numericValue < 0 ? "-" : ""}$${Math.abs(numericValue).toFixed(2)}`;
+  };
+  const resolveValueTone = (value) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return "neutral";
+    }
+
+    if (numericValue < 0) {
+      return "positive";
+    }
+
+    if (numericValue > 0) {
+      return "negative";
+    }
+
+    return "neutral";
+  };
+
   const location = useLocation();
   const hasBaseDataError = Boolean(baseDataError);
   const budgetTotal = loadingHealth || loadingBaseData
@@ -42,21 +70,31 @@ function MobileDashboard({
   const spentTotal = loadingHealth || loadingBaseData
     ? "Loading..."
     : health
-      ? `$${Number(health.total_spent).toFixed(2)}`
+      ? formatSignedCurrency(health.total_spent)
       : hasBaseDataError
         ? "Unavailable"
         : "--";
+  const budgetTone = resolveValueTone(health?.budget_limit);
+  const periodTone = resolveValueTone(health?.total_spent);
 
   return (
     <div className="dashboard-shell mobile-shell">
       <section className="mobile-budget-scroll" aria-label="Budget summary">
-        <article className="budget-chip card-surface">
-          <p>Total Budget</p>
-          <h2>{budgetTotal}</h2>
+        <article className={`budget-chip card-surface budget-chip--${budgetTone}`}>
+          <div className="budget-stat__label-row">
+            <p>Total Budget</p>
+            <span className="budget-stat__chip">Budget</span>
+          </div>
+          <h2 className="budget-stat__value">{budgetTotal}</h2>
+          <span className="budget-stat__footnote">Current budget limit</span>
         </article>
-        <article className="budget-chip card-surface">
-          <p>Spent This Period</p>
-          <h2>{spentTotal}</h2>
+        <article className={`budget-chip card-surface budget-chip--${periodTone}`}>
+          <div className="budget-stat__label-row">
+            <p>Net This Period</p>
+            <span className="budget-stat__chip">Live</span>
+          </div>
+          <h2 className="budget-stat__value">{spentTotal}</h2>
+          <span className="budget-stat__footnote">Income lowers this total</span>
         </article>
         <Suspense fallback={<p className="muted">Loading insights...</p>}>
           <SubscriptionInsightCard
@@ -69,7 +107,7 @@ function MobileDashboard({
         </Suspense>
       </section>
 
-      <section className="card-surface mobile-chart-card">
+      <section className="card-surface mobile-chart-card" data-demo-tour="dashboard-overview">
         <div className="section-heading">
           <h3>Financial Health</h3>
           <select
@@ -138,8 +176,8 @@ function MobileDashboard({
             transactions.map((tx) => (
               <div key={tx.id} className="tx-row">
                 <span>{tx.name}</span>
-                <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                  {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                <span className={isIncomeAmount(tx.amount) ? "tx-positive" : "tx-negative"}>
+                  {isIncomeAmount(tx.amount) ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
                 </span>
               </div>
             ))

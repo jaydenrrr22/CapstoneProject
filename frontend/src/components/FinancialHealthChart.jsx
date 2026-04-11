@@ -98,7 +98,10 @@ function FinancialHealthChart({
 
   return (
     <div ref={wrapRef} className="health-gauge-wrap">
-      <div className="health-gauge-canvas" style={{ height: `${resolvedHeight}px` }}>
+      <div
+        className={`health-gauge-canvas health-gauge-canvas--${tone.className}`}
+        style={{ height: `${resolvedHeight}px` }}
+      >
         <PieChart width={resolvedWidth} height={resolvedHeight}>
           <defs>
             <linearGradient id="healthGaugeTrack" x1="0" y1="0" x2="1" y2="0">
@@ -133,7 +136,9 @@ function FinancialHealthChart({
         </PieChart>
 
         <div className="health-gauge-center" style={{ color: tone.color }}>
-          <span style={{ fontSize: `${resolvedLabelSize}px` }}>{safeScore.toFixed(1)}</span>
+          <span className="health-gauge-center__score" style={{ fontSize: `${resolvedLabelSize}px` }}>
+            {safeScore.toFixed(1)}
+          </span>
           <small>/100</small>
           <em className={`health-gauge-status ${tone.className}`}>{tone.label}</em>
         </div>

@@ -8,6 +8,16 @@ import useDemoMode from "../hooks/useDemoMode";
 import { buildDemoBudgetProgress } from "../demo/demoUtils";
 
 function Budgets() {
+  const formatSignedCurrency = (value) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return "--";
+    }
+
+    return `${numericValue < 0 ? "-" : ""}$${Math.abs(numericValue).toFixed(2)}`;
+  };
+
   const { currentDataset, isDemoMode } = useDemoMode();
   const [budgets, setBudgets] = useState([]);
   const [progress, setProgress] = useState(null);
@@ -203,7 +213,7 @@ function Budgets() {
   return (
     <div className="dashboard-shell desktop-shell">
       <div className="subpage-grid">
-        <section className="card-surface subpage-form-panel">
+        <section className="card-surface subpage-form-panel" data-demo-tour="budget-panel">
           <div className="section-heading">
             <h3>Create Budget</h3>
           </div>
@@ -259,8 +269,8 @@ function Budgets() {
                 <span>Remaining: {progressRemainingRatio.toFixed(1)}%</span>
               </div>
               <p>Budget Limit: ${progress.budget_limit.toFixed(2)}</p>
-              <p>Total Spent: ${progress.total_spent.toFixed(2)}</p>
-              <p>Remaining: ${progress.remaining_balance.toFixed(2)}</p>
+              <p>Period Total: {formatSignedCurrency(progress.total_spent)}</p>
+              <p>Remaining: {formatSignedCurrency(progress.remaining_balance)}</p>
               <p>Status: {progress.status}</p>
             </div>
           )}

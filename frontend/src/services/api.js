@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getStoredToken, clearStoredToken } from "./tokenService";
 import { emitGlobalApiError } from "../utils/globalErrors";
+import { isDemoModeEnabled } from "../demo/storage";
 
 const API = axios.create({
   baseURL: "/api",
@@ -13,9 +14,18 @@ const API = axios.create({
 API.interceptors.request.use(
   (config) => {
     const token = getStoredToken();
+    const isDemoRequest = isDemoModeEnabled() && !token;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    if (isDemoModeEnabled()) {
+      config.headers["X-Trace-Demo-Mode"] = "true";
+    }
+
+    if (isDemoRequest) {
+      config.headers["X-Trace-Demo-Session"] = "local-only";
     }
 
     return config;
@@ -28,9 +38,15 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
+    const hasToken = Boolean(getStoredToken());
+    const isDemoSession = isDemoModeEnabled() && !hasToken;
 
     // Handle unauthorized access globally
     if (status === 401) {
+      if (isDemoSession) {
+        return Promise.reject(error);
+      }
+
       console.warn("Unauthorized - redirecting to login");
 
       // Clear invalid/expired token

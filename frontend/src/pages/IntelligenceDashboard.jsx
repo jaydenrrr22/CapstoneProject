@@ -123,7 +123,7 @@ function IntelligenceDashboard() {
             </div>
           </section>
 
-          <section className="intelligence-panel intelligence-panel--chart">
+          <section className="intelligence-panel intelligence-panel--chart" data-demo-tour="intelligence-panel">
             <div className="card-surface intelligence-section-card">
               <ForecastChart
                 transactions={transactions}

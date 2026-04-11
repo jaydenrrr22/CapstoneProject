@@ -10,6 +10,7 @@ from backend.api.models.dataset import DatasetTemplate, DatasetTransaction
 from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.dataset import DatasetTemplateResponse, ApplyDatasetResponse
+from backend.api.services.finance_logic import normalize_transaction_amount
 
 router = APIRouter(prefix="/datasets", tags=["Datasets"])
 
@@ -32,7 +33,7 @@ def apply_dataset(
     if existing_tx_count > 0:
         raise HTTPException(status_code=400, detail="User already has transactions, Cannot apply template.")
 
-    template_txs = db.query(DatasetTransaction).filter(DatasetTransaction.id == template_id).all()
+    template_txs = db.query(DatasetTransaction).filter(DatasetTransaction.template_id == template_id).all()
 
     if not template_txs:
         return ApplyDatasetResponse(message="Template has no transactions.", transactions_added=0)
@@ -46,8 +47,8 @@ def apply_dataset(
             user_id = current_user.id,
             store_name=t_tx.store_name,
             category=t_tx.category,
-            cost=t_tx.cost,
-            date=tx_date,
+            cost=normalize_transaction_amount(t_tx.cost, t_tx.category),
+            date=tx_date.date(),
         )
         new_transactions.append(new_tx)
 

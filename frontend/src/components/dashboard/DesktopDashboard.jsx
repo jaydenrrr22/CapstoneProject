@@ -1,5 +1,6 @@
 import { lazy, memo, Suspense } from "react";
 import FinancialHealthChart from "../FinancialHealthChart";
+import { isIncomeAmount } from "../../utils/finance";
 import "./DashboardLayouts.css";
 
 const ForecastChart = lazy(() => import("../forecast/ForecastChart"));
@@ -28,6 +29,33 @@ function DesktopDashboard({
   loadingBaseData,
   baseDataError,
 }) {
+  const formatSignedCurrency = (value) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return "--";
+    }
+
+    return `${numericValue < 0 ? "-" : ""}$${Math.abs(numericValue).toFixed(2)}`;
+  };
+  const resolveValueTone = (value) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return "neutral";
+    }
+
+    if (numericValue < 0) {
+      return "positive";
+    }
+
+    if (numericValue > 0) {
+      return "negative";
+    }
+
+    return "neutral";
+  };
+
   const hasBaseDataError = Boolean(baseDataError);
   const budgetTotal = loadingHealth || loadingBaseData
     ? "Loading..."
@@ -39,22 +67,32 @@ function DesktopDashboard({
   const spentTotal = loadingHealth || loadingBaseData
     ? "Loading..."
     : health
-      ? `$${Number(health.total_spent).toFixed(2)}`
+      ? formatSignedCurrency(health.total_spent)
       : hasBaseDataError
         ? "Unavailable"
         : "--";
+  const budgetTone = resolveValueTone(health?.budget_limit);
+  const periodTone = resolveValueTone(health?.total_spent);
 
   return (
     <div className="dashboard-shell desktop-shell">
       <div className="desktop-grid">
         <section className="desktop-budget-row">
-          <article className="budget-stat card-surface">
-            <p>Total Budget</p>
-            <h2>{budgetTotal}</h2>
+          <article className={`budget-stat card-surface budget-stat--${budgetTone}`}>
+            <div className="budget-stat__label-row">
+              <p>Total Budget</p>
+              <span className="budget-stat__chip">Budget</span>
+            </div>
+            <h2 className="budget-stat__value">{budgetTotal}</h2>
+            <span className="budget-stat__footnote">Current budget limit for the selected month</span>
           </article>
-          <article className="budget-stat card-surface">
-            <p>Spent This Period</p>
-            <h2>{spentTotal}</h2>
+          <article className={`budget-stat card-surface budget-stat--${periodTone}`}>
+            <div className="budget-stat__label-row">
+              <p>Net This Period</p>
+              <span className="budget-stat__chip">Live</span>
+            </div>
+            <h2 className="budget-stat__value">{spentTotal}</h2>
+            <span className="budget-stat__footnote">Expenses push this up. Income pulls it down.</span>
           </article>
           <Suspense fallback={<p className="muted">Loading insights...</p>}>
             <SubscriptionInsightCard
@@ -67,7 +105,7 @@ function DesktopDashboard({
           </Suspense>
         </section>
 
-        <section className="desktop-health-panel card-surface">
+        <section className="desktop-health-panel card-surface" data-demo-tour="dashboard-overview">
           <div className="section-heading">
             <h3>Financial Health</h3>
             <select
@@ -105,12 +143,12 @@ function DesktopDashboard({
 
               <div className="health-metrics-grid">
                 <div>
-                  <p>Spent</p>
-                  <h4>${Number(health.total_spent).toFixed(2)}</h4>
+                  <p>Net total</p>
+                  <h4>{formatSignedCurrency(health.total_spent)}</h4>
                 </div>
                 <div>
                   <p>Remaining</p>
-                  <h4>${Number(health.remaining_balance).toFixed(2)}</h4>
+                  <h4>{formatSignedCurrency(health.remaining_balance)}</h4>
                 </div>
                 <div>
                   <p>Used</p>
@@ -138,8 +176,8 @@ function DesktopDashboard({
               transactions.map((tx) => (
                 <div key={tx.id} className="tx-table-row">
                   <span>{tx.name}</span>
-                  <span className={tx.amount > 0 ? "tx-negative" : "tx-positive"}>
-                    {tx.amount < 0 ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
+                  <span className={isIncomeAmount(tx.amount) ? "tx-positive" : "tx-negative"}>
+                    {isIncomeAmount(tx.amount) ? "+" : "-"}${Math.abs(tx.amount).toFixed(2)}
                   </span>
                 </div>
               ))

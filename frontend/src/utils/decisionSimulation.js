@@ -5,14 +5,15 @@ import {
   toDate,
   toISODate,
 } from "./forecastUtils";
+import { getExpenseAmount, toSignedAmount } from "./finance";
 
 function roundCurrency(value) {
   return Math.round(Number(value || 0) * 100) / 100;
 }
 
-function getSignedAmount(transaction) {
-  const numericValue = Number(transaction?.cost ?? transaction?.amount ?? 0);
-  return Number.isFinite(numericValue) ? numericValue : 0;
+function getBudgetPressureAmount(transaction) {
+  const amount = toSignedAmount(transaction?.cost ?? transaction?.amount ?? 0);
+  return amount < 0 ? Math.abs(amount) : -amount;
 }
 
 function getMonthEnd(date) {
@@ -21,12 +22,12 @@ function getMonthEnd(date) {
   return monthEnd;
 }
 
-function buildHistoricalTotals(transactions, periodKey, actionDate) {
+function buildHistoricalTotals(transactions, periodKey, actionDate, amountResolver) {
   const totalsByDay = new Map();
 
   (transactions || [])
     .map((transaction) => ({
-      amount: getSignedAmount(transaction),
+      amount: amountResolver(transaction),
       date: toDate(transaction?.date),
     }))
     .filter((transaction) => transaction.date && getPeriodKey(transaction.date) === periodKey && transaction.date <= actionDate)
@@ -59,13 +60,13 @@ function toFiniteNumber(value, fallback = null) {
 }
 
 function resolveRecommendationStatus({
-  monthlyImpact,
+  decisionDelta,
   projectedUsage,
   remainingBudget,
   riskLevel,
   riskScore,
 }) {
-  if (monthlyImpact < 0) {
+  if (decisionDelta < 0) {
     return "positive";
   }
 
@@ -88,16 +89,17 @@ function resolveRecommendationStatus({
   return "positive";
 }
 
-function normalizeScenarios(currentSpent, scenarios = []) {
+function normalizeScenarios(currentValue, scenarios = []) {
   return scenarios.map((scenario) => {
-    const projectedSpentThisPeriod = toFiniteNumber(scenario?.projected_spent_this_period, currentSpent);
+    const projectedSpentThisPeriod = toFiniteNumber(scenario?.projected_spent_this_period, currentValue);
     const projectedPercentageUsed = toFiniteNumber(scenario?.projected_percentage_used);
     const remainingBudgetAfterPurchase = toFiniteNumber(scenario?.remaining_budget_after_purchase);
     const balanceChange = toFiniteNumber(scenario?.balance_change, null);
-    const impactFromCurrent = roundCurrency(projectedSpentThisPeriod - currentSpent);
+    const impactFromCurrent = roundCurrency(projectedSpentThisPeriod - currentValue);
 
     return {
       balanceChange: balanceChange ?? roundCurrency(-impactFromCurrent),
+      display_value: projectedSpentThisPeriod,
       impactFromCurrent,
       projected_spent_this_period: projectedSpentThisPeriod,
       projected_percentage_used: projectedPercentageUsed,
@@ -114,21 +116,31 @@ export function buildDecisionSimulationModel({
   apiSimulation,
 }) {
   const actionDate = toDate(pendingTransaction?.date) || new Date();
+  const pendingAmount = toSignedAmount(pendingTransaction?.cost || 0);
+  const isDeposit = pendingAmount > 0;
   const periodKey = getPeriodKey(actionDate);
   const periodStart = parsePeriodStart(periodKey) || new Date(actionDate.getFullYear(), actionDate.getMonth(), 1);
   const periodEnd = getMonthEnd(actionDate);
-  const historicalTotals = buildHistoricalTotals(transactions, periodKey, actionDate);
+  const historicalTotals = buildHistoricalTotals(
+    transactions,
+    periodKey,
+    actionDate,
+    getBudgetPressureAmount,
+  );
   const details = apiSimulation?.details || {};
 
-  const fallbackCurrentSpent = Array.from(historicalTotals.values()).reduce((sum, value) => sum + value, 0);
-  const currentSpent = toFiniteNumber(details.current_spent_this_period, fallbackCurrentSpent);
-  const projectedSpent = toFiniteNumber(
-    details.projected_spent_this_period,
-    currentSpent + Number(pendingTransaction?.cost || 0),
+  const fallbackCurrentValue = Array.from(historicalTotals.values()).reduce((sum, value) => sum + value, 0);
+  const currentValue = toFiniteNumber(
+    details.current_spent_this_period,
+    fallbackCurrentValue,
   );
-  const monthlyImpact = roundCurrency(projectedSpent - currentSpent);
+  const projectedValue = toFiniteNumber(
+    details.projected_spent_this_period,
+    currentValue + (pendingAmount > 0 ? -pendingAmount : getExpenseAmount(pendingTransaction?.cost || 0)),
+  );
+  const decisionDelta = roundCurrency(projectedValue - currentValue);
   const observedDays = Math.max(1, actionDate.getDate());
-  const averageDailySpend = roundCurrency(currentSpent / observedDays);
+  const averageDailyChange = roundCurrency(currentValue / observedDays);
   const budgetLimit = toFiniteNumber(details.budget_limit, null);
 
   const chartData = [];
@@ -150,15 +162,15 @@ export function buildDecisionSimulationModel({
     cursor = addDays(cursor, 1);
   }
 
-  let rollingBaseline = roundCurrency(currentSpent);
-  let rollingDecision = roundCurrency(currentSpent + monthlyImpact);
+  let rollingBaseline = roundCurrency(currentValue);
+  let rollingDecision = roundCurrency(currentValue + decisionDelta);
 
   if (chartData.length > 0) {
     chartData[chartData.length - 1] = {
       ...chartData[chartData.length - 1],
       baseline: rollingBaseline,
       decision: rollingDecision,
-      deltaFromBaseline: monthlyImpact,
+      deltaFromBaseline: decisionDelta,
       isActionDate: true,
     };
     values.push(rollingBaseline, rollingDecision);
@@ -167,8 +179,8 @@ export function buildDecisionSimulationModel({
   cursor = addDays(actionDate, 1);
 
   while (cursor && cursor <= periodEnd) {
-    rollingBaseline = roundCurrency(rollingBaseline + averageDailySpend);
-    rollingDecision = roundCurrency(rollingDecision + averageDailySpend);
+    rollingBaseline = roundCurrency(rollingBaseline + averageDailyChange);
+    rollingDecision = roundCurrency(rollingDecision + averageDailyChange);
     const isoDate = toISODate(cursor);
 
     chartData.push({
@@ -187,24 +199,33 @@ export function buildDecisionSimulationModel({
   const usageAfter = toFiniteNumber(details.projected_percentage_used, null);
   const riskLevel = String(details.risk_level || "unknown");
   const riskScore = toFiniteNumber(apiSimulation?.risk_score, null);
-  const scenarios = normalizeScenarios(currentSpent, details.scenarios || []);
+  const scenarios = normalizeScenarios(currentValue, details.scenarios || []);
 
   return {
     actionDate: toISODate(actionDate),
-    averageDailySpend,
+    averageDailyChange,
     budgetLimit,
+    chartReferenceValue: budgetLimit,
     chartData,
     chartDomain: calculateDomain(values, budgetLimit),
-    chartKey: `${periodKey}-${toISODate(actionDate)}-${monthlyImpact}`,
-    currentSpent: roundCurrency(currentSpent),
-    monthlyImpact,
-    projectedSpent: roundCurrency(projectedSpent),
+    chartKey: `${periodKey}-${toISODate(actionDate)}-${decisionDelta}`,
+    currentMetricValue: roundCurrency(currentValue),
+    decisionDelta,
+    isDeposit,
+    labels: {
+      currentMetric: "Current period total",
+      projectedMetric: "After this action",
+      impactMetric: "Decision impact",
+      statusMetric: "Risk level",
+      secondaryDescription: "Preview how this action changes your period trajectory before you commit it.",
+    },
+    projectedMetricValue: roundCurrency(projectedValue),
     rawAnalysis: apiSimulation,
     recommendation: {
       headline: apiSimulation?.recommendation || "Preview generated successfully.",
       detail: apiSimulation?.explanation || "Review the projected impact before saving.",
       status: resolveRecommendationStatus({
-        monthlyImpact,
+        decisionDelta,
         projectedUsage: usageAfter,
         remainingBudget,
         riskLevel,
@@ -216,5 +237,6 @@ export function buildDecisionSimulationModel({
     scenarios,
     usageAfter,
     usageBefore,
+    viewMode: "budget",
   };
 }

@@ -1,3 +1,5 @@
+import { getExpenseAmount } from "./finance";
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
@@ -88,6 +90,10 @@ function normalizeMerchant(value) {
 function getAmount(value) {
   const numericValue = Number(value || 0);
   return Number.isFinite(numericValue) ? numericValue : 0;
+}
+
+function getTransactionChargeAmount(transaction) {
+  return getExpenseAmount(transaction?.cost);
 }
 
 function toDate(value) {
@@ -184,7 +190,7 @@ function getMatchingTransactions(subscription, transactions) {
 
   return [...(transactions || [])]
     .filter((transaction) => {
-      const transactionAmount = getAmount(transaction?.cost);
+      const transactionAmount = getTransactionChargeAmount(transaction);
 
       if (transactionAmount <= 0) {
         return false;
@@ -400,7 +406,7 @@ export function buildSubscriptionSpyReports({ subscriptions = [], transactions =
           .reverse()
           .map((transaction) => ({
             id: transaction.id || `${merchant}-${transaction.date}`,
-            amount: getAmount(transaction.cost),
+            amount: getTransactionChargeAmount(transaction),
             dateLabel: formatDate(transaction.date),
           })),
         recommendation,
