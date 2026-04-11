@@ -67,7 +67,13 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    if DEMO_AUTH_BYPASS_ENABLED and request.headers.get("X-Trace-Demo-Mode", "").strip().lower() == "true":
+    has_bearer_credentials = credentials is not None and credentials.scheme.lower() == "bearer"
+
+    if (
+        DEMO_AUTH_BYPASS_ENABLED
+        and not has_bearer_credentials
+        and request.headers.get("X-Trace-Demo-Mode", "").strip().lower() == "true"
+    ):
         return User(
             id=0,
             email="demo@trace.local",
@@ -75,7 +81,7 @@ def get_current_user(
             hashed_password="demo-mode",
         )
 
-    if credentials is None or credentials.scheme.lower() != "bearer":
+    if not has_bearer_credentials:
         raise credentials_exception
 
     token = credentials.credentials

@@ -9,6 +9,7 @@
   position: absolute;
   inset: 0;
   background: rgba(12, 14, 26, 0.58);
+  pointer-events: auto;
 }
 
 .demo-tour__highlight {

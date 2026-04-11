@@ -140,9 +140,15 @@ export function DemoModeProvider({ children }) {
 
   const startDemo = useCallback(() => {
     const nextSession = createInitialDemoDataset();
+    const nextWalkthroughState = { isOpen: true, stepIndex: 0 };
+
+    window.localStorage.setItem(DEMO_MODE_KEY, String(true));
+    persistDemoSession(nextSession);
+    persistWalkthroughState(nextWalkthroughState);
+
     setIsDemoMode(true);
     setDemoSession(nextSession);
-    setWalkthroughState({ isOpen: true, stepIndex: 0 });
+    setWalkthroughState(nextWalkthroughState);
   }, []);
 
   const exitDemo = useCallback(() => {

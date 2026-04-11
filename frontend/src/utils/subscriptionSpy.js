@@ -1,3 +1,5 @@
+import { getExpenseAmount } from "./finance";
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
@@ -91,8 +93,7 @@ function getAmount(value) {
 }
 
 function getTransactionChargeAmount(transaction) {
-  const amount = getAmount(transaction?.cost);
-  return amount < 0 ? Math.abs(amount) : 0;
+  return getExpenseAmount(transaction?.cost);
 }
 
 function toDate(value) {

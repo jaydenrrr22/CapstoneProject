@@ -179,16 +179,30 @@ def _get_period_transactions(db: Session, user_id: int, period: str) -> list[Tra
     ).all()
 
 
-def _sum_period_transactions(db: Session, user_id: int, period: str) -> float:
-    transactions = _get_period_transactions(db, user_id, period)
+def _sum_period_transactions(
+    db: Session,
+    user_id: int,
+    period: str,
+    *,
+    transactions: Optional[list[Transaction]] = None,
+) -> float:
+    if transactions is None:
+        transactions = _get_period_transactions(db, user_id, period)
     return float(sum(
         budget_pressure_amount(transaction.cost, transaction.category)
         for transaction in transactions
     ))
 
 
-def _sum_subscription_transactions(db: Session, user_id: int, period: str) -> float:
-    transactions = _get_period_transactions(db, user_id, period)
+def _sum_subscription_transactions(
+    db: Session,
+    user_id: int,
+    period: str,
+    *,
+    transactions: Optional[list[Transaction]] = None,
+) -> float:
+    if transactions is None:
+        transactions = _get_period_transactions(db, user_id, period)
 
     return float(sum(
         expense_amount(transaction.cost, transaction.category)
@@ -275,9 +289,11 @@ def _generate_derived_prediction_records(
     if limit <= 0:
         return []
 
+    cutoff_date = (_utc_now() - timedelta(days=365)).date()
+
     transactions = (
         db.query(Transaction)
-        .filter(Transaction.user_id == user_id)
+        .filter(Transaction.user_id == user_id, Transaction.date >= cutoff_date)
         .order_by(Transaction.date.asc(), Transaction.id.asc())
         .all()
     )
@@ -817,8 +833,9 @@ def calculate_financial_health(db: Session, user_id: int, period: str) -> dict[s
     if not budget:
         raise HTTPException(status_code=404, detail=f"No budget found for period {period}")
 
-    total_spent = _sum_period_transactions(db, user_id, period)
-    subscription_total = _sum_subscription_transactions(db, user_id, period)
+    period_transactions = _get_period_transactions(db, user_id, period)
+    total_spent = _sum_period_transactions(db, user_id, period, transactions=period_transactions)
+    subscription_total = _sum_subscription_transactions(db, user_id, period, transactions=period_transactions)
     effective_spend = max(total_spent, 0.0)
 
     remaining_balance = float(budget.amount) - total_spent
