@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 load_dotenv(PROJECT_ROOT / ".env")
 
 SQL_SOURCE_PATH = PROJECT_ROOT / "data_analysis" / "realistic_data.sql"
+SYSTEM_CATEGORY = "system"
 DEMO_USER_ID = 999
 DEMO_EMAIL = "demo@trace.com"
 DEMO_NAME = "Demo User"
@@ -57,11 +58,14 @@ def load_source_rows() -> list[tuple[float, float, str, str, str]]:
 
     rows: list[tuple[float, float, str, str, str]] = []
     for source_id, cost, category, store_name, tx_date in raw_inserts:
+        clean_category = category.replace("''", "'")
+        if clean_category.strip().lower() == SYSTEM_CATEGORY:
+            continue
         rows.append(
             (
                 float(source_id),
                 float(cost),
-                category.replace("''", "'"),
+                clean_category,
                 store_name.replace("''", "'"),
                 tx_date,
             )

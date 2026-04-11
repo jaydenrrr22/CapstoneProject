@@ -33,6 +33,7 @@ API.interceptors.request.use(
     if (isDemoModeEnabled() && isWriteMethod) {
       const error = new Error("Demo mode blocks backend writes")
       error.name = "DemoWriteBlockedError";
+      error.isIntentional = true;
       throw error;
     }
 
@@ -66,7 +67,9 @@ API.interceptors.response.use(
     }
 
     if (!status || status >= 500) {
-      emitGlobalApiError(error);
+      if (!error.isIntentional) {
+        emitGlobalApiError(error);
+      }
     }
 
     // Let components handle all other errors (400, 403, 500, etc.)

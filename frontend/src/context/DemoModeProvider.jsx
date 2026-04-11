@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import DemoModeContext from "./demoModeContext";
 import { createInitialDemoDataset } from "../demo/demoDatasets";
 import API from "../services/api";
@@ -181,18 +181,35 @@ async function fetchDemoSessionFromApi() {
     API.get("/insight/anomalies"),
   ]);
 
+  const results = [budgetResult, transactionResult, predictionResult, anomalyResult];
+  const allRequestsFailed = results.every((result) => result.status === "rejected");
+
+  if (allRequestsFailed) {
+    throw new Error("Unable to hydrate demo session from API.");
+  }
+
   const budgets = budgetResult.status === "fulfilled" ? budgetResult.value?.data || [] : [];
   const transactions = transactionResult.status === "fulfilled" ? transactionResult.value?.data || [] : [];
   const rawPredictions = predictionResult.status === "fulfilled" ? predictionResult.value?.data || [] : [];
   const anomalies = anomalyResult.status === "fulfilled" ? anomalyResult.value?.data || [] : [];
   const generatedBudgets = buildHardcodedDemoBudgets(transactions, budgets);
-
-  return {
+  const demoSession = {
     budget: generatedBudgets,
     transactions,
     predictions: mapIntelligenceHistoryRecords(rawPredictions),
     anomalies,
   };
+  const isEffectivelyEmpty =
+    demoSession.budget.length === 0 &&
+    demoSession.transactions.length === 0 &&
+    demoSession.predictions.length === 0 &&
+    demoSession.anomalies.length === 0;
+
+  if (isEffectivelyEmpty) {
+    throw new Error("Demo session payload was empty.");
+  }
+
+  return demoSession;
 }
 
 export function DemoModeProvider({ children }) {
@@ -201,6 +218,8 @@ export function DemoModeProvider({ children }) {
   const [demoSession, setDemoSession] = useState(initialState.demoSession);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [walkthroughState, setWalkthroughState] = useState(initialState.walkthroughState);
+
+  const isFreshStartRef = useRef(false);
 
   useEffect(() => {
     removeLegacyDemoState();
@@ -229,6 +248,11 @@ export function DemoModeProvider({ children }) {
 
   useEffect(() => {
     if (!isDemoMode) {
+      return;
+    }
+
+    if (isFreshStartRef.current) {
+      isFreshStartRef.current = false;
       return;
     }
 
@@ -267,6 +291,7 @@ export function DemoModeProvider({ children }) {
     persistDemoSession(nextSession);
     persistWalkthroughState(nextWalkthroughState);
 
+    isFreshStartRef.current = true;
     setIsDemoMode(true);
     setDemoSession(nextSession);
     setWalkthroughState(nextWalkthroughState);
