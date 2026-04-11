@@ -90,6 +90,11 @@ function getAmount(value) {
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
+function getTransactionChargeAmount(transaction) {
+  const amount = getAmount(transaction?.cost);
+  return amount < 0 ? Math.abs(amount) : 0;
+}
+
 function toDate(value) {
   if (!value) {
     return null;
@@ -184,7 +189,7 @@ function getMatchingTransactions(subscription, transactions) {
 
   return [...(transactions || [])]
     .filter((transaction) => {
-      const transactionAmount = getAmount(transaction?.cost);
+      const transactionAmount = getTransactionChargeAmount(transaction);
 
       if (transactionAmount <= 0) {
         return false;
@@ -400,7 +405,7 @@ export function buildSubscriptionSpyReports({ subscriptions = [], transactions =
           .reverse()
           .map((transaction) => ({
             id: transaction.id || `${merchant}-${transaction.date}`,
-            amount: getAmount(transaction.cost),
+            amount: getTransactionChargeAmount(transaction),
             dateLabel: formatDate(transaction.date),
           })),
         recommendation,

@@ -10,7 +10,7 @@ export function mapIntelligenceHistoryRecord(record, index = 0) {
     return {
       id: record.id || `pred-${index}`,
       name: record.projected_impact.category_effect || record.recommendation || "Intelligence analysis",
-      amount: -balanceChange,
+      amount: balanceChange,
       confidence: toFiniteNumber(record.confidence, 0),
       explanation: record.explanation || "",
       recommendation: record.recommendation || "",
@@ -23,7 +23,7 @@ export function mapIntelligenceHistoryRecord(record, index = 0) {
   return {
     id: record?.id || `pred-${index}`,
     name: record?.target_data || "Predicted Transaction",
-    amount: legacyAmount,
+    amount: legacyAmount === 0 ? 0 : -Math.abs(legacyAmount),
     confidence: toFiniteNumber(record?.confidence_level, 0),
     explanation: "",
     recommendation: "",

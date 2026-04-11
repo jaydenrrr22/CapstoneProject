@@ -11,6 +11,7 @@ from backend.api.models.subscription import Subscription
 from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.subscription import SubscriptionDetectionResponse
+from backend.api.services.finance_logic import expense_amount
 
 router = APIRouter(prefix="/subscription", tags=["Subscription"])
 
@@ -29,9 +30,10 @@ def detect_subscriptions(
 
     grouped_tx = defaultdict(list)
     for tx in transactions:
-        if tx.cost <= 0:
+        normalized_cost = expense_amount(tx.cost, tx.category)
+        if normalized_cost <= 0:
             continue
-        key = (tx.store_name.lower(), tx.cost)
+        key = (tx.store_name.lower(), normalized_cost)
         grouped_tx[key].append(tx)
 
     detected_subscriptions = []
@@ -118,13 +120,15 @@ def detect_subscriptions(
 
         if tx.id in already_detected_ids:
             continue
-        if tx.cost <= 0:
+        normalized_cost = expense_amount(tx.cost, tx.category)
+
+        if normalized_cost <= 0:
             continue
         if "subscription" not in category:
             continue
 
         merchant_name = tx.store_name.strip().title()
-        lookup_key = (merchant_name.lower(), tx.cost)
+        lookup_key = (merchant_name.lower(), normalized_cost)
 
         if lookup_key in sub_lookup:
             sub_id = sub_lookup[lookup_key]
@@ -132,7 +136,7 @@ def detect_subscriptions(
             new_sub = Subscription(
                 user_id=current_user.id,
                 merchant=merchant_name,
-                amount=tx.cost,
+                amount=normalized_cost,
                 frequency="Marked",
                 is_duplicate=False,
                 transaction_id=[tx.id]
@@ -143,7 +147,7 @@ def detect_subscriptions(
             detected_subscriptions.append({
                 "id": sub_id,
                 "merchant": merchant_name,
-                "amount": tx.cost,
+                "amount": normalized_cost,
                 "frequency": "Marked",
                 "is_duplicate": False,
                 "charge_count": 1,

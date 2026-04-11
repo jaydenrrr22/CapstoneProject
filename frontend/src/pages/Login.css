@@ -208,6 +208,45 @@
   text-decoration: underline;
 }
 
+.auth-demo-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 34px rgba(10, 10, 20, 0.18);
+}
+
+.auth-demo-label {
+  margin: 0;
+  color: #f3e9e4;
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.auth-demo-button {
+  width: 100%;
+  min-height: 50px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent),
+    #f3e9e4;
+  color: #22223b;
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.auth-demo-button:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent),
+    #ffffff;
+}
+
 @keyframes authFadeIn {
   from {
     opacity: 0;

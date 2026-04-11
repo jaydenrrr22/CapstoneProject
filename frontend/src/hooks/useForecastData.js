@@ -10,6 +10,7 @@ import {
   toDate,
   toISODate,
 } from "../utils/forecastUtils";
+import { getBudgetPressureAmount } from "../utils/finance";
 
 const HORIZON_TO_MONTHS = {
   "1M": 1,
@@ -23,8 +24,7 @@ function roundCurrency(value) {
 }
 
 function toTransactionAmount(transaction) {
-  const amount = Number(transaction?.cost ?? transaction?.amount ?? 0);
-  return Number.isFinite(amount) ? amount : 0;
+  return getBudgetPressureAmount(transaction?.cost ?? transaction?.amount ?? 0);
 }
 
 export default function useForecastData({

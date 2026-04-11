@@ -36,7 +36,19 @@ function DecisionTooltip({ active, payload }) {
       <p>
         Impact:
         {" "}
-        <span className={point.deltaFromBaseline > 0 ? "is-negative" : point.deltaFromBaseline < 0 ? "is-positive" : ""}>
+        <span className={
+          point.viewMode === "cash"
+            ? point.deltaFromBaseline > 0
+              ? "is-positive"
+              : point.deltaFromBaseline < 0
+                ? "is-negative"
+                : ""
+            : point.deltaFromBaseline > 0
+              ? "is-negative"
+              : point.deltaFromBaseline < 0
+                ? "is-positive"
+                : ""
+        }>
           {formatCurrencyDelta(point.deltaFromBaseline || 0)}
         </span>
       </p>
@@ -96,8 +108,20 @@ export default function DecisionModal({
     return simulation.scenarios.find((scenario) => scenario.scenario_type === resolvedScenarioType)
       || simulation.scenarios[0];
   }, [resolvedScenarioType, simulation]);
-  const activeImpact = activeScenario?.impactFromCurrent ?? simulation?.monthlyImpact ?? 0;
-  const activeProjectedSpend = activeScenario?.projected_spent_this_period ?? simulation?.projectedSpent ?? 0;
+  const labels = simulation?.labels || {};
+  const activeImpact = activeScenario?.impactFromCurrent ?? simulation?.decisionDelta ?? 0;
+  const activeProjectedValue = activeScenario?.display_value ?? simulation?.projectedMetricValue ?? 0;
+  const impactToneClass = simulation?.viewMode === "cash"
+    ? activeImpact > 0
+      ? "is-positive"
+      : activeImpact < 0
+        ? "is-negative"
+        : ""
+    : activeImpact > 0
+      ? "is-negative"
+      : activeImpact < 0
+        ? "is-positive"
+        : "";
   const activeRemainingBudget = activeScenario?.remaining_budget_after_purchase ?? simulation?.remainingBudget ?? null;
   const activeUsageAfter = activeScenario?.projected_percentage_used ?? simulation?.usageAfter ?? null;
   const activeRiskLevel = activeScenario?.risk_level ?? simulation?.riskLevel ?? "Unknown";
@@ -108,6 +132,7 @@ export default function DecisionModal({
         ? point.baseline + activeImpact
         : point.baseline,
       deltaFromBaseline: point.isoDate >= simulation?.actionDate ? activeImpact : 0,
+      viewMode: simulation?.viewMode || "spend",
     }))
   ), [activeImpact, simulation]);
 
@@ -157,7 +182,7 @@ export default function DecisionModal({
             <p className="decision-modal__eyebrow">Decision-Time Intelligence</p>
             <h2 id="decision-modal-title">{title}</h2>
             <p id="decision-modal-description">
-              Preview how this action changes your spending path before you commit it.
+              {labels.secondaryDescription || "Preview how this action changes your spending path before you commit it."}
             </p>
           </div>
 
@@ -184,16 +209,16 @@ export default function DecisionModal({
           <div className="decision-modal__content">
             <div className="decision-modal__metrics" aria-label="Decision summary">
               <div className="decision-modal__metric">
-                <span>Current period spend</span>
-                <strong>{formatCurrency(simulation.currentSpent, { precise: true })}</strong>
+                <span>{labels.currentMetric || "Current period spend"}</span>
+                <strong>{formatCurrency(simulation.currentMetricValue, { precise: true })}</strong>
               </div>
               <div className="decision-modal__metric">
-                <span>After this action</span>
-                <strong>{formatCurrency(activeProjectedSpend, { precise: true })}</strong>
+                <span>{labels.projectedMetric || "After this action"}</span>
+                <strong>{formatCurrency(activeProjectedValue, { precise: true })}</strong>
               </div>
               <div className="decision-modal__metric">
-                <span>Decision impact</span>
-                <strong className={activeImpact > 0 ? "is-negative" : activeImpact < 0 ? "is-positive" : ""}>
+                <span>{labels.impactMetric || "Decision impact"}</span>
+                <strong className={impactToneClass}>
                   {formatCurrencyDelta(activeImpact)}
                 </strong>
               </div>
@@ -238,9 +263,9 @@ export default function DecisionModal({
                     />
                     <Tooltip content={<DecisionTooltip />} cursor={{ stroke: "rgba(34, 34, 59, 0.18)", strokeDasharray: "4 4" }} />
 
-                    {Number.isFinite(simulation.budgetLimit) && (
+                    {Number.isFinite(simulation.chartReferenceValue) && (
                       <ReferenceLine
-                        y={simulation.budgetLimit}
+                        y={simulation.chartReferenceValue}
                         stroke="rgba(180, 35, 24, 0.55)"
                         strokeDasharray="5 5"
                         ifOverflow="extendDomain"
@@ -277,7 +302,7 @@ export default function DecisionModal({
               <div className="decision-modal__legend" aria-label="Simulation legend">
                 <span><i className="baseline" /> Current path</span>
                 <span><i className="decision" /> Selected scenario</span>
-                {Number.isFinite(simulation.budgetLimit) ? <span><i className="budget" /> Budget line</span> : null}
+                {Number.isFinite(simulation.chartReferenceValue) ? <span><i className="budget" /> Budget line</span> : null}
               </div>
             </div>
 
@@ -301,7 +326,7 @@ export default function DecisionModal({
                 <strong>{activeRemainingBudget !== null ? formatCurrency(activeRemainingBudget, { precise: true }) : "Unavailable"}</strong>
               </div>
               <div>
-                <span>Risk level</span>
+                <span>{labels.statusMetric || "Risk level"}</span>
                 <strong>{activeRiskLevel || "Unknown"}</strong>
               </div>
             </div>
@@ -316,7 +341,7 @@ export default function DecisionModal({
                     onClick={() => setSelectedScenarioType(scenario.scenario_type)}
                   >
                     <span>{scenario.scenario_type}</span>
-                    <strong>{formatCurrency(scenario.projected_spent_this_period, { precise: true })}</strong>
+                    <strong>{formatCurrency(scenario.display_value ?? scenario.projected_spent_this_period, { precise: true })}</strong>
                     <small>{scenario.risk_level}</small>
                   </button>
                 ))}

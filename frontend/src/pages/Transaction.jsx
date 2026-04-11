@@ -6,6 +6,7 @@ import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import { buildDecisionSimulationModel } from "../utils/decisionSimulation";
+import { getExpenseAmount, getIncomeAmount, isIncomeAmount } from "../utils/finance";
 import useDemoMode from "../hooks/useDemoMode";
 import { buildDemoSimulationResponse } from "../demo/demoUtils";
 
@@ -240,7 +241,7 @@ const TransactionPage = () => {
       ? `Subscription - ${normalizedCategory}`
       : normalizedCategory;
 
-    const signedCost = transactionType === "deposit" ? -Math.abs(enteredCost) : Math.abs(enteredCost);
+    const signedCost = transactionType === "deposit" ? Math.abs(enteredCost) : -Math.abs(enteredCost);
 
     const payload = {
       store_name: formData.store_name.trim(),
@@ -327,11 +328,8 @@ const TransactionPage = () => {
     return filteredTransactions.reduce((summary, transaction) => {
       const amount = Number(transaction.cost || 0);
 
-      if (amount < 0) {
-        summary.inflow += Math.abs(amount);
-      } else {
-        summary.outflow += amount;
-      }
+      summary.inflow += getIncomeAmount(amount);
+      summary.outflow += getExpenseAmount(amount);
 
       summary.count += 1;
       return summary;
@@ -392,7 +390,7 @@ const TransactionPage = () => {
     const enteredCost = Number(editingTransactionData.cost);
     const trimmedStore = editingTransactionData.store_name.trim();
     const selectedCategory = editingTransactionData.category || "Other";
-    const signedCost = Number(transaction.cost) < 0 ? -Math.abs(enteredCost) : Math.abs(enteredCost);
+    const signedCost = isIncomeAmount(transaction.cost) ? Math.abs(enteredCost) : -Math.abs(enteredCost);
 
     if (!trimmedStore || !editingTransactionData.date || !Number.isFinite(enteredCost) || enteredCost <= 0) {
       setSubmitError("Please enter a valid store, date, and amount greater than 0.");
@@ -432,7 +430,7 @@ const TransactionPage = () => {
 
   const currency = (amount) => {
     const value = Number(amount);
-    const sign = value < 0 ? "+" : "-";
+    const sign = value > 0 ? "+" : "-";
     return `${sign}$${Math.abs(value).toFixed(2)}`;
   };
 
@@ -453,7 +451,7 @@ const TransactionPage = () => {
   return (
     <div className="dashboard-shell desktop-shell">
       <div className="subpage-grid">
-        <section className="card-surface subpage-form-panel transaction-entry-panel">
+        <section className="card-surface subpage-form-panel transaction-entry-panel" data-demo-tour="simulation-tools">
           <div className="section-heading">
             <div>
               <h3>Add Transaction</h3>
@@ -464,70 +462,76 @@ const TransactionPage = () => {
           </div>
 
           <form className="subpage-form" onSubmit={handleSubmit}>
-            <div className="transaction-type-toggle" role="radiogroup" aria-label="Transaction type">
-              {TRANSACTION_TYPES.map((typeOption) => (
-                <button
-                  key={typeOption.value}
-                  type="button"
-                  className={`transaction-type-toggle__button ${transactionType === typeOption.value ? "active" : ""}`}
-                  onClick={() => setTransactionType(typeOption.value)}
-                  aria-pressed={transactionType === typeOption.value}
-                >
-                  <strong>{typeOption.label}</strong>
-                  <span>{typeOption.hint}</span>
-                </button>
-              ))}
-            </div>
-
-            <label>
-              Merchant or source
-              <input
-                type="text"
-                value={formData.store_name}
-                onChange={(e) => setFormData((prev) => ({ ...prev, store_name: e.target.value }))}
-                placeholder={transactionType === "deposit" ? "Paycheck" : "Target"}
-                required
-              />
-            </label>
-
-            <div className="transaction-entry-row">
-              <label>
-                Amount
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={formData.cost}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, cost: e.target.value }))}
-                  placeholder="24.99"
-                  required
-                />
-              </label>
-
-              <label>
-                Date
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-                  required
-                />
-              </label>
-            </div>
-
-            <label>
-              Category
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-              >
-                {CATEGORY_OPTIONS.map((option) => (
-                  <option key={option} value={option}>{option}</option>
+            <div className="transaction-entry-group">
+              <span className="transaction-entry-group__label">Transaction type</span>
+              <div className="transaction-type-toggle" role="radiogroup" aria-label="Transaction type">
+                {TRANSACTION_TYPES.map((typeOption) => (
+                  <button
+                    key={typeOption.value}
+                    type="button"
+                    className={`transaction-type-toggle__button ${transactionType === typeOption.value ? "active" : ""}`}
+                    onClick={() => setTransactionType(typeOption.value)}
+                    aria-pressed={transactionType === typeOption.value}
+                  >
+                    <strong>{typeOption.label}</strong>
+                    <span>{typeOption.hint}</span>
+                  </button>
                 ))}
-              </select>
-            </label>
+              </div>
+            </div>
+
+            <div className="transaction-entry-group transaction-entry-group--surface">
+              <label>
+                Merchant or source
+                <input
+                  type="text"
+                  value={formData.store_name}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, store_name: e.target.value }))}
+                  placeholder={transactionType === "deposit" ? "Paycheck" : "Target"}
+                  required
+                />
+              </label>
+
+              <div className="transaction-entry-row">
+                <label className="transaction-entry-field transaction-entry-field--amount">
+                  Amount
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={formData.cost}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, cost: e.target.value }))}
+                    placeholder="24.99"
+                    required
+                  />
+                </label>
+
+                <label className="transaction-entry-field">
+                  Date
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
+                    required
+                  />
+                </label>
+              </div>
+
+              <label>
+                Category
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                >
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
             <div className="transaction-entry-advanced">
+              <span className="transaction-entry-group__label">Advanced options</span>
               <label className="subpage-check-row transaction-entry-check">
                 <input
                   type="checkbox"
@@ -567,7 +571,7 @@ const TransactionPage = () => {
           </form>
         </section>
 
-        <section className="card-surface subpage-table-panel transaction-ledger-panel">
+        <section className="card-surface subpage-table-panel transaction-ledger-panel" data-demo-tour="transactions-ledger">
           <div className="section-heading">
             <div>
               <h3>Transaction Ledger</h3>
@@ -683,7 +687,7 @@ const TransactionPage = () => {
                         t.category || "Other"
                       )}
                     </span>
-                    <span className={Number(t.cost) > 0 ? "tx-negative" : "tx-positive"}>
+                    <span className={isIncomeAmount(t.cost) ? "tx-positive" : "tx-negative"}>
                       {isEditing ? (
                         <input
                           className="subpage-inline-input"

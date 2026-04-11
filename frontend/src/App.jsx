@@ -8,12 +8,12 @@ import AppTopNav from "./components/AppTopNav";
 import Footer from "./components/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import GlobalErrorBanner from "./components/GlobalErrorBanner";
+import DemoWalkthrough from "./components/demo/DemoWalkthrough";
 
 const Login = lazy(() => import("./pages/Login"));
 const CreateAccount = lazy(() => import("./pages/CreateAccount"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const IntelligenceDashboard = lazy(() => import("./pages/IntelligenceDashboard"));
-const ModeSelection = lazy(() => import("./pages/ModeSelection"));
 const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const Budgets = lazy(() => import("./pages/Budgets"));
 const MeetTheTeam = lazy(() => import("./pages/MeetTheTeam"));
@@ -32,7 +32,7 @@ function RouteLoading() {
 
 function AppRoutes() {
   const location = useLocation();
-  const hideChrome = ["/", "/login", "/signup", "/mode-select"].includes(location.pathname);
+  const hideChrome = ["/", "/login", "/signup"].includes(location.pathname);
 
   return (
     <ErrorBoundary resetKey={location.pathname}>
@@ -66,14 +66,6 @@ function AppRoutes() {
               <PublicOnlyRoute>
                 <CreateAccount />
               </PublicOnlyRoute>
-            )}
-          />
-          <Route
-            path="/mode-select"
-            element={(
-              <ProtectedRoute>
-                <ModeSelection />
-              </ProtectedRoute>
             )}
           />
           <Route
@@ -140,6 +132,7 @@ function AppRoutes() {
         </Routes>
       </Suspense>
 
+      <DemoWalkthrough />
       {!hideChrome && <Footer />}
     </ErrorBoundary>
   );

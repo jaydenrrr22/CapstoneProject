@@ -1,4 +1,6 @@
-from fastapi import Depends, HTTPException, status
+import os
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
@@ -13,6 +15,7 @@ security = HTTPBearer(auto_error=False)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 MAX_BCRYPT_PASSWORD_BYTES = 72
+DEMO_AUTH_BYPASS_ENABLED = os.getenv("TRACE_ENABLE_DEMO_AUTH_BYPASS", "").strip().lower() == "true"
 
 
 def validate_bcrypt_password(password: str) -> None:
@@ -51,6 +54,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 def get_current_user(
+        request: Request,
         credentials: HTTPAuthorizationCredentials | None = Depends(security),
         db: Session = Depends(get_db)
 ) -> User:
@@ -62,6 +66,14 @@ def get_current_user(
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    if DEMO_AUTH_BYPASS_ENABLED and request.headers.get("X-Trace-Demo-Mode", "").strip().lower() == "true":
+        return User(
+            id=0,
+            email="demo@trace.local",
+            name="Demo User",
+            hashed_password="demo-mode",
+        )
 
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise credentials_exception

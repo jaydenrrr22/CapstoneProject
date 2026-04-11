@@ -9,7 +9,7 @@ import useAuth from "../hooks/useAuth";
 
 function CreateAccount() {
   const navigate = useNavigate();
-  const { beginModeOnboarding } = useDemoMode();
+  const { startDemo } = useDemoMode();
   const { login } = useAuth();
 
   const [name, setName] = useState("");
@@ -42,14 +42,13 @@ function CreateAccount() {
         password,
       });
 
-      beginModeOnboarding();
       const authData = await loginUser({
         email,
         password,
       });
 
       login(authData.access_token);
-      navigate("/mode-select", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       console.error(
         "Registration error:",
@@ -135,6 +134,20 @@ function CreateAccount() {
             Already have an account? <Link to="/login">Login</Link>
           </p>
         </form>
+
+        <div className="auth-demo-panel">
+          <p className="auth-demo-label">Need a guided walkthrough first?</p>
+          <button
+            type="button"
+            className="auth-demo-button"
+            onClick={() => {
+              startDemo();
+              navigate("/dashboard", { replace: true });
+            }}
+          >
+            Start Demo
+          </button>
+        </div>
       </div>
     </div>
   );

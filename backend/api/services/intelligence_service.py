@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Optional
 
 from fastapi import HTTPException
-from sqlalchemy import extract, func
+from sqlalchemy import extract
 from sqlalchemy.orm import Session
 
 from backend.api.models.budget import Budget
@@ -24,10 +24,45 @@ from backend.api.schemas.intelligence import (
 )
 from backend.api.schemas.summary import ForecastDetail, HealthScoreDetail
 from backend.api.services.cloudwatch_service import safe_put_metric
+from backend.api.services.finance_logic import (
+    budget_pressure_amount,
+    expense_amount,
+    is_subscription_category,
+)
 import time
 import logging
 
 logger = logging.getLogger(__name__)
+
+LIKELY_RECURRING_CATEGORY_KEYWORDS = {
+    "billing",
+    "entertainment",
+    "insurance",
+    "internet",
+    "phone",
+    "rent",
+    "streaming",
+    "subscription",
+    "utilities",
+    "utility",
+}
+
+LIKELY_RECURRING_MERCHANT_KEYWORDS = {
+    "apple",
+    "at&t",
+    "comcast",
+    "duke energy",
+    "gas",
+    "gym",
+    "hulu",
+    "internet",
+    "netflix",
+    "rent",
+    "spotify",
+    "utility",
+    "verizon",
+    "water",
+}
 
 
 def _utc_now() -> datetime:
@@ -44,6 +79,12 @@ def _round_money(value: Any) -> float:
 
 def _round_score(value: Any) -> float:
     return round(float(value or 0.0), 4)
+
+
+def _normalize_timestamp_value(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
 
 
 def _period_key(target_date: date) -> str:
@@ -84,13 +125,13 @@ def _resolve_frequency_multipliers(frequency: str) -> tuple[float, float]:
     )
 
 
-def _resolve_transaction_direction(transaction_type: str) -> int:
+def _validate_transaction_type(transaction_type: str) -> str:
     normalized = StringNormalizer.normalize(transaction_type or "spend")
 
     if normalized == "spend":
-        return 1
+        return normalized
     if normalized == "deposit":
-        return -1
+        return normalized
 
     raise HTTPException(
         status_code=400,
@@ -128,29 +169,32 @@ def _resolve_budget_for_date(db: Session, user_id: int, action_date: date) -> Bu
     )
 
 
-def _sum_period_transactions(db: Session, user_id: int, period: str) -> float:
+def _get_period_transactions(db: Session, user_id: int, period: str) -> list[Transaction]:
     target_year, target_month = _parse_period(period)
 
-    total = db.query(func.sum(Transaction.cost)).filter(
+    return db.query(Transaction).filter(
         Transaction.user_id == user_id,
         extract("year", Transaction.date) == target_year,
         extract("month", Transaction.date) == target_month,
-    ).scalar()
+    ).all()
 
-    return float(total or 0.0)
+
+def _sum_period_transactions(db: Session, user_id: int, period: str) -> float:
+    transactions = _get_period_transactions(db, user_id, period)
+    return float(sum(
+        budget_pressure_amount(transaction.cost, transaction.category)
+        for transaction in transactions
+    ))
 
 
 def _sum_subscription_transactions(db: Session, user_id: int, period: str) -> float:
-    target_year, target_month = _parse_period(period)
+    transactions = _get_period_transactions(db, user_id, period)
 
-    total = db.query(func.sum(Transaction.cost)).filter(
-        Transaction.user_id == user_id,
-        extract("year", Transaction.date) == target_year,
-        extract("month", Transaction.date) == target_month,
-        Transaction.category.ilike("Subscription%"),
-    ).scalar()
-
-    return float(total or 0.0)
+    return float(sum(
+        expense_amount(transaction.cost, transaction.category)
+        for transaction in transactions
+        if is_subscription_category(transaction.category)
+    ))
 
 
 def _build_category_effect(
@@ -170,6 +214,181 @@ def _build_category_effect(
     return "General spend"
 
 
+def _is_likely_recurring_transaction(transaction: Transaction) -> bool:
+    merchant = StringNormalizer.normalize(transaction.store_name)
+    category = StringNormalizer.normalize(transaction.category)
+
+    if is_subscription_category(category):
+        return True
+
+    if any(keyword in category for keyword in LIKELY_RECURRING_CATEGORY_KEYWORDS):
+        return True
+
+    return any(keyword in merchant for keyword in LIKELY_RECURRING_MERCHANT_KEYWORDS)
+
+
+def _next_predicted_charge_date(last_charge_date: date, interval_days: Optional[int]) -> date:
+    estimated_interval = max(7, int(interval_days or 30))
+    next_charge_date = last_charge_date + timedelta(days=estimated_interval)
+    today = _utc_now().date()
+
+    while next_charge_date < today:
+        next_charge_date += timedelta(days=estimated_interval)
+
+    return next_charge_date
+
+
+def _build_derived_prediction_record(
+    *,
+    prediction_id: int,
+    merchant: str,
+    amount: float,
+    confidence: float,
+    explanation: str,
+    next_charge_date: date,
+) -> IntelligenceHistoryResponse:
+    timestamp = datetime.combine(next_charge_date, datetime.min.time(), tzinfo=timezone.utc)
+
+    return IntelligenceHistoryResponse(
+        id=prediction_id,
+        source="prediction.derived",
+        risk_score=_round_score(_clamp(amount / 250.0, 0.18, 0.82)),
+        recommendation="Likely upcoming charge",
+        explanation=explanation,
+        projected_impact=IntelligenceProjectedImpact(
+            balance_change=_round_money(-amount),
+            budget_impact=_round_money(amount),
+            category_effect=merchant,
+        ),
+        confidence=_round_score(confidence),
+        timestamp=timestamp,
+        details=None,
+    )
+
+
+def _generate_derived_prediction_records(
+    db: Session,
+    user_id: int,
+    *,
+    limit: int,
+) -> list[IntelligenceHistoryResponse]:
+    if limit <= 0:
+        return []
+
+    transactions = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == user_id)
+        .order_by(Transaction.date.asc(), Transaction.id.asc())
+        .all()
+    )
+
+    if not transactions:
+        return []
+
+    grouped_transactions: dict[tuple[str, float], list[Transaction]] = defaultdict(list)
+    candidate_predictions: list[IntelligenceHistoryResponse] = []
+    seen_prediction_keys: set[tuple[str, float]] = set()
+    next_prediction_id = -1
+
+    for transaction in transactions:
+        normalized_amount = expense_amount(transaction.cost, transaction.category)
+        merchant_key = StringNormalizer.normalize(transaction.store_name)
+
+        if normalized_amount <= 0 or not merchant_key:
+            continue
+
+        grouped_transactions[(merchant_key, _round_money(normalized_amount))].append(transaction)
+
+    for (merchant_key, normalized_amount), entries in grouped_transactions.items():
+        if len(candidate_predictions) >= limit:
+            break
+
+        if len(entries) < 2:
+            continue
+
+        intervals = [
+            (entries[index].date - entries[index - 1].date).days
+            for index in range(1, len(entries))
+        ]
+
+        if not intervals:
+            continue
+
+        average_interval_days = max(7, round(sum(intervals) / len(intervals)))
+        monthly_like = all(21 <= interval <= 40 for interval in intervals)
+        duplicate_like = any(interval <= 3 for interval in intervals)
+        subscription_like = any(is_subscription_category(entry.category) for entry in entries)
+
+        if not monthly_like and not duplicate_like and not subscription_like:
+            continue
+
+        last_transaction = entries[-1]
+        merchant_label = last_transaction.store_name.strip() or "Recurring charge"
+        next_charge_date = _next_predicted_charge_date(last_transaction.date, average_interval_days)
+        confidence = 0.93 if monthly_like else 0.82 if subscription_like else 0.74
+        explanation = (
+            f"{merchant_label} appeared {len(entries)} times in your transaction history and "
+            f"is likely to recur around {next_charge_date.isoformat()}."
+        )
+
+        candidate_predictions.append(
+            _build_derived_prediction_record(
+                prediction_id=next_prediction_id,
+                merchant=merchant_label,
+                amount=normalized_amount,
+                confidence=confidence,
+                explanation=explanation,
+                next_charge_date=next_charge_date,
+            )
+        )
+        seen_prediction_keys.add((merchant_key, normalized_amount))
+        next_prediction_id -= 1
+
+    if len(candidate_predictions) >= limit:
+        return candidate_predictions[:limit]
+
+    recent_likely_recurring = [
+        transaction
+        for transaction in sorted(transactions, key=lambda item: item.date, reverse=True)
+        if expense_amount(transaction.cost, transaction.category) > 0
+        and _is_likely_recurring_transaction(transaction)
+    ]
+
+    for transaction in recent_likely_recurring:
+        if len(candidate_predictions) >= limit:
+            break
+
+        merchant_key = StringNormalizer.normalize(transaction.store_name)
+        normalized_amount = _round_money(expense_amount(transaction.cost, transaction.category))
+        prediction_key = (merchant_key, normalized_amount)
+
+        if not merchant_key or prediction_key in seen_prediction_keys:
+            continue
+
+        merchant_label = transaction.store_name.strip() or (transaction.category or "Expected charge")
+        next_charge_date = _next_predicted_charge_date(transaction.date, 30)
+        explanation = (
+            f"{merchant_label} looks like a recurring expense based on its merchant/category pattern. "
+            f"Trace is modeling another charge around {next_charge_date.isoformat()}."
+        )
+
+        candidate_predictions.append(
+            _build_derived_prediction_record(
+                prediction_id=next_prediction_id,
+                merchant=merchant_label,
+                amount=normalized_amount,
+                confidence=0.58,
+                explanation=explanation,
+                next_charge_date=next_charge_date,
+            )
+        )
+        seen_prediction_keys.add(prediction_key)
+        next_prediction_id -= 1
+
+    candidate_predictions.sort(key=lambda item: item.timestamp, reverse=True)
+    return candidate_predictions[:limit]
+
+
 def _build_transaction_recommendation(
     *,
     transaction_type: str,
@@ -184,9 +403,9 @@ def _build_transaction_recommendation(
     if normalized_type == "deposit":
         recommendation = "Improves cash position"
         explanation = (
-            f"This deposit changes projected cash by ${_round_money(balance_change):.2f} "
-            f"and moves budget use to {_round_money(projected_percentage_used)}% "
-            f"with ${_round_money(remaining_budget):.2f} remaining in the current period."
+            f"This deposit improves projected cash by ${_round_money(balance_change):.2f}, "
+            f"reduces current-period budget pressure to {_round_money(projected_percentage_used)}%, "
+            f"and leaves ${_round_money(remaining_budget):.2f} remaining in the current period."
         )
         return recommendation, explanation, 0.9
 
@@ -272,20 +491,35 @@ def analyze_transaction_decision(
     current_spent = _sum_period_transactions(db, user_id, budget.period)
     current_budget_limit = float(budget.amount)
 
-    direction = _resolve_transaction_direction(request.transaction_type)
+    transaction_type = _validate_transaction_type(request.transaction_type)
     monthly_multiplier, yearly_multiplier = _resolve_frequency_multipliers(request.frequency)
+    transaction_amount = float(request.amount)
+    is_deposit = transaction_type == "deposit"
 
-    projected_monthly_spend_delta = direction * float(request.amount) * monthly_multiplier
-    projected_yearly_spend_delta = direction * float(request.amount) * yearly_multiplier
+    projected_monthly_spend_delta = (
+        -(transaction_amount * monthly_multiplier)
+        if is_deposit
+        else transaction_amount * monthly_multiplier
+    )
+    projected_yearly_spend_delta = (
+        -(transaction_amount * yearly_multiplier)
+        if is_deposit
+        else transaction_amount * yearly_multiplier
+    )
+    balance_change = (
+        transaction_amount * monthly_multiplier
+        if is_deposit
+        else -(transaction_amount * monthly_multiplier)
+    )
 
     projected_spent = current_spent + projected_monthly_spend_delta
     remaining_budget = current_budget_limit - projected_spent
 
     current_percentage_used = (
-        (current_spent / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
+        (max(current_spent, 0.0) / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
     )
     projected_percentage_used = (
-        (projected_spent / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
+        (max(projected_spent, 0.0) / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
     )
 
     risk_level = _resolve_risk_level(projected_percentage_used)
@@ -300,10 +534,11 @@ def analyze_transaction_decision(
 
     for scenario_type, multiplier in scenario_inputs:
         scenario_spend_delta = projected_monthly_spend_delta * multiplier
+        scenario_balance_change = balance_change * multiplier
         scenario_projected_spent = current_spent + scenario_spend_delta
         scenario_remaining_budget = current_budget_limit - scenario_projected_spent
         scenario_percentage = (
-            (scenario_projected_spent / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
+            (max(scenario_projected_spent, 0.0) / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
         )
         worst_percentage = max(worst_percentage, scenario_percentage)
 
@@ -314,11 +549,11 @@ def analyze_transaction_decision(
                 remaining_budget_after_purchase=_round_money(scenario_remaining_budget),
                 projected_percentage_used=_round_money(scenario_percentage),
                 risk_level=_resolve_risk_level(scenario_percentage),
-                balance_change=_round_money(-scenario_spend_delta),
+                balance_change=_round_money(scenario_balance_change),
             )
         )
 
-    balance_change = _round_money(-projected_monthly_spend_delta)
+    balance_change = _round_money(balance_change)
     budget_impact = _round_money(projected_percentage_used - current_percentage_used)
     recommendation, explanation, confidence = _build_transaction_recommendation(
         transaction_type=request.transaction_type,
@@ -533,7 +768,21 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
         *[map_legacy_prediction_record(record) for record in legacy_records],
     ]
 
-    combined.sort(key=lambda item: item.timestamp, reverse=True)
+    remaining_slots = max(0, limit - len(combined))
+
+    if remaining_slots > 0:
+        combined.extend(
+            _generate_derived_prediction_records(
+                db=db,
+                user_id=user_id,
+                limit=remaining_slots,
+            )
+        )
+
+    combined.sort(
+        key=lambda item: _normalize_timestamp_value(item.timestamp),
+        reverse=True,
+    )
     return combined[:limit]
 
 
@@ -570,9 +819,14 @@ def calculate_financial_health(db: Session, user_id: int, period: str) -> dict[s
 
     total_spent = _sum_period_transactions(db, user_id, period)
     subscription_total = _sum_subscription_transactions(db, user_id, period)
+    effective_spend = max(total_spent, 0.0)
 
     remaining_balance = float(budget.amount) - total_spent
-    percentage_used = (total_spent / float(budget.amount)) * 100 if float(budget.amount) > 0 else 0.0
+    percentage_used = (
+        (effective_spend / float(budget.amount)) * 100
+        if float(budget.amount) > 0
+        else 0.0
+    )
 
     raw_score = 100 - percentage_used
     if float(budget.amount) > 0:
@@ -636,7 +890,7 @@ def build_forecast_detail(db: Session, user_id: int) -> ForecastDetail:
 
     total_spent = _sum_period_transactions(db, user_id, current_period)
     budget_amount = float(budget.amount) if budget else 0.0
-    expected_savings = max(0.0, budget_amount - total_spent)
+    expected_savings = budget_amount - total_spent
 
     return ForecastDetail(
         predicted_spend=_round_money(total_spent),
@@ -657,26 +911,27 @@ def calculate_category_trends(db: Session, user_id: int) -> dict[str, list[dict[
         previous_month = current_month - 1
         previous_year = current_year
 
-    current_spending = db.query(
-        Transaction.category,
-        func.sum(Transaction.cost).label("total"),
-    ).filter(
+    current_transactions = db.query(Transaction).filter(
         Transaction.user_id == user_id,
         extract("month", Transaction.date) == current_month,
         extract("year", Transaction.date) == current_year,
-    ).group_by(Transaction.category).all()
+    ).all()
 
-    previous_spending = db.query(
-        Transaction.category,
-        func.sum(Transaction.cost).label("total"),
-    ).filter(
+    previous_transactions = db.query(Transaction).filter(
         Transaction.user_id == user_id,
         extract("month", Transaction.date) == previous_month,
         extract("year", Transaction.date) == previous_year,
-    ).group_by(Transaction.category).all()
+    ).all()
 
-    current_dict = {category: float(total) for category, total in current_spending}
-    previous_dict = {category: float(total) for category, total in previous_spending}
+    current_dict: dict[str, float] = defaultdict(float)
+    for transaction in current_transactions:
+        category = transaction.category or "Other"
+        current_dict[category] += expense_amount(transaction.cost, transaction.category)
+
+    previous_dict: dict[str, float] = defaultdict(float)
+    for transaction in previous_transactions:
+        category = transaction.category or "Other"
+        previous_dict[category] += expense_amount(transaction.cost, transaction.category)
 
     trends = []
     all_categories = set(current_dict.keys()).union(set(previous_dict.keys()))
@@ -715,8 +970,11 @@ def detect_spending_anomalies(db: Session, user_id: int) -> list[dict[str, Any]]
 
     merchant_costs: dict[str, list[float]] = defaultdict(list)
     for transaction in transactions:
+        normalized_amount = expense_amount(transaction.cost, transaction.category)
+        if normalized_amount <= 0:
+            continue
         normalized_store = transaction.store_name.strip().lower()
-        merchant_costs[normalized_store].append(transaction.cost)
+        merchant_costs[normalized_store].append(normalized_amount)
 
     existing_anomalies = db.query(AnomalyResult).filter(
         AnomalyResult.user_id == user_id,
@@ -727,6 +985,10 @@ def detect_spending_anomalies(db: Session, user_id: int) -> list[dict[str, Any]]
     new_anomalies = []
 
     for transaction in transactions:
+        normalized_amount = expense_amount(transaction.cost, transaction.category)
+        if normalized_amount <= 0:
+            continue
+
         normalized_store = transaction.store_name.strip().lower()
         all_costs = merchant_costs[normalized_store]
 
@@ -734,7 +996,7 @@ def detect_spending_anomalies(db: Session, user_id: int) -> list[dict[str, Any]]
             continue
 
         other_costs = all_costs.copy()
-        other_costs.remove(transaction.cost)
+        other_costs.remove(normalized_amount)
 
         clean_mean = sum(other_costs) / len(other_costs)
         variance = sum(((value - clean_mean) ** 2) for value in other_costs) / len(other_costs)
@@ -743,9 +1005,9 @@ def detect_spending_anomalies(db: Session, user_id: int) -> list[dict[str, Any]]
         if clean_std_dev == 0:
             continue
 
-        z_score = (transaction.cost - clean_mean) / clean_std_dev
+        z_score = (normalized_amount - clean_mean) / clean_std_dev
 
-        if z_score <= 2.5 or transaction.cost < 50 or transaction.cost <= clean_mean:
+        if z_score <= 2.5 or normalized_amount < 50 or normalized_amount <= clean_mean:
             continue
 
         if transaction.id not in existing_anomaly_tx_ids:
@@ -755,7 +1017,7 @@ def detect_spending_anomalies(db: Session, user_id: int) -> list[dict[str, Any]]
                     transaction_id=transaction.id,
                     category=transaction.category,
                     merchant=transaction.store_name,
-                    actual_amount=_round_money(transaction.cost),
+                    actual_amount=_round_money(normalized_amount),
                     expected_amount=_round_money(clean_mean),
                     anomaly_type="Spike",
                     created_at=transaction.date,
@@ -766,7 +1028,7 @@ def detect_spending_anomalies(db: Session, user_id: int) -> list[dict[str, Any]]
         anomalies.append({
             "category": transaction.category,
             "merchant": transaction.store_name,
-            "actual_amount": _round_money(transaction.cost),
+            "actual_amount": _round_money(normalized_amount),
             "expected_amount": _round_money(clean_mean),
             "anomaly_type": "Spike",
             "date": transaction.date,

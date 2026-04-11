@@ -8,6 +8,7 @@ from backend.api.dependencies.database import get_db
 from backend.api.models.user import User
 from backend.api.schemas.transaction import TransactionResponse, TransactionCreate
 from backend.api.models.transaction import Transaction
+from backend.api.services.finance_logic import normalize_transaction_amount
 
 #  cache invalidation import
 from backend.api.cache import clear_prediction_cache
@@ -28,6 +29,27 @@ MERCHANT_CATEGORIES = {
 router = APIRouter(prefix="/transaction", tags=["Transaction"])
 
 
+def _resolve_category(raw_category: str | None, store_name: str) -> str:
+    normalized_category = (raw_category or "").strip()
+
+    if normalized_category and normalized_category.lower() != "other":
+        return normalized_category
+
+    normalized_merchant = store_name.strip().lower()
+    return MERCHANT_CATEGORIES.get(normalized_merchant, "Other")
+
+
+def _serialize_transaction(transaction: Transaction) -> TransactionResponse:
+    return TransactionResponse(
+        id=transaction.id,
+        cost=normalize_transaction_amount(transaction.cost, transaction.category),
+        date=transaction.date,
+        store_name=transaction.store_name,
+        category=transaction.category,
+        user_id=transaction.user_id,
+    )
+
+
 @router.get("/get", response_model=List[TransactionResponse])
 def get_transactions(
         db: Session = Depends(get_db),
@@ -40,7 +62,7 @@ def get_transactions(
         .limit(50)
         .all()
     )
-    return transactions
+    return [_serialize_transaction(transaction) for transaction in transactions]
 
 
 @router.get("/get/{user_id}", response_model=List[TransactionResponse])
@@ -61,7 +83,7 @@ def get_transactions_by_user_id(
         .all()
     )
 
-    return transactions
+    return [_serialize_transaction(transaction) for transaction in transactions]
 
 
 @router.post("/create", response_model=TransactionResponse, status_code=status.HTTP_201_CREATED)
@@ -70,13 +92,10 @@ def create_transaction(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    final_category = transaction.category
-    if not final_category or final_category.strip().lower() == "other":
-        normalized_merchant = transaction.store_name.strip().lower()
-        final_category = MERCHANT_CATEGORIES.get(normalized_merchant, "Other")
+    final_category = _resolve_category(transaction.category, transaction.store_name)
 
     new_transaction = Transaction(
-        cost=transaction.cost,
+        cost=normalize_transaction_amount(transaction.cost, final_category),
         date=transaction.date,
         store_name=transaction.store_name,
         category=final_category,
@@ -90,7 +109,7 @@ def create_transaction(
     # *** - invalidate prediction cache
     clear_prediction_cache()
 
-    return new_transaction
+    return _serialize_transaction(new_transaction)
 
 
 @router.delete("/delete/{transaction_id}", status_code=status.HTTP_200_OK)
@@ -151,12 +170,12 @@ def update_transaction(
             detail="You are not authorized to update this transaction",
         )
 
-    final_category = transaction_update.category
-    if not final_category or final_category.strip().lower() == "other":
-        normalized_merchant = transaction_update.store_name.strip().lower()
-        final_category = MERCHANT_CATEGORIES.get(normalized_merchant, "Other")
+    final_category = _resolve_category(
+        transaction_update.category,
+        transaction_update.store_name,
+    )
 
-    transaction.cost = transaction_update.cost
+    transaction.cost = normalize_transaction_amount(transaction_update.cost, final_category)
     transaction.date = transaction_update.date
     transaction.store_name = transaction_update.store_name
     transaction.category = final_category
@@ -166,4 +185,4 @@ def update_transaction(
 
     clear_prediction_cache()
 
-    return transaction
+    return _serialize_transaction(transaction)

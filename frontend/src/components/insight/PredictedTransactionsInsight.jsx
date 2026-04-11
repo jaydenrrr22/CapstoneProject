@@ -1,6 +1,7 @@
 import InsightCard from "./InsightCard";
 import { PredictionIcon } from "./InsightIcons";
 import { formatCurrency } from "../../utils/forecastUtils";
+import { isIncomeAmount } from "../../utils/finance";
 
 function PredictedTransactionsInsight({
   transactions = [],
@@ -80,7 +81,7 @@ function PredictedTransactionsInsight({
           <div className="insight-card__meta">
             <div className="insight-card__meta-row">
               <span>Predicted total</span>
-              <strong className={totalPredicted > 0 ? "insight-card__tone-warning" : totalPredicted < 0 ? "insight-card__tone-positive" : ""}>
+              <strong className={isIncomeAmount(totalPredicted) ? "insight-card__tone-positive" : totalPredicted < 0 ? "insight-card__tone-warning" : ""}>
                 {formatCurrency(totalPredicted, { precise: true })}
               </strong>
             </div>
@@ -89,8 +90,8 @@ function PredictedTransactionsInsight({
           {validPredictions.map((transaction) => (
             <div key={transaction.id} className="insight-card__list-row">
               <span>{transaction.name || "Predicted transaction"}</span>
-              <strong className={transaction.amount > 0 ? "insight-card__tone-warning" : transaction.amount < 0 ? "insight-card__tone-positive" : ""}>
-                {transaction.amount < 0 ? "+" : "-"}
+              <strong className={isIncomeAmount(transaction.amount) ? "insight-card__tone-positive" : transaction.amount < 0 ? "insight-card__tone-warning" : ""}>
+                {isIncomeAmount(transaction.amount) ? "+" : "-"}
                 {formatCurrency(Math.abs(transaction.amount), { precise: true })}
               </strong>
             </div>

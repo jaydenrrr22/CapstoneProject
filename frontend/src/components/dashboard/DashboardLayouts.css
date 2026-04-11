@@ -137,10 +137,17 @@ h3 {
 
 .budget-chip {
   padding: 16px 14px;
-  min-height: 102px;
+  min-height: 126px;
   display: grid;
-  align-content: center;
-  gap: 2px;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.4), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
+    var(--surface);
 }
 
 .budget-chip p {
@@ -150,8 +157,8 @@ h3 {
 }
 
 .budget-chip h2 {
-  margin-top: 6px;
   font-size: clamp(1.02rem, 3.9vw, 1.22rem);
+  line-height: 1.05;
 }
 
 .mobile-chart-card,
@@ -284,10 +291,14 @@ h3 {
 }
 
 .budget-stat {
-  padding: 16px;
-  min-height: 104px;
+  padding: 18px;
+  min-height: 126px;
   display: grid;
   align-content: start;
+  gap: 8px;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .budget-stat--insight,
@@ -307,10 +318,90 @@ h3 {
   color: var(--ink-soft);
 }
 
-.budget-stat h2 {
-  margin-top: 8px;
+.budget-stat h2,
+.budget-stat__value {
   font-size: clamp(1.3rem, 2vw, 1.55rem);
   letter-spacing: -0.02em;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.budget-stat__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.budget-stat__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  background: rgba(255, 255, 255, 0.48);
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.budget-stat__footnote {
+  color: rgba(57, 58, 86, 0.82);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.budget-stat--positive,
+.budget-chip--positive {
+  border-color: rgba(31, 122, 58, 0.16);
+}
+
+.budget-stat--positive .budget-stat__value,
+.budget-chip--positive .budget-stat__value {
+  color: #12622f;
+}
+
+.budget-stat--positive::after,
+.budget-chip--positive::after,
+.budget-stat--negative::after,
+.budget-chip--negative::after,
+.budget-stat--neutral::after,
+.budget-chip--neutral::after {
+  content: "";
+  position: absolute;
+  inset: auto -30px -36px auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.budget-stat--positive::after,
+.budget-chip--positive::after {
+  background: radial-gradient(circle, rgba(31, 122, 58, 0.22), transparent 70%);
+}
+
+.budget-stat--negative,
+.budget-chip--negative {
+  border-color: rgba(180, 35, 24, 0.16);
+}
+
+.budget-stat--negative .budget-stat__value,
+.budget-chip--negative .budget-stat__value {
+  color: #8a1d14;
+}
+
+.budget-stat--negative::after,
+.budget-chip--negative::after {
+  background: radial-gradient(circle, rgba(180, 35, 24, 0.18), transparent 70%);
+}
+
+.budget-stat--neutral::after,
+.budget-chip--neutral::after {
+  background: radial-gradient(circle, rgba(74, 78, 105, 0.16), transparent 70%);
 }
 
 .desktop-health-panel,
@@ -319,6 +410,7 @@ h3 {
 .desktop-predicted-panel {
   background: var(--surface);
   padding: clamp(18px, 1.8vw, 22px);
+  min-width: 0;
 }
 
 .desktop-health-panel {
@@ -379,6 +471,13 @@ h3 {
   border: 1px solid rgba(34, 34, 59, 0.12);
 }
 
+.desktop-health-panel .health-gauge-wrap,
+.mobile-chart-card .health-gauge-wrap,
+.desktop-forecast-panel .forecast-card,
+.mobile-forecast-card .forecast-card {
+  min-width: 0;
+}
+
 .health-status-badge {
   display: inline-flex;
   align-items: center;
@@ -416,6 +515,7 @@ h3 {
   border-radius: 12px;
   border: 1px solid rgba(34, 34, 59, 0.14);
   padding: 12px 13px;
+  min-width: 0;
 }
 
 .health-metrics-grid p {

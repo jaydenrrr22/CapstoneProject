@@ -11,7 +11,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
-  const { needsModeSelection } = useDemoMode();
+  const { startDemo } = useDemoMode();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,9 +48,7 @@ function Login() {
 
       console.log("Login successful:", data);
 
-      const destination = needsModeSelection
-        ? "/mode-select"
-        : location.state?.from?.pathname || "/dashboard";
+      const destination = location.state?.from?.pathname || "/dashboard";
       navigate(destination, { replace: true });
 
     } catch (error) {
@@ -125,6 +123,20 @@ function Login() {
             Don't have an account? <Link to="/signup">Create one</Link>
           </p>
         </form>
+
+        <div className="auth-demo-panel">
+          <p className="auth-demo-label">Explore Trace instantly</p>
+          <button
+            type="button"
+            className="auth-demo-button"
+            onClick={() => {
+              startDemo();
+              navigate("/dashboard", { replace: true });
+            }}
+          >
+            Start Demo
+          </button>
+        </div>
       </div>
     </div>
   );

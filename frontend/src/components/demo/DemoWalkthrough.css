@@ -1,75 +1,127 @@
-.demo-walkthrough {
+.demo-tour {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: min(360px, calc(100vw - 28px));
-  z-index: 60;
-  padding: 16px;
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.2) 100%),
-    #c9ada7;
-  border: 1px solid rgba(34, 34, 59, 0.14);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
 }
 
-.demo-walkthrough p,
-.demo-walkthrough h3 {
+.demo-tour__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 14, 26, 0.58);
+}
+
+.demo-tour__highlight {
+  position: fixed;
+  z-index: 1201;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-sizing: border-box;
+  box-shadow:
+    0 0 0 9999px rgba(12, 14, 26, 0.26),
+    0 0 0 8px rgba(201, 173, 167, 0.22),
+    0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.demo-tour__panel {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: min(390px, calc(100vw - 32px));
+  z-index: 1202;
+  pointer-events: auto;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(34, 34, 59, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
+    #c9ada7;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.32);
+  color: #22223b;
+}
+
+.demo-tour__eyebrow,
+.demo-tour__body h3,
+.demo-tour__body p,
+.demo-tour__step-label {
   margin: 0;
 }
 
-.demo-walkthrough__eyebrow {
+.demo-tour__eyebrow {
   color: #4a4e69;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-weight: 700;
   font-size: 0.72rem;
+  font-weight: 800;
 }
 
-.demo-walkthrough__body {
+.demo-tour__body {
   display: grid;
-  gap: 8px;
-  margin-top: 8px;
-  color: #22223b;
-}
-
-.demo-walkthrough__actions {
-  display: flex;
-  justify-content: space-between;
   gap: 10px;
-  margin-top: 14px;
-  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
-.demo-walkthrough__actions button {
-  border: none;
-  border-radius: 999px;
-  min-height: 36px;
-  padding: 0 14px;
+.demo-tour__body h3 {
+  font-size: 1.2rem;
+}
+
+.demo-tour__body p {
+  color: #393a56;
+  line-height: 1.6;
+}
+
+.demo-tour__step-label {
+  font-size: 0.86rem;
   font-weight: 700;
-  cursor: pointer;
+  color: #4a4e69;
 }
 
-.demo-walkthrough__exit {
-  background: rgba(140, 43, 35, 0.12);
-  color: #7a1510;
+.demo-tour__actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
 }
 
-.demo-walkthrough__actions button:nth-child(2) {
-  background: rgba(34, 34, 59, 0.1);
+.demo-tour__nav-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.demo-tour__ghost,
+.demo-tour__secondary,
+.demo-tour__primary {
+  min-height: 42px;
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.demo-tour__ghost {
+  background: rgba(34, 34, 59, 0.08);
   color: #22223b;
 }
 
-.demo-walkthrough__actions button:last-child {
+.demo-tour__secondary {
+  flex: 1;
+  background: rgba(34, 34, 59, 0.12);
+  color: #22223b;
+}
+
+.demo-tour__secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.demo-tour__primary {
+  flex: 1;
   background: #22223b;
   color: #ffffff;
 }
 
 @media (max-width: 760px) {
-  .demo-walkthrough {
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    width: auto;
+  .demo-tour__panel {
+    right: 16px;
+    bottom: 16px;
+    width: calc(100vw - 32px);
   }
 }

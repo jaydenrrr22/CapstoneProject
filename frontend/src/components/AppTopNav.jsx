@@ -9,9 +9,10 @@ function AppTopNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
-  const { currentDataset, isDemoMode, selectNormalMode } = useDemoMode();
+  const { exitDemo, isDemoMode } = useDemoMode();
 
   const title = getPageTitle(location.pathname);
+  const showAppNavigation = isAuthenticated || isDemoMode;
 
   return (
     <header className="app-top-nav" role="banner">
@@ -22,16 +23,13 @@ function AppTopNav() {
             <p className="app-top-nav-eyebrow">Financial Workspace</p>
             <h1 className="app-top-nav-title">{title}</h1>
             {isDemoMode ? (
-              <p className="app-top-nav-mode-pill">
-                Demo Mode
-                {currentDataset?.label ? ` | ${currentDataset.label}` : ""}
-              </p>
+              <p className="app-top-nav-mode-pill">Demo Mode</p>
             ) : null}
           </div>
         </div>
 
         <nav className="app-top-nav-links" aria-label="Primary">
-          {isAuthenticated ? (
+          {showAppNavigation ? (
             <>
               {PRIMARY_NAV_ITEMS.map((item) => (
                 <NavLink
@@ -51,23 +49,25 @@ function AppTopNav() {
           )}
         </nav>
 
-        {isAuthenticated ? (
+        {showAppNavigation ? (
           <div className="app-top-nav-actions">
             {isDemoMode ? (
               <button
                 type="button"
                 className="app-top-nav-exit-demo"
                 onClick={() => {
-                  selectNormalMode();
-                  navigate("/dashboard", { replace: true });
+                  exitDemo();
+                  navigate("/login", { replace: true });
                 }}
               >
                 Exit Demo
               </button>
             ) : null}
-            <button className="app-top-nav-logout" onClick={() => logout()}>
-              Logout
-            </button>
+            {isAuthenticated ? (
+              <button className="app-top-nav-logout" onClick={() => logout()}>
+                Logout
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className="app-top-nav-spacer" />

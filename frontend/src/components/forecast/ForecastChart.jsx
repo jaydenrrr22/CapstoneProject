@@ -49,7 +49,7 @@ function ForecastTooltip({ active, payload }) {
               <span className={deltaTone}>{formatCurrencyDelta(point.deltaFromCurrent)}</span>
             </>
           )
-          : "Historical performance captured from recorded transactions in the selected budget period."}
+          : "Historical period activity captured from recorded transactions in the selected budget period."}
       </p>
     </div>
   );
@@ -110,7 +110,7 @@ function ForecastChart({
     <InsightCard
       title="Forecast Outlook"
       value={loading ? "Loading..." : error ? "Unavailable" : formatCurrencyDelta(forecast.projectedDelta)}
-      description="Historical spending holds steady while the projection extends from the latest observed point."
+      description="Historical period totals anchor the projection from the latest observed point."
       status={forecastStatus}
       icon={<ForecastIcon />}
       collapsible={false}
@@ -226,8 +226,8 @@ function ForecastChart({
             </div>
 
             <div className="forecast-legend" aria-label="Forecast legend">
-              <span><i style={{ background: "#8b5e57" }} /> Historical spend</span>
-              <span><i style={{ background: "linear-gradient(90deg, #4a4e69, #22223b)" }} /> Projected spend</span>
+              <span><i style={{ background: "#8b5e57" }} /> Historical total</span>
+              <span><i style={{ background: "linear-gradient(90deg, #4a4e69, #22223b)" }} /> Projected total</span>
               {forecast.budgetReference !== null && <span><i style={{ background: "#b42318" }} /> Budget threshold</span>}
             </div>
           </div>

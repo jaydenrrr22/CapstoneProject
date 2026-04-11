@@ -1,3 +1,5 @@
+import { getBudgetPressureAmount, getExpenseAmount } from "../utils/finance";
+
 export function getBudgetLimitMap(budgets = []) {
   return budgets.reduce((accumulator, budget) => {
     const numericAmount = Number(budget.amount);
@@ -18,12 +20,12 @@ export function getAvailablePeriods(budgets = []) {
 
 export function detectDemoSubscriptions(transactions = []) {
   const normalizedTransactions = [...transactions]
-    .filter((transaction) => Number(transaction?.cost || 0) > 0)
+    .filter((transaction) => getExpenseAmount(transaction?.cost) > 0)
     .sort((left, right) => new Date(left.date) - new Date(right.date));
 
   const groupedTransactions = normalizedTransactions.reduce((accumulator, transaction) => {
     const merchant = String(transaction.store_name || "").trim();
-    const amount = Number(transaction.cost || 0);
+    const amount = getExpenseAmount(transaction.cost);
 
     if (!merchant || !Number.isFinite(amount) || amount <= 0) {
       return accumulator;
@@ -67,7 +69,7 @@ export function detectDemoSubscriptions(transactions = []) {
 
     detected.push({
       merchant: entries[0].store_name,
-      amount: Number(entries[0].cost || 0),
+      amount: getExpenseAmount(entries[0].cost),
       average_interval_days: intervalCount > 0 ? Math.round(totalIntervalDays / intervalCount) : null,
       charge_count: entries.length,
       first_charge_date: entries[0].date,
@@ -87,13 +89,13 @@ export function detectDemoSubscriptions(transactions = []) {
 
     const alreadyDetected = detected.some(
       (entry) => entry.merchant.toLowerCase() === String(transaction.store_name || "").trim().toLowerCase()
-        && Number(entry.amount || 0) === Number(transaction.cost || 0)
+        && Number(entry.amount || 0) === getExpenseAmount(transaction.cost)
     );
 
     if (!alreadyDetected) {
       detected.push({
         merchant: transaction.store_name,
-        amount: Number(transaction.cost || 0),
+        amount: getExpenseAmount(transaction.cost),
         average_interval_days: null,
         charge_count: 1,
         first_charge_date: transaction.date,
@@ -172,26 +174,34 @@ export function buildDemoSimulationResponse({
   const periodKey = String(actionDate || "").slice(0, 7);
   const matchingBudget = budgets.find((budget) => budget.period === periodKey) || budgets[0] || null;
   const budgetLimit = Number(matchingBudget?.amount || 0);
-  const signedAmount = transactionType === "deposit" ? -Math.abs(Number(amount || 0)) : Math.abs(Number(amount || 0));
+  const normalizedAmount = Math.abs(Number(amount || 0));
+  const isDeposit = String(transactionType).toLowerCase() === "deposit";
   const { monthly: monthlyMultiplier, yearly: yearlyMultiplier } = resolveDemoFrequencyMultiplier(frequency);
-  const projectedMonthlyCost = signedAmount * monthlyMultiplier;
-  const projectedYearlyCost = signedAmount * yearlyMultiplier;
+  const projectedMonthlyCost = isDeposit
+    ? -(normalizedAmount * monthlyMultiplier)
+    : normalizedAmount * monthlyMultiplier;
+  const projectedYearlyCost = isDeposit
+    ? -(normalizedAmount * yearlyMultiplier)
+    : normalizedAmount * yearlyMultiplier;
+  const balanceChange = isDeposit
+    ? normalizedAmount * monthlyMultiplier
+    : -(normalizedAmount * monthlyMultiplier);
 
   const currentSpent = transactions
     .filter((transaction) => String(transaction.date || "").slice(0, 7) === periodKey)
-    .reduce((sum, transaction) => sum + Number(transaction.cost || 0), 0);
+    .reduce((sum, transaction) => sum + getBudgetPressureAmount(transaction.cost), 0);
 
   const projectedSpent = currentSpent + projectedMonthlyCost;
   const remainingBudget = budgetLimit - projectedSpent;
-  const currentPercentageUsed = budgetLimit > 0 ? (currentSpent / budgetLimit) * 100 : 0;
-  const projectedPercentageUsed = budgetLimit > 0 ? (projectedSpent / budgetLimit) * 100 : 0;
+  const currentPercentageUsed = budgetLimit > 0 ? (Math.max(currentSpent, 0) / budgetLimit) * 100 : 0;
+  const projectedPercentageUsed = budgetLimit > 0 ? (Math.max(projectedSpent, 0) / budgetLimit) * 100 : 0;
 
   const buildScenario = (label, multiplier) => {
     const scenarioProjected = currentSpent + (projectedMonthlyCost * multiplier);
-    const scenarioPercentage = budgetLimit > 0 ? (scenarioProjected / budgetLimit) * 100 : 0;
+    const scenarioPercentage = budgetLimit > 0 ? (Math.max(scenarioProjected, 0) / budgetLimit) * 100 : 0;
 
     return {
-      balance_change: Number((-projectedMonthlyCost * multiplier).toFixed(2)),
+      balance_change: Number((balanceChange * multiplier).toFixed(2)),
       scenario_type: label,
       projected_spent_this_period: Number(scenarioProjected.toFixed(2)),
       remaining_budget_after_purchase: Number((budgetLimit - scenarioProjected).toFixed(2)),
@@ -201,7 +211,6 @@ export function buildDemoSimulationResponse({
   };
 
   const riskLevel = resolveRiskLevel(projectedPercentageUsed);
-  const isDeposit = signedAmount < 0;
   const recommendation = isDeposit
     ? "Improves cash position"
     : projectedPercentageUsed >= 100 || remainingBudget < 0
@@ -212,7 +221,7 @@ export function buildDemoSimulationResponse({
           ? "Monitor closely"
           : "Within budget";
   const explanation = isDeposit
-    ? `This deposit moves projected budget use to ${projectedPercentageUsed.toFixed(1)}% and leaves $${remainingBudget.toFixed(2)} in the current period.`
+    ? `This deposit reduces current-period budget pressure to ${projectedPercentageUsed.toFixed(1)}% and leaves $${remainingBudget.toFixed(2)} in the current period.`
     : projectedPercentageUsed >= 100 || remainingBudget < 0
       ? `This action would push projected budget use to ${projectedPercentageUsed.toFixed(1)}% and overshoot the budget by $${Math.abs(remainingBudget).toFixed(2)}.`
       : `This action leaves $${remainingBudget.toFixed(2)} available with projected budget use at ${projectedPercentageUsed.toFixed(1)}%.`;
@@ -228,7 +237,7 @@ export function buildDemoSimulationResponse({
     confidence: 0.88,
     timestamp: new Date().toISOString(),
     projected_impact: {
-      balance_change: Number((-projectedMonthlyCost).toFixed(2)),
+      balance_change: Number(balanceChange.toFixed(2)),
       budget_impact: Number((projectedPercentageUsed - currentPercentageUsed).toFixed(2)),
       category_effect: merchant || category || (isDeposit ? "Income" : "General spend"),
     },
@@ -272,9 +281,9 @@ export function buildDemoHealth(period, budgetLimitsByPeriod, transactions = [])
 
   const totalSpent = transactions
     .filter((transaction) => String(transaction.date || "").startsWith(period))
-    .reduce((sum, transaction) => sum + Number(transaction.cost || 0), 0);
+    .reduce((sum, transaction) => sum + getBudgetPressureAmount(transaction.cost), 0);
 
-  const percentageUsed = budgetLimit > 0 ? (totalSpent / budgetLimit) * 100 : 0;
+  const percentageUsed = budgetLimit > 0 ? (Math.max(totalSpent, 0) / budgetLimit) * 100 : 0;
   const remainingBalance = budgetLimit - totalSpent;
 
   let status = "Good";
@@ -309,9 +318,9 @@ export function buildDemoBudgetProgress(period, budgets = [], transactions = [])
   const budgetLimit = Number(budget.amount || 0);
   const totalSpent = (transactions || [])
     .filter((transaction) => String(transaction.date || "").startsWith(period))
-    .reduce((sum, transaction) => sum + Number(transaction.cost || 0), 0);
+    .reduce((sum, transaction) => sum + getBudgetPressureAmount(transaction.cost), 0);
 
-  const percentageUsed = budgetLimit > 0 ? (totalSpent / budgetLimit) * 100 : 0;
+  const percentageUsed = budgetLimit > 0 ? (Math.max(totalSpent, 0) / budgetLimit) * 100 : 0;
   const remainingBalance = budgetLimit - totalSpent;
 
   let status = "Good";

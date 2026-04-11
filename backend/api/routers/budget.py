@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, extract
+from sqlalchemy import extract
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -11,6 +11,7 @@ from backend.api.models.budget import Budget
 from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.budget import BudgetResponse, BudgetCreate, MonthlyProgressResponse
+from backend.api.services.finance_logic import budget_pressure_amount
 
 router = APIRouter(prefix="/budget", tags=["Budget"])
 
@@ -100,16 +101,20 @@ def get_monthly_progress(
     except ValueError:
         raise HTTPException(status_code=400, detail="Period must be in the format YYYY-MM")
 
-    total_spent = db.query(func.sum(Transaction.cost)).filter(
+    period_transactions = db.query(Transaction).filter(
         Transaction.user_id == current_user.id,
         extract('year', Transaction.date) == target_year,
         extract('month', Transaction.date) == target_month,
-    ).scalar()
+    ).all()
 
-    total_spent = total_spent or 0.0
+    total_spent = sum(
+        budget_pressure_amount(transaction.cost, transaction.category)
+        for transaction in period_transactions
+    )
 
     remaining_balance = budget.amount - total_spent
-    percentage_used = (total_spent / budget.amount) * 100 if budget.amount > 0 else 0
+    effective_spend = max(total_spent, 0)
+    percentage_used = (effective_spend / budget.amount) * 100 if budget.amount > 0 else 0
 
     if percentage_used >= 90:
         status = "Risk"
