@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -52,14 +52,19 @@ def _serialize_transaction(transaction: Transaction) -> TransactionResponse:
 
 @router.get("/get", response_model=List[TransactionResponse])
 def get_transactions(
+        page: int = Query(1, ge=1, description="Page number"),
+        page_size: int = Query(50, ge=1, le=5000, description="Rows per page"),
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),
 ):
+    offset = (page - 1) * page_size
+
     transactions = (
         db.query(Transaction)
         .filter(Transaction.user_id == current_user.id)
         .order_by(Transaction.date.desc())
-        .limit(50)
+        .offset(offset)
+        .limit(page_size)
         .all()
     )
     return [_serialize_transaction(transaction) for transaction in transactions]

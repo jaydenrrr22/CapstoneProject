@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DemoModeContext from "./demoModeContext";
 import { createInitialDemoDataset } from "../demo/demoDatasets";
+import API from "../services/api";
+import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
 import {
   DEMO_MODE_KEY,
   DEMO_SESSION_KEY,
@@ -107,10 +109,97 @@ function createDemoTransactionId() {
   return `demo-tx-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function createDemoBudgetId() {
+  return `demo-budget-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function toMonthKey(dateValue) {
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function buildHardcodedDemoBudgets(transactions = [], existingBudgets = []) {
+  const incomesByMonth = new Map();
+  const expensesByMonth = new Map();
+
+  transactions.forEach((transaction) => {
+    const period = toMonthKey(transaction?.date);
+    const amount = Number(transaction?.cost || 0);
+
+    if (!period || !Number.isFinite(amount)) {
+      return;
+    }
+
+    if (amount > 0) {
+      incomesByMonth.set(period, (incomesByMonth.get(period) || 0) + amount);
+      return;
+    }
+
+    expensesByMonth.set(period, (expensesByMonth.get(period) || 0) + Math.abs(amount));
+  });
+
+  const allPeriods = Array.from(new Set([
+    ...Array.from(incomesByMonth.keys()),
+    ...Array.from(expensesByMonth.keys()),
+  ])).sort((left, right) => left.localeCompare(right));
+
+  if (allPeriods.length === 0) {
+    return existingBudgets || [];
+  }
+
+  return allPeriods.map((period, index) => {
+    const income = incomesByMonth.get(period) || 0;
+    const expense = expensesByMonth.get(period) || 0;
+    const baseline = income > 0 ? income * 0.72 : Math.max(900, expense * 0.55);
+    const variationMultiplier = 1 + (((index % 5) - 2) * 0.03);
+    const computedAmount = Math.max(600, Math.round((baseline * variationMultiplier) / 10) * 10);
+
+    return {
+      id: `demo-budget-${period}`,
+      amount: Number(computedAmount.toFixed(2)),
+      period,
+      user_id: 999,
+    };
+  });
+}
+
+async function fetchDemoSessionFromApi() {
+  const [budgetResult, transactionResult, predictionResult, anomalyResult] = await Promise.allSettled([
+    API.get("/budget/get"),
+    API.get("/transaction/get", {
+      params: {
+        page: 1,
+        page_size: 5000,
+      },
+    }),
+    API.get("/prediction/history"),
+    API.get("/insight/anomalies"),
+  ]);
+
+  const budgets = budgetResult.status === "fulfilled" ? budgetResult.value?.data || [] : [];
+  const transactions = transactionResult.status === "fulfilled" ? transactionResult.value?.data || [] : [];
+  const rawPredictions = predictionResult.status === "fulfilled" ? predictionResult.value?.data || [] : [];
+  const anomalies = anomalyResult.status === "fulfilled" ? anomalyResult.value?.data || [] : [];
+  const generatedBudgets = buildHardcodedDemoBudgets(transactions, budgets);
+
+  return {
+    budget: generatedBudgets,
+    transactions,
+    predictions: mapIntelligenceHistoryRecords(rawPredictions),
+    anomalies,
+  };
+}
+
 export function DemoModeProvider({ children }) {
   const initialState = getInitialDemoState();
   const [isDemoMode, setIsDemoMode] = useState(initialState.isDemoMode);
   const [demoSession, setDemoSession] = useState(initialState.demoSession);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [walkthroughState, setWalkthroughState] = useState(initialState.walkthroughState);
 
   useEffect(() => {
@@ -138,7 +227,39 @@ export function DemoModeProvider({ children }) {
     }
   }, [isDemoMode, walkthroughState]);
 
-  const startDemo = useCallback(() => {
+  useEffect(() => {
+    if (!isDemoMode) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const hydrateExistingDemoSession = async () => {
+      setIsDemoLoading(true);
+
+      try {
+        const hydratedSession = await fetchDemoSessionFromApi();
+
+        if (!isCancelled) {
+          setDemoSession(hydratedSession);
+        }
+      } catch {
+        // Keep existing persisted session if API hydration is unavailable.
+      } finally {
+        if (!isCancelled) {
+          setIsDemoLoading(false);
+        }
+      }
+    };
+
+    hydrateExistingDemoSession();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isDemoMode]);
+
+  const startDemo = useCallback(async () => {
     const nextSession = createInitialDemoDataset();
     const nextWalkthroughState = { isOpen: true, stepIndex: 0 };
 
@@ -149,6 +270,17 @@ export function DemoModeProvider({ children }) {
     setIsDemoMode(true);
     setDemoSession(nextSession);
     setWalkthroughState(nextWalkthroughState);
+
+    setIsDemoLoading(true);
+
+    try {
+      const hydratedSession = await fetchDemoSessionFromApi();
+      setDemoSession(hydratedSession);
+    } catch {
+      // Keep local fallback dataset if demo API bootstrap is unavailable.
+    } finally {
+      setIsDemoLoading(false);
+    }
   }, []);
 
   const exitDemo = useCallback(() => {
@@ -178,6 +310,63 @@ export function DemoModeProvider({ children }) {
     });
 
     return nextTransactions;
+  }, []);
+
+  const createDemoBudget = useCallback((budget) => {
+    const nextBudget = {
+      ...budget,
+      id: budget.id || createDemoBudgetId(),
+    };
+
+    let nextBudgets = [];
+
+    setDemoSession((previous) => {
+      const baseSession = previous || createInitialDemoDataset();
+      nextBudgets = [...(baseSession.budget || []), nextBudget];
+
+      return {
+        ...baseSession,
+        budget: nextBudgets,
+      };
+    });
+
+    return nextBudgets;
+  }, []);
+
+  const updateDemoBudget = useCallback((budgetId, updates) => {
+    let nextBudgets = [];
+
+    setDemoSession((previous) => {
+      const baseSession = previous || createInitialDemoDataset();
+      nextBudgets = (baseSession.budget || []).map((budget) =>
+        budget.id === budgetId
+          ? { ...budget, ...updates, id: budget.id }
+          : budget
+      );
+
+      return {
+        ...baseSession,
+        budget: nextBudgets,
+      };
+    });
+
+    return nextBudgets;
+  }, []);
+
+  const deleteDemoBudget = useCallback((budgetId) => {
+    let nextBudgets = [];
+
+    setDemoSession((previous) => {
+      const baseSession = previous || createInitialDemoDataset();
+      nextBudgets = (baseSession.budget || []).filter((budget) => budget.id !== budgetId);
+
+      return {
+        ...baseSession,
+        budget: nextBudgets,
+      };
+    });
+
+    return nextBudgets;
   }, []);
 
   const updateDemoTransaction = useCallback((transactionId, updates) => {
@@ -264,12 +453,16 @@ export function DemoModeProvider({ children }) {
   }, []);
 
   const value = useMemo(() => ({
+    createDemoBudget,
     createDemoTransaction,
     currentDataset: isDemoMode ? demoSession : null,
+    deleteDemoBudget,
     deleteDemoTransaction,
     exitDemo,
+    isDemoLoading,
     isDemoMode,
     startDemo,
+    updateDemoBudget,
     updateDemoTransaction,
     walkthroughStep: WALKTHROUGH_STEPS[walkthroughState.stepIndex] || WALKTHROUGH_STEPS[0],
     walkthroughStepIndex: walkthroughState.stepIndex,
@@ -281,10 +474,13 @@ export function DemoModeProvider({ children }) {
     previousWalkthroughStep,
     setWalkthroughStepIndex,
   }), [
+    createDemoBudget,
     createDemoTransaction,
     demoSession,
+    deleteDemoBudget,
     deleteDemoTransaction,
     exitDemo,
+    isDemoLoading,
     isDemoMode,
     nextWalkthroughStep,
     openWalkthrough,
@@ -292,6 +488,7 @@ export function DemoModeProvider({ children }) {
     previousWalkthroughStep,
     setWalkthroughStepIndex,
     startDemo,
+    updateDemoBudget,
     updateDemoTransaction,
     walkthroughState.isOpen,
     walkthroughState.stepIndex,

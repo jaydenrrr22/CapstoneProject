@@ -15,6 +15,8 @@ API.interceptors.request.use(
   (config) => {
     const token = getStoredToken();
     const isDemoRequest = isDemoModeEnabled() && !token;
+    const method = String(config.method || "get").toLowerCase();
+    const isWriteMethod = ["post", "put", "patch", "delete"].includes(method);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -26,6 +28,12 @@ API.interceptors.request.use(
 
     if (isDemoRequest) {
       config.headers["X-Trace-Demo-Session"] = "local-only";
+    }
+
+    if (isDemoModeEnabled() && isWriteMethod) {
+      const error = new Error("Demo mode blocks backend writes")
+      error.name = "DemoWriteBlockedError";
+      throw error;
     }
 
     return config;

@@ -111,7 +111,12 @@ export default function useIntelligenceOverviewData() {
     try {
       const [budgetResponse, transactionResponse, subscriptionResponse, anomalyResponse] = await Promise.all([
         API.get("/budget/get"),
-        API.get("/transaction/get"),
+        API.get("/transaction/get", {
+          params: {
+            page: 1,
+            page_size: 5000,
+          },
+        }),
         API.get("/subscription/detect"),
         API.get("/insight/anomalies"),
       ]);
