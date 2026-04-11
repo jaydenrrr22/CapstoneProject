@@ -26,6 +26,8 @@ const TRANSACTION_TYPES = [
   { value: "deposit", label: "Income", hint: "Record money coming in" },
 ];
 
+const TRANSACTIONS_PAGE_SIZE = 50;
+
 function getTransactionSequenceValue(transaction, fallbackIndex = 0) {
   const numericId = Number(transaction?.id);
 
@@ -58,6 +60,7 @@ const TransactionPage = () => {
 
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [monthFilter, setMonthFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
   const [transactionType, setTransactionType] = useState("spend");
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState("monthly");
@@ -128,13 +131,20 @@ const TransactionPage = () => {
 
     if (isDemoMode) {
       setTransactions(sortTransactionsByDate(currentDataset?.transactions || []));
+      setCurrentPage(1);
       setLoadingList(false);
       return;
     }
 
     try {
-      const response = await API.get("/transaction/get");
+      const response = await API.get("/transaction/get", {
+        params: {
+          page: 1,
+          page_size: 5000,
+        },
+      });
       setTransactions(sortTransactionsByDate(response.data || []));
+      setCurrentPage(1);
     } catch (error) {
       setListError(normalizeApiError(error, "Could not load transactions."));
     } finally {
@@ -308,6 +318,26 @@ const TransactionPage = () => {
       return categoryMatches && monthMatches;
     })
   ), [categoryFilter, monthFilter, transactions]);
+
+  const totalPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredTransactions.length / TRANSACTIONS_PAGE_SIZE)),
+    [filteredTransactions.length]
+  );
+
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * TRANSACTIONS_PAGE_SIZE;
+    return filteredTransactions.slice(startIndex, startIndex + TRANSACTIONS_PAGE_SIZE);
+  }, [currentPage, filteredTransactions]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [categoryFilter, monthFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const availableCategories = useMemo(() => {
     const categories = new Set(transactions.map((transaction) => transaction.category || "Other"));
@@ -625,7 +655,7 @@ const TransactionPage = () => {
                 <span>Actions</span>
               </div>
 
-              {filteredTransactions.map((t) => {
+              {paginatedTransactions.map((t) => {
                 const isEditing = editingTransactionId === t.id;
                 const isRowBusy = deletingTransactionId === t.id || updatingTransactionId === t.id;
 
@@ -759,6 +789,29 @@ const TransactionPage = () => {
                   <span />
                 </div>
               )}
+            </div>
+          )}
+
+          {!loadingList && !listError && filteredTransactions.length > 0 && (
+            <div className="subpage-filter-row">
+              <label>Page:</label>
+              <button
+                className="subpage-inline-btn"
+                type="button"
+                onClick={() => setCurrentPage((previous) => Math.max(1, previous - 1))}
+                disabled={currentPage <= 1}
+              >
+                Previous
+              </button>
+              <span>{currentPage} / {totalPages}</span>
+              <button
+                className="subpage-inline-btn"
+                type="button"
+                onClick={() => setCurrentPage((previous) => Math.min(totalPages, previous + 1))}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+              </button>
             </div>
           )}
         </section>

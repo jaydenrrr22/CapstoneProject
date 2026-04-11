@@ -154,7 +154,12 @@ function Dashboard() {
 
         const [budgetResponse, transactionResponse] = await Promise.all([
           API.get("/budget/get"),
-          API.get("/transaction/get"),
+          API.get("/transaction/get", {
+            params: {
+              page: 1,
+              page_size: 5000,
+            },
+          }),
         ]);
 
         const budgets = budgetResponse.data || [];

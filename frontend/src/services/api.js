@@ -15,6 +15,8 @@ API.interceptors.request.use(
   (config) => {
     const token = getStoredToken();
     const isDemoRequest = isDemoModeEnabled() && !token;
+    const method = String(config.method || "get").toLowerCase();
+    const isWriteMethod = ["post", "put", "patch", "delete"].includes(method);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -26,6 +28,13 @@ API.interceptors.request.use(
 
     if (isDemoRequest) {
       config.headers["X-Trace-Demo-Session"] = "local-only";
+    }
+
+    if (isDemoModeEnabled() && isWriteMethod) {
+      const error = new Error("Demo mode blocks backend writes")
+      error.name = "DemoWriteBlockedError";
+      error.isIntentional = true;
+      throw error;
     }
 
     return config;
@@ -58,7 +67,9 @@ API.interceptors.response.use(
     }
 
     if (!status || status >= 500) {
-      emitGlobalApiError(error);
+      if (!error.isIntentional) {
+        emitGlobalApiError(error);
+      }
     }
 
     // Let components handle all other errors (400, 403, 500, etc.)

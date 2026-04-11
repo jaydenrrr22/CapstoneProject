@@ -40,7 +40,12 @@ function Subscriptions() {
     try {
       const [subscriptionResponse, transactionResponse] = await Promise.all([
         API.get("/subscription/detect"),
-        API.get("/transaction/get"),
+        API.get("/transaction/get", {
+          params: {
+            page: 1,
+            page_size: 5000,
+          },
+        }),
       ]);
 
       setSubscriptions(subscriptionResponse.data || []);

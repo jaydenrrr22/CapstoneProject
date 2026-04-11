@@ -1,4 +1,5 @@
 import os
+import warnings
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -16,6 +17,23 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 MAX_BCRYPT_PASSWORD_BYTES = 72
 DEMO_AUTH_BYPASS_ENABLED = os.getenv("TRACE_ENABLE_DEMO_AUTH_BYPASS", "").strip().lower() == "true"
+
+
+def _parse_demo_user_id(default: int = 999) -> int:
+    raw = os.getenv("TRACE_DEMO_USER_ID", "").strip()
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        warnings.warn(
+            f"TRACE_DEMO_USER_ID='{raw}' is not a valid integer; falling back to {default}.",
+            stacklevel=2,
+        )
+        return default
+
+
+DEMO_USER_ID = _parse_demo_user_id()
 
 
 def validate_bcrypt_password(password: str) -> None:
@@ -75,7 +93,7 @@ def get_current_user(
         and request.headers.get("X-Trace-Demo-Mode", "").strip().lower() == "true"
     ):
         return User(
-            id=0,
+            id=DEMO_USER_ID,
             email="demo@trace.local",
             name="Demo User",
             hashed_password="demo-mode",
