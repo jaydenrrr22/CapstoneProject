@@ -20,3 +20,6 @@ trace-backend.log
 # AWS local artifacts
 backend/api/aws/
 backend/api/awscliv2.zip
+
+trace-backend.log
+*.log

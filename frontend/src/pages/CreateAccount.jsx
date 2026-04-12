@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./Login.css";
 import { loginUser, registerUser } from "../services/authService";
 import { Link, useNavigate } from "react-router-dom";
-import traceHeaderLogo from "../assets/trace_header.png";
+import traceHeaderLogo from "../assets/trace_logo_1.png";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import useDemoMode from "../hooks/useDemoMode";
 import useAuth from "../hooks/useAuth";

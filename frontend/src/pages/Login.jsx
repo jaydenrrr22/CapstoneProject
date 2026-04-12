@@ -3,7 +3,7 @@ import { loginUser } from "../services/authService";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useDemoMode from "../hooks/useDemoMode";
-import traceHeaderLogo from "../assets/trace_header.png";
+import traceHeaderLogo from "../assets/trace_logo_1.png";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import "./Login.css";
 
