@@ -5,7 +5,8 @@
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 80px;
   font-family: 'Nunito', 'Segoe UI', sans-serif;
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
@@ -22,9 +23,11 @@
   width: 100%;
   max-width: 360px;
   display: block;
-  margin: 0 auto 14px;
+  margin: 0 auto 6px;
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.4));
   animation: authFadeIn 460ms ease both;
+  position: relative;
+  top: 40px;
 }
 
 .auth-title-card {
@@ -269,7 +272,7 @@
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 400px) {
   .auth-stack,
   .auth-title-card,
   .auth-form-card,

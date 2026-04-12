@@ -1,7 +1,7 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import useDemoMode from "../hooks/useDemoMode";
-import traceHeaderLogo from "../assets/trace_icon.png";
+import traceHeaderLogo from "../assets/trace_icon_1.png";
 import { PRIMARY_NAV_ITEMS, getPageTitle, isSectionPathActive } from "../constants/routes";
 import "./AppTopNav.css";
 

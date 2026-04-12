@@ -197,17 +197,7 @@ function MobileDashboard({
         </Suspense>
       </section>
 
-      <nav className="mobile-bottom-nav" aria-label="Primary">
-        {PRIMARY_NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.to}
-            className={isSectionPathActive(location.pathname, item.matchPrefix) ? "active" : undefined}
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
+      
     </div>
   );
 }
