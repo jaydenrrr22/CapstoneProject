@@ -302,6 +302,14 @@
   gap: 18px;
 }
 
+.transaction-entry-panel {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
 .transaction-entry-group {
   display: grid;
   gap: 10px;

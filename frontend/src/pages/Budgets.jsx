@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import API from "../services/api";
+import AppBreadcrumbs from "../components/AppBreadcrumbs";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
@@ -233,6 +234,8 @@ function Budgets() {
 
   return (
     <div className="dashboard-shell desktop-shell">
+      <AppBreadcrumbs />
+
       <div className="subpage-grid">
         <section className="card-surface subpage-form-panel" data-demo-tour="budget-panel">
           <div className="section-heading">

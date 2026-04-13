@@ -9,7 +9,13 @@ import { normalizeApiError } from "../utils/normalizeApiError";
 import { resolveDefaultPeriod } from "../utils/forecastUtils";
 import useIntelligence from "../hooks/useIntelligence";
 import useDemoMode from "../hooks/useDemoMode";
-import { buildDemoHealth, detectDemoSubscriptions, getAvailablePeriods, getBudgetLimitMap, getSubscriptionInsight } from "../demo/demoUtils";
+import {
+  buildDemoHealth,
+  detectDemoSubscriptions,
+  getAvailablePeriods,
+  getBudgetLimitMap,
+  getSubscriptionInsight,
+} from "../demo/demoUtils";
 import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
 
 function Dashboard() {
@@ -39,12 +45,16 @@ function Dashboard() {
   const [budgetLimitsByPeriod, setBudgetLimitsByPeriod] = useState({});
 
   const [transactions, setTransactions] = useState([]);
+  const [anomalies, setAnomalies] = useState([]);
   const [subscriptionInsight, setSubscriptionInsight] = useState({
     count: 0,
     totalMonthly: 0,
   });
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true);
   const [subscriptionError, setSubscriptionError] = useState("");
+  const [loadingAnomalies, setLoadingAnomalies] = useState(true);
+  const [anomalyError, setAnomalyError] = useState("");
+  const [lastUpdatedAt, setLastUpdatedAt] = useState("");
 
   const demoBudgetMap = useMemo(
     () => getBudgetLimitMap(currentDataset?.budget || []),
@@ -61,20 +71,6 @@ function Dashboard() {
   const activePredictions = isDemoMode ? currentDataset?.predictions || [] : predictions;
   const activeLoadingPredictions = isDemoMode ? false : loadingPredictions;
   const activePredictionError = isDemoMode ? "" : predictionError;
-
-  const recentTransactions = useMemo(
-    () =>
-      transactions
-        .slice()
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 5)
-        .map((tx) => ({
-          id: tx.id,
-          name: tx.store_name,
-          amount: Number(tx.cost),
-        })),
-    [transactions]
-  );
 
   const loadPredictions = useCallback(async () => {
     if (isDemoMode) {
@@ -151,8 +147,10 @@ function Dashboard() {
       try {
         setLoadingBaseData(true);
         setBaseDataError("");
+        setLoadingAnomalies(true);
+        setAnomalyError("");
 
-        const [budgetResponse, transactionResponse] = await Promise.all([
+        const [budgetResult, transactionResult, anomalyResult] = await Promise.allSettled([
           API.get("/budget/get"),
           API.get("/transaction/get", {
             params: {
@@ -160,9 +158,23 @@ function Dashboard() {
               page_size: 5000,
             },
           }),
+          API.get("/insight/anomalies"),
         ]);
 
+        if (budgetResult.status !== "fulfilled" || transactionResult.status !== "fulfilled") {
+          throw new Error("Critical dashboard data request failed.");
+        }
+
+        const budgetResponse = budgetResult.value;
+        const transactionResponse = transactionResult.value;
         const budgets = budgetResponse.data || [];
+        const anomalyRecords = anomalyResult.status === "fulfilled"
+          ? anomalyResult.value.data || []
+          : [];
+
+        if (anomalyResult.status !== "fulfilled") {
+          setAnomalyError("Anomaly signals are temporarily unavailable.");
+        }
 
         const budgetMap = budgets.reduce((acc, budget) => {
           const numericAmount = Number(budget.amount);
@@ -174,8 +186,8 @@ function Dashboard() {
 
         setBudgetLimitsByPeriod(budgetMap);
 
-        const periods = [...new Set(budgets.map((b) => b.period))].sort((a, b) =>
-          b.localeCompare(a)
+        const periods = [...new Set(budgets.map((budget) => budget.period))].sort((left, right) =>
+          right.localeCompare(left)
         );
 
         setAvailablePeriods(periods);
@@ -199,15 +211,19 @@ function Dashboard() {
         }
 
         setTransactions(transactionResponse.data || []);
+        setAnomalies(anomalyRecords);
         await loadSubscriptionInsight();
+        setLastUpdatedAt(new Date().toISOString());
 
         return resolvedPeriod;
       } catch {
         setBaseDataError("Could not load dashboard data.");
         setHealthError("Could not load dashboard data.");
+        setAnomalies([]);
         setLoadingHealth(false);
         return "";
       } finally {
+        setLoadingAnomalies(false);
         setLoadingBaseData(false);
       }
     },
@@ -216,15 +232,15 @@ function Dashboard() {
 
   const loadHealth = useCallback(
     async (period) => {
-      if (!period || !token) return;
+      if (!period || !token) {
+        return;
+      }
 
       setLoadingHealth(true);
       setHealthError("");
 
       try {
-        const response = await API.get(
-          `/analytics/financial-health/${period}`
-        );
+        const response = await API.get(`/analytics/financial-health/${period}`);
         setHealth(response.data);
       } catch (error) {
         setHealth(null);
@@ -247,13 +263,17 @@ function Dashboard() {
       setBaseDataError("");
       setLoadingSubscriptions(false);
       setSubscriptionError("");
+      setLoadingAnomalies(false);
+      setAnomalyError("");
       setAvailablePeriods(demoAvailablePeriods);
       setBudgetLimitsByPeriod(demoBudgetMap);
       setTransactions(currentDataset?.transactions || []);
+      setAnomalies(currentDataset?.anomalies || []);
       setSubscriptionInsight(getSubscriptionInsight(demoSubscriptions));
       setSelectedPeriod((current) =>
         resolveDefaultPeriod(demoAvailablePeriods, current)
       );
+      setLastUpdatedAt(new Date().toISOString());
       return;
     }
 
@@ -263,7 +283,15 @@ function Dashboard() {
     }
 
     loadBaseDashboardData();
-  }, [currentDataset, demoAvailablePeriods, demoBudgetMap, demoSubscriptions, isDemoMode, loadBaseDashboardData, token]);
+  }, [
+    currentDataset,
+    demoAvailablePeriods,
+    demoBudgetMap,
+    demoSubscriptions,
+    isDemoMode,
+    loadBaseDashboardData,
+    token,
+  ]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -283,13 +311,12 @@ function Dashboard() {
   }, [currentDataset, demoBudgetMap, isDemoMode, loadHealth, selectedPeriod]);
 
   useEffect(() => {
-    if (isDemoMode || !token) return;
+    if (isDemoMode || !token) {
+      return undefined;
+    }
 
     const handleDashboardRefresh = async () => {
-      const resolvedPeriod = await loadBaseDashboardData(
-        selectedPeriod,
-        false
-      );
+      const resolvedPeriod = await loadBaseDashboardData(selectedPeriod, false);
 
       if (resolvedPeriod) {
         if (resolvedPeriod !== selectedPeriod) {
@@ -313,20 +340,14 @@ function Dashboard() {
       }, 300);
     };
 
-    window.addEventListener(
-      DASHBOARD_REFRESH_EVENT,
-      debouncedDashboardRefresh
-    );
+    window.addEventListener(DASHBOARD_REFRESH_EVENT, debouncedDashboardRefresh);
 
     return () => {
       if (refreshTimeoutRef.current) {
         clearTimeout(refreshTimeoutRef.current);
       }
 
-      window.removeEventListener(
-        DASHBOARD_REFRESH_EVENT,
-        debouncedDashboardRefresh
-      );
+      window.removeEventListener(DASHBOARD_REFRESH_EVENT, debouncedDashboardRefresh);
     };
   }, [isDemoMode, loadBaseDashboardData, loadHealth, loadPredictions, selectedPeriod, token]);
 
@@ -338,43 +359,14 @@ function Dashboard() {
 
   if (isMobile) {
     return (
-      <>
-        <MobileDashboard
-          loadingHealth={loadingHealth}
-          healthError={healthError}
-          health={health}
-          selectedPeriod={selectedPeriod}
-          availablePeriods={isDemoMode ? demoAvailablePeriods : availablePeriods}
-          onPeriodChange={setSelectedPeriod}
-          transactions={recentTransactions}
-          forecastTransactions={transactions}
-          loadingForecast={loadingBaseData}
-          forecastError={forecastError}
-          selectedBudgetLimit={selectedBudgetLimit}
-          subscriptionInsight={subscriptionInsight}
-          loadingSubscriptions={loadingSubscriptions}
-          subscriptionError={subscriptionError}
-          predictedTransactions={activePredictions}
-          loadingPredictions={activeLoadingPredictions}
-          predictionError={activePredictionError}
-          onRetryPredictions={loadPredictions}
-          loadingBaseData={loadingBaseData}
-          baseDataError={baseDataError}
-        />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <DesktopDashboard
+      <MobileDashboard
         loadingHealth={loadingHealth}
         healthError={healthError}
         health={health}
         selectedPeriod={selectedPeriod}
         availablePeriods={isDemoMode ? demoAvailablePeriods : availablePeriods}
         onPeriodChange={setSelectedPeriod}
-        transactions={recentTransactions}
+        transactions={transactions}
         forecastTransactions={transactions}
         loadingForecast={loadingBaseData}
         forecastError={forecastError}
@@ -388,8 +380,41 @@ function Dashboard() {
         onRetryPredictions={loadPredictions}
         loadingBaseData={loadingBaseData}
         baseDataError={baseDataError}
+        anomalies={anomalies}
+        loadingAnomalies={loadingAnomalies}
+        anomalyError={anomalyError}
+        lastUpdatedAt={lastUpdatedAt}
       />
-    </>
+    );
+  }
+
+  return (
+    <DesktopDashboard
+      loadingHealth={loadingHealth}
+      healthError={healthError}
+      health={health}
+      selectedPeriod={selectedPeriod}
+      availablePeriods={isDemoMode ? demoAvailablePeriods : availablePeriods}
+      onPeriodChange={setSelectedPeriod}
+      transactions={transactions}
+      forecastTransactions={transactions}
+      loadingForecast={loadingBaseData}
+      forecastError={forecastError}
+      selectedBudgetLimit={selectedBudgetLimit}
+      subscriptionInsight={subscriptionInsight}
+      loadingSubscriptions={loadingSubscriptions}
+      subscriptionError={subscriptionError}
+      predictedTransactions={activePredictions}
+      loadingPredictions={activeLoadingPredictions}
+      predictionError={activePredictionError}
+      onRetryPredictions={loadPredictions}
+      loadingBaseData={loadingBaseData}
+      baseDataError={baseDataError}
+      anomalies={anomalies}
+      loadingAnomalies={loadingAnomalies}
+      anomalyError={anomalyError}
+      lastUpdatedAt={lastUpdatedAt}
+    />
   );
 }
 

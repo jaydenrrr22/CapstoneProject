@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import AppBreadcrumbs from "../components/AppBreadcrumbs";
 import useDemoMode from "../hooks/useDemoMode";
 import API from "../services/api";
 import { normalizeApiError } from "../utils/normalizeApiError";
@@ -82,6 +83,8 @@ function Subscriptions() {
 
   return (
     <div className="dashboard-shell desktop-shell">
+      <AppBreadcrumbs />
+
       <div className="subpage-single-column">
         <section className="card-surface subpage-table-panel subscriptions-page-panel">
           <div className="section-heading">

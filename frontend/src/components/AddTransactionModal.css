@@ -1,0 +1,117 @@
+.add-transaction-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  border: none;
+  background: #22223b;
+  color: #ffffff;
+  box-shadow: 0 18px 32px rgba(10, 10, 20, 0.2);
+}
+
+.add-transaction-fab:hover {
+  background: #4a4e69;
+  transform: scale(1.05);
+}
+
+.add-transaction-fab:active {
+  transform: scale(0.97);
+}
+
+.add-transaction-fab__icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.add-transaction-fab__label {
+  display: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.add-transaction-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(34, 34, 59, 0.24);
+  backdrop-filter: blur(8px);
+}
+
+.add-transaction-modal {
+  position: relative;
+  width: min(100%, 620px);
+  max-height: min(92vh, 860px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.38), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08)),
+    #c9ada7;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  box-shadow: 0 30px 70px rgba(10, 10, 20, 0.24);
+}
+
+.add-transaction-modal__handle {
+  display: none;
+  width: 46px;
+  height: 5px;
+  margin: 0 auto 14px;
+  border-radius: 999px;
+  background: rgba(34, 34, 59, 0.2);
+}
+
+.add-transaction-modal__close {
+  position: absolute;
+  top: 27px;
+  right: 27px;
+  border: none;
+  background: transparent;
+  color: #4a4e69;
+  font-weight: 700;
+  padding: 6px 10px;
+  z-index: 2;
+}
+
+.add-transaction-modal__close:hover {
+  background: rgba(34, 34, 59, 0.08);
+}
+
+@media (max-width: 639px) {
+  .add-transaction-fab {
+    width: auto;
+    min-width: 52px;
+    padding: 0 16px;
+  }
+
+  .add-transaction-fab__label {
+    display: inline;
+  }
+
+  .add-transaction-modal__overlay {
+    align-items: end;
+    padding: 12px 12px 0;
+  }
+
+  .add-transaction-modal {
+    width: 100%;
+    max-height: 92vh;
+    padding: 16px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .add-transaction-modal__handle {
+    display: block;
+  }
+}

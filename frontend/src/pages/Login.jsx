@@ -18,8 +18,9 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [rememberEmail, setRememberEmail] = useState(true);
+  const [rememberEmail, setRememberEmail] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
+  const [showForgotPasswordMessage, setShowForgotPasswordMessage] = useState(false);
 
   useEffect(() => {
     const remembered = window.localStorage.getItem("trace.rememberedEmail");
@@ -32,6 +33,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
+    setShowForgotPasswordMessage(false);
     setSubmitting(true);
 
     try {
@@ -113,10 +115,28 @@ function Login() {
             <span>Remember email on this device</span>
           </label>
 
+          <div className="auth-help-row">
+            <button
+              type="button"
+              className="auth-help-link auth-help-button"
+              onClick={() => setShowForgotPasswordMessage((previous) => !previous)}
+            >
+              Forgot password?
+            </button>
+            {showForgotPasswordMessage ? (
+              <p className="auth-muted-text">Password reset is not available in the demo version.</p>
+            ) : null}
+          </div>
+
           {errorMessage && <p className="auth-error-text">{errorMessage}</p>}
 
           <button type="submit" disabled={submitting}>
-            {submitting ? "Signing in..." : "Login"}
+            {submitting ? (
+              <span className="auth-submit-state">
+                <span className="auth-submit-spinner" aria-hidden="true" />
+                <span>Signing in...</span>
+              </span>
+            ) : "Login"}
           </button>
 
           <p className="auth-switch-text">

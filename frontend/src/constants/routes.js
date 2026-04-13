@@ -88,5 +88,23 @@ export function getBreadcrumbs(pathname) {
     return breadcrumbs;
   }
 
+  const primaryMatch = PRIMARY_NAV_ITEMS.find(({ matchPrefix }) =>
+    pathname === matchPrefix || pathname.startsWith(`${matchPrefix}/`)
+  );
+
+  if (primaryMatch && primaryMatch.matchPrefix !== "/dashboard") {
+    return [
+      { label: "Dashboard", to: "/dashboard" },
+      { label: primaryMatch.label },
+    ];
+  }
+
+  if (STATIC_TITLES[pathname] && pathname !== "/login" && pathname !== "/signup") {
+    return [
+      { label: "Dashboard", to: "/dashboard" },
+      { label: STATIC_TITLES[pathname] },
+    ];
+  }
+
   return [];
 }

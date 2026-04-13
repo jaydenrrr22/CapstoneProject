@@ -1,8 +1,13 @@
+import AppBreadcrumbs from "../components/AppBreadcrumbs";
 import "./StaticPages.css";
 
 function Privacy() {
   return (
     <main className="static-page-shell legal-page-shell">
+      <section className="static-page-container">
+        <AppBreadcrumbs />
+      </section>
+
       <article className="static-page-container legal-document">
         <aside className="legal-academic-note">
           Trace is a capstone project for ITSC-4155. This legal information is included for demo and

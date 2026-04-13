@@ -19,8 +19,27 @@ const HORIZON_TO_MONTHS = {
   "1Y": 12,
 };
 
+// Scales the standard-deviation-based uncertainty band for projected spend.
+// A value of 1.0 would use the raw propagated standard deviation; 0.65 narrows
+// the band to reflect that daily spending is partially auto-correlated (e.g.
+// recurring charges reduce day-to-day variance over a horizon).
+const UNCERTAINTY_SCALE = 0.65;
+
 function roundCurrency(value) {
   return Math.round(value * 100) / 100;
+}
+
+function getStandardDeviation(values = [], mean = 0) {
+  if (!values.length) {
+    return 0;
+  }
+
+  const variance = values.reduce(
+    (sum, value) => sum + ((value - mean) ** 2),
+    0
+  ) / values.length;
+
+  return Math.sqrt(variance);
 }
 
 function toTransactionAmount(transaction) {
@@ -43,7 +62,10 @@ export default function useForecastData({
         domain: [0, 100],
         emptyMessage: "Select a budget period to view a forecast.",
         isEmpty: true,
+        likelyRangeHigh: 0,
+        likelyRangeLow: 0,
         projectedDelta: 0,
+        projectedEndValue: 0,
       };
     }
 
@@ -58,7 +80,10 @@ export default function useForecastData({
         domain: [0, 100],
         emptyMessage: "This budget period could not be interpreted.",
         isEmpty: true,
+        likelyRangeHigh: 0,
+        likelyRangeLow: 0,
         projectedDelta: 0,
+        projectedEndValue: 0,
       };
     }
 
@@ -79,7 +104,10 @@ export default function useForecastData({
         domain: [0, Number(budgetLimit) || 100],
         emptyMessage: "No transactions are available for this period yet.",
         isEmpty: true,
+        likelyRangeHigh: 0,
+        likelyRangeLow: 0,
         projectedDelta: 0,
+        projectedEndValue: 0,
       };
     }
 
@@ -94,19 +122,25 @@ export default function useForecastData({
     const horizonMonths = HORIZON_TO_MONTHS[horizon] || HORIZON_TO_MONTHS["3M"];
     const forecastEndDate = addMonths(lastActualDate, horizonMonths);
     const chartData = [];
+    const observedDailyTotals = [];
 
     let rollingActual = 0;
     let cursor = new Date(periodStart);
 
     while (cursor <= lastActualDate) {
       const isoDate = toISODate(cursor);
-      rollingActual = roundCurrency(rollingActual + (totalsByDay.get(isoDate) || 0));
+      const dayTotal = totalsByDay.get(isoDate) || 0;
+      observedDailyTotals.push(dayTotal);
+      rollingActual = roundCurrency(rollingActual + dayTotal);
 
       chartData.push({
         actualSpent: rollingActual,
         deltaFromCurrent: 0,
         displayDate: formatAxisDate(cursor),
         isoDate,
+        projectedLowerSpent: null,
+        projectedUpperSpent: null,
+        projectionRange: null,
         projectedSpent: null,
       });
 
@@ -116,24 +150,38 @@ export default function useForecastData({
     const currentValue = rollingActual;
     const observedDays = Math.max(1, differenceInDays(periodStart, lastActualDate) + 1);
     const averageDailyChange = roundCurrency(currentValue / observedDays);
+    const dailyChangeDeviation = getStandardDeviation(observedDailyTotals, averageDailyChange);
 
     chartData[chartData.length - 1] = {
       ...chartData[chartData.length - 1],
       deltaFromCurrent: 0,
+      projectedLowerSpent: currentValue,
+      projectedUpperSpent: currentValue,
+      projectionRange: 0,
       projectedSpent: currentValue,
     };
 
     let rollingProjection = currentValue;
+    let likelyRangeLow = currentValue;
+    let likelyRangeHigh = currentValue;
+    let projectionDay = 0;
     cursor = addDays(lastActualDate, 1);
 
     while (cursor && cursor <= forecastEndDate) {
+      projectionDay += 1;
       rollingProjection = roundCurrency(rollingProjection + averageDailyChange);
+      const uncertainty = roundCurrency(dailyChangeDeviation * Math.sqrt(projectionDay) * UNCERTAINTY_SCALE);
+      likelyRangeLow = roundCurrency(rollingProjection - uncertainty);
+      likelyRangeHigh = roundCurrency(rollingProjection + uncertainty);
 
       chartData.push({
         actualSpent: null,
         deltaFromCurrent: roundCurrency(rollingProjection - currentValue),
         displayDate: formatAxisDate(cursor),
         isoDate: toISODate(cursor),
+        projectedLowerSpent: likelyRangeLow,
+        projectedUpperSpent: likelyRangeHigh,
+        projectionRange: roundCurrency(likelyRangeHigh - likelyRangeLow),
         projectedSpent: rollingProjection,
       });
 
@@ -141,8 +189,12 @@ export default function useForecastData({
     }
 
     const budgetReference = Number.isFinite(Number(budgetLimit)) ? Number(budgetLimit) : null;
-    const numericValues = chartData.flatMap((point) => [point.actualSpent, point.projectedSpent])
-      .filter((value) => Number.isFinite(value));
+    const numericValues = chartData.flatMap((point) => [
+      point.actualSpent,
+      point.projectedLowerSpent,
+      point.projectedSpent,
+      point.projectedUpperSpent,
+    ]).filter((value) => Number.isFinite(value));
 
     if (budgetReference !== null) {
       numericValues.push(budgetReference);
@@ -161,7 +213,10 @@ export default function useForecastData({
       emptyMessage: "",
       isEmpty: false,
       lastActualDate: toISODate(lastActualDate),
+      likelyRangeHigh,
+      likelyRangeLow,
       projectedDelta: roundCurrency(rollingProjection - currentValue),
+      projectedEndValue: rollingProjection,
     };
   }, [budgetLimit, horizon, selectedPeriod, transactions]);
 }

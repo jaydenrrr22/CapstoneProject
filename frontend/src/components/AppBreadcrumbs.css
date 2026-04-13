@@ -16,14 +16,14 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #4a4e69;
+  color: rgba(220, 195, 188, 0.88);
   font-size: 0.88rem;
   font-weight: 700;
 }
 
 .app-breadcrumbs__item:not(:last-child)::after {
   content: "/";
-  color: rgba(34, 34, 59, 0.5);
+  color: rgba(220, 195, 188, 0.62);
 }
 
 .app-breadcrumbs__link {
@@ -32,9 +32,9 @@
 }
 
 .app-breadcrumbs__link:hover {
-  color: #22223b;
+  color: #f7f2ef;
 }
 
 .app-breadcrumbs__current {
-  color: #22223b;
+  color: #f7f2ef;
 }

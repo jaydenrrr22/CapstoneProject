@@ -7,6 +7,10 @@ import { normalizeApiError } from "../utils/normalizeApiError";
 import useDemoMode from "../hooks/useDemoMode";
 import useAuth from "../hooks/useAuth";
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+}
+
 function CreateAccount() {
   const navigate = useNavigate();
   const { startDemo } = useDemoMode();
@@ -19,16 +23,47 @@ function CreateAccount() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   const hasMinLength = password.length >= 8;
   const hasLetter = /[a-zA-Z]/.test(password);
   const hasNumber = /\d/.test(password);
+  const hasValidEmail = isValidEmail(email);
+  const canSubmit = hasMinLength && hasLetter && hasNumber && hasValidEmail && acceptedTerms && !submitting;
+
+  const validateEmailField = () => {
+    if (!email.trim()) {
+      setEmailError("Email is required.");
+      return false;
+    }
+
+    if (!hasValidEmail) {
+      setEmailError("Enter a valid email address.");
+      return false;
+    }
+
+    setEmailError("");
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setEmailTouched(true);
+
+    const emailIsValid = validateEmailField();
+
+    if (!emailIsValid) {
+      return;
+    }
 
     if (!acceptedTerms) {
       setErrorMessage("You must accept the Terms and Privacy Policy to create an account.");
+      return;
+    }
+
+    if (!(hasMinLength && hasLetter && hasNumber)) {
+      setErrorMessage("Your password must meet all listed requirements.");
       return;
     }
 
@@ -84,9 +119,27 @@ function CreateAccount() {
             type="email"
             placeholder="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              const nextValue = e.target.value;
+              setEmail(nextValue);
+
+              if (emailTouched) {
+                if (!nextValue.trim()) {
+                  setEmailError("Email is required.");
+                } else if (!isValidEmail(nextValue)) {
+                  setEmailError("Enter a valid email address.");
+                } else {
+                  setEmailError("");
+                }
+              }
+            }}
+            onBlur={() => {
+              setEmailTouched(true);
+              validateEmailField();
+            }}
             required
           />
+          {emailTouched && emailError ? <p className="auth-inline-error">{emailError}</p> : null}
 
           <div className="password-input-wrap">
             <input
@@ -109,9 +162,9 @@ function CreateAccount() {
           </div>
 
           <ul className="password-rules" aria-label="Password requirements">
-            <li className={hasMinLength ? "met" : ""}>At least 8 characters</li>
-            <li className={hasLetter ? "met" : ""}>Contains a letter</li>
-            <li className={hasNumber ? "met" : ""}>Contains a number</li>
+            <li className={hasMinLength ? "requirement--met" : ""}>At least 8 characters</li>
+            <li className={hasLetter ? "requirement--met" : ""}>Contains a letter</li>
+            <li className={hasNumber ? "requirement--met" : ""}>Contains a number</li>
           </ul>
 
           <label className="auth-check-row" htmlFor="accept-terms">
@@ -119,15 +172,27 @@ function CreateAccount() {
               id="accept-terms"
               type="checkbox"
               checked={acceptedTerms}
-              onChange={(event) => setAcceptedTerms(event.target.checked)}
+              onChange={(event) => {
+                setAcceptedTerms(event.target.checked);
+                if (event.target.checked) {
+                  setErrorMessage("");
+                }
+              }}
             />
-            <span>I agree to the Terms and Privacy Policy</span>
+            <span>
+              I agree to the <Link to="/legal/terms">Terms</Link> and <Link to="/legal/privacy">Privacy Policy</Link>
+            </span>
           </label>
 
           {errorMessage && <p className="auth-error-text">{errorMessage}</p>}
 
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Creating account..." : "Create Account"}
+          <button type="submit" disabled={!canSubmit}>
+            {submitting ? (
+              <span className="auth-submit-state">
+                <span className="auth-submit-spinner" aria-hidden="true" />
+                <span>Creating account...</span>
+              </span>
+            ) : "Create Account"}
           </button>
 
           <p className="auth-switch-text">

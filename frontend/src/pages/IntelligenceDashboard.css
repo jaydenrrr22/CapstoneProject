@@ -36,7 +36,8 @@
   margin: 0;
   color: #22223b;
   font-size: clamp(1.5rem, 3vw, 2.2rem);
-  font-family: "Itim", cursive;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  font-weight: 800;
 }
 
 .intelligence-hero__eyebrow {

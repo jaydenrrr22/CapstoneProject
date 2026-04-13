@@ -22,8 +22,21 @@
 .app-top-nav-branding {
   display: flex;
   align-items: center;
+  min-width: 0;
+}
+
+.app-top-nav-brand-link {
+  display: flex;
+  align-items: center;
   gap: 10px;
   min-width: 0;
+  text-decoration: none;
+  border-radius: 16px;
+  transition: background-color 0.2s ease;
+}
+
+.app-top-nav-brand-link:hover {
+  background: rgba(34, 34, 59, 0.06);
 }
 
 .app-top-nav-logo {
@@ -45,7 +58,8 @@
   margin: 2px 0 0;
   font-size: clamp(1.05rem, 2vw, 1.35rem);
   color: #22223b;
-  font-family: "Itim", cursive;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  font-weight: 800;
 }
 
 .app-top-nav-mode-pill {

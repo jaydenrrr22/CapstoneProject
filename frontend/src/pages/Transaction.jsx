@@ -1,53 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import API from "../services/api";
+import AppBreadcrumbs from "../components/AppBreadcrumbs";
 import DecisionModal from "../components/DecisionModal";
+import TransactionEntryForm from "../components/transaction/TransactionEntryForm";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
-import { buildDecisionSimulationModel } from "../utils/decisionSimulation";
 import { getExpenseAmount, getIncomeAmount, isIncomeAmount } from "../utils/finance";
 import useDemoMode from "../hooks/useDemoMode";
-import { buildDemoSimulationResponse } from "../demo/demoUtils";
-
-const CATEGORY_OPTIONS = [
-  "Other",
-  "Groceries",
-  "Dining",
-  "Transportation",
-  "Entertainment",
-  "Utilities",
-  "Income",
-  "Gas",
-];
-
-const TRANSACTION_TYPES = [
-  { value: "spend", label: "Expense", hint: "Record money going out" },
-  { value: "deposit", label: "Income", hint: "Record money coming in" },
-];
+import useTransactionEntry, {
+  CATEGORY_OPTIONS,
+  sortTransactionsByDate,
+} from "../hooks/useTransactionEntry";
 
 const TRANSACTIONS_PAGE_SIZE = 50;
 
-function getTransactionSequenceValue(transaction, fallbackIndex = 0) {
-  const numericId = Number(transaction?.id);
-
-  if (Number.isFinite(numericId)) {
-    return numericId;
-  }
-
-  const idValue = String(transaction?.id || "");
-  const demoIdMatch = idValue.match(/^demo-tx-(\d+)-/);
-
-  if (demoIdMatch) {
-    return Number(demoIdMatch[1]);
-  }
-
-  return fallbackIndex;
-}
-
 const TransactionPage = () => {
   const {
-    createDemoTransaction,
     currentDataset,
     deleteDemoTransaction,
     isDemoMode,
@@ -61,25 +31,6 @@ const TransactionPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [monthFilter, setMonthFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const [transactionType, setTransactionType] = useState("spend");
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringFrequency, setRecurringFrequency] = useState("monthly");
-  const [decisionSummary, setDecisionSummary] = useState("");
-  const [formData, setFormData] = useState({
-    store_name: "",
-    cost: "",
-    date: new Date().toISOString().slice(0, 10),
-    category: "Other",
-  });
-
-  const [pendingTransaction, setPendingTransaction] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const [simulation, setSimulation] = useState(null);
-  const [loadingSim, setLoadingSim] = useState(false);
-  const [simulationError, setSimulationError] = useState("");
   const [deletingTransactionId, setDeletingTransactionId] = useState(null);
   const [editingTransactionId, setEditingTransactionId] = useState(null);
   const [editingTransactionData, setEditingTransactionData] = useState({
@@ -90,39 +41,6 @@ const TransactionPage = () => {
   });
   const [updatingTransactionId, setUpdatingTransactionId] = useState(null);
 
-  const sortTransactionsByDate = (items = []) => (
-    items
-      .map((item, index) => ({ item, index }))
-      .sort((left, right) => {
-        const dateDifference = new Date(right.item.date) - new Date(left.item.date);
-
-        if (dateDifference !== 0) {
-          return dateDifference;
-        }
-
-        const sequenceDifference = getTransactionSequenceValue(right.item, right.index)
-          - getTransactionSequenceValue(left.item, left.index);
-
-        if (sequenceDifference !== 0) {
-          return sequenceDifference;
-        }
-
-        return right.index - left.index;
-      })
-      .map(({ item }) => item)
-  );
-
-  const buildDecisionSummary = (payload, simulationModel = null) => {
-    const cadence = isRecurring ? `recurring ${recurringFrequency}` : "one-time";
-    const action = transactionType === "deposit" ? "deposit" : "purchase";
-    const amountLabel = `$${Math.abs(Number(payload.cost || 0)).toFixed(2)}`;
-    const storeLabel = payload.store_name || "this merchant";
-    const categoryLabel = payload.category || "Uncategorized";
-    const detail = simulationModel?.recommendation?.headline || "Preview generated successfully.";
-
-    return `${amountLabel} ${cadence} ${action} at ${storeLabel} in ${categoryLabel}. ${detail}`;
-  };
-
   const loadTransactions = useCallback(async ({ preserveLoadingState = false } = {}) => {
     if (!preserveLoadingState) {
       setLoadingList(true);
@@ -130,10 +48,11 @@ const TransactionPage = () => {
     setListError("");
 
     if (isDemoMode) {
-      setTransactions(sortTransactionsByDate(currentDataset?.transactions || []));
+      const nextTransactions = sortTransactionsByDate(currentDataset?.transactions || []);
+      setTransactions(nextTransactions);
       setCurrentPage(1);
       setLoadingList(false);
-      return;
+      return nextTransactions;
     }
 
     try {
@@ -143,10 +62,13 @@ const TransactionPage = () => {
           page_size: 5000,
         },
       });
-      setTransactions(sortTransactionsByDate(response.data || []));
+      const nextTransactions = sortTransactionsByDate(response.data || []);
+      setTransactions(nextTransactions);
       setCurrentPage(1);
+      return nextTransactions;
     } catch (error) {
       setListError(normalizeApiError(error, "Could not load transactions."));
+      return [];
     } finally {
       setLoadingList(false);
     }
@@ -178,136 +100,12 @@ const TransactionPage = () => {
     };
   }, [loadTransactions]);
 
-  const submitTransaction = async () => {
-    if (!pendingTransaction) return;
-
-    setSaving(true);
-    setSubmitError("");
-
-    try {
-      if (isDemoMode) {
-        const nextTransactions = createDemoTransaction(pendingTransaction);
-        setTransactions(sortTransactionsByDate(nextTransactions));
-      } else {
-        await API.post("/transaction/create", pendingTransaction);
-        await loadTransactions();
-
-        if (simulation?.rawAnalysis) {
-          try {
-            await API.post("/prediction/history", {
-              ...simulation.rawAnalysis,
-              source: "decision.modal.confirmed",
-            });
-          } catch (historyError) {
-            console.warn("Could not persist intelligence history", historyError);
-          }
-        }
-      }
-
-      window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
-      setFormData({
-        store_name: "",
-        cost: "",
-        date: new Date().toISOString().slice(0, 10),
-        category: "Other",
-      });
-      setTransactionType("spend");
-      setIsRecurring(false);
-      setRecurringFrequency("monthly");
-      setPendingTransaction(null);
-      setDecisionSummary("");
-      setSimulation(null);
-      setSimulationError("");
-    } catch (error) {
-      setSubmitError(normalizeApiError(error, "Unable to create transaction."));
-      throw error;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const closePreview = ({ clearSummary = false } = {}) => {
-    setModalOpen(false);
-    setPendingTransaction(null);
-    setSimulation(null);
-    setSimulationError("");
-
-    if (clearSummary) {
-      setDecisionSummary("");
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setSubmitError("");
-    setSimulationError("");
-
-    const enteredCost = Number(formData.cost);
-    const normalizedCategory = transactionType === "deposit"
-      ? (formData.category === "Other" ? "Income" : formData.category)
-      : formData.category;
-
-    const mappedCategory = isRecurring && transactionType === "spend"
-      ? `Subscription - ${normalizedCategory}`
-      : normalizedCategory;
-
-    const signedCost = transactionType === "deposit" ? Math.abs(enteredCost) : -Math.abs(enteredCost);
-
-    const payload = {
-      store_name: formData.store_name.trim(),
-      cost: signedCost,
-      date: formData.date,
-      category: mappedCategory,
-    };
-
-    if (!payload.store_name || !payload.date || !Number.isFinite(enteredCost) || enteredCost <= 0) {
-      setSubmitError("Please enter a valid store, date, and amount greater than 0.");
-      return;
-    }
-
-    setSimulation(null);
-    setPendingTransaction(payload);
-    setModalOpen(true);
-    setLoadingSim(true);
-
-    try {
-      const analysisPayload = {
-        amount: Math.abs(payload.cost),
-        action_date: payload.date,
-        category: payload.category,
-        merchant: payload.store_name,
-        transaction_type: transactionType,
-        frequency: isRecurring ? recurringFrequency : "one_time",
-        save_to_history: false,
-      };
-      const responseData = isDemoMode
-        ? buildDemoSimulationResponse({
-          budgets: currentDataset?.budget || [],
-          transactions,
-          actionDate: payload.date,
-          amount: analysisPayload.amount,
-          merchant: payload.store_name,
-          category: payload.category,
-          transactionType,
-          frequency: analysisPayload.frequency,
-        })
-        : (await API.post("/intelligence/analyze", analysisPayload)).data;
-
-      const simulationModel = buildDecisionSimulationModel({
-        transactions,
-        pendingTransaction: payload,
-        apiSimulation: responseData,
-      });
-
-      setSimulation(simulationModel);
-      setDecisionSummary(buildDecisionSummary(payload, simulationModel));
-    } catch (error) {
-      setSimulationError(normalizeApiError(error, "Could not simulate impact. You can still continue."));
-      setDecisionSummary(buildDecisionSummary(payload));
-    } finally {
-      setLoadingSim(false);
-    }
-  };
+  const transactionEntry = useTransactionEntry({
+    active: true,
+    transactions,
+    loadTransactions,
+    onTransactionsChange: setTransactions,
+  });
 
   const filteredTransactions = useMemo(() => (
     transactions.filter((transaction) => {
@@ -344,6 +142,14 @@ const TransactionPage = () => {
     return ["All", ...Array.from(categories).sort((a, b) => a.localeCompare(b))];
   }, [transactions]);
 
+  const editCategoryOptions = useMemo(() => {
+    const categories = new Set([
+      ...CATEGORY_OPTIONS,
+      ...transactions.map((transaction) => transaction.category || "Other"),
+    ]);
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  }, [transactions]);
+
   const availableMonths = useMemo(() => {
     const months = new Set(
       transactions
@@ -375,7 +181,7 @@ const TransactionPage = () => {
       return;
     }
 
-    setSubmitError("");
+    transactionEntry.setSubmitError("");
     setDeletingTransactionId(transactionId);
 
     try {
@@ -389,14 +195,14 @@ const TransactionPage = () => {
 
       window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
     } catch (error) {
-      setSubmitError(normalizeApiError(error, "Unable to delete transaction."));
+      transactionEntry.setSubmitError(normalizeApiError(error, "Unable to delete transaction."));
     } finally {
       setDeletingTransactionId(null);
     }
   };
 
   const startEditingTransaction = (transaction) => {
-    setSubmitError("");
+    transactionEntry.setSubmitError("");
     setEditingTransactionId(transaction.id);
     setEditingTransactionData({
       store_name: transaction.store_name || "",
@@ -423,11 +229,11 @@ const TransactionPage = () => {
     const signedCost = isIncomeAmount(transaction.cost) ? Math.abs(enteredCost) : -Math.abs(enteredCost);
 
     if (!trimmedStore || !editingTransactionData.date || !Number.isFinite(enteredCost) || enteredCost <= 0) {
-      setSubmitError("Please enter a valid store, date, and amount greater than 0.");
+      transactionEntry.setSubmitError("Please enter a valid store, date, and amount greater than 0.");
       return;
     }
 
-    setSubmitError("");
+    transactionEntry.setSubmitError("");
     setUpdatingTransactionId(transaction.id);
 
     try {
@@ -452,7 +258,7 @@ const TransactionPage = () => {
       window.dispatchEvent(new CustomEvent(DASHBOARD_REFRESH_EVENT));
       cancelEditingTransaction();
     } catch (error) {
-      setSubmitError(normalizeApiError(error, "Unable to update transaction."));
+      transactionEntry.setSubmitError(normalizeApiError(error, "Unable to update transaction."));
     } finally {
       setUpdatingTransactionId(null);
     }
@@ -480,125 +286,18 @@ const TransactionPage = () => {
 
   return (
     <div className="dashboard-shell desktop-shell">
+      <AppBreadcrumbs />
+
       <div className="subpage-grid">
-        <section className="card-surface subpage-form-panel transaction-entry-panel" data-demo-tour="simulation-tools">
-          <div className="section-heading">
-            <div>
-              <h3>Add Transaction</h3>
-              <p className="muted transaction-entry-copy">
-                Capture a new expense or deposit in a few fields, then preview the impact before saving.
-              </p>
-            </div>
-          </div>
-
-          <form className="subpage-form" onSubmit={handleSubmit}>
-            <div className="transaction-entry-group">
-              <span className="transaction-entry-group__label">Transaction type</span>
-              <div className="transaction-type-toggle" role="radiogroup" aria-label="Transaction type">
-                {TRANSACTION_TYPES.map((typeOption) => (
-                  <button
-                    key={typeOption.value}
-                    type="button"
-                    className={`transaction-type-toggle__button ${transactionType === typeOption.value ? "active" : ""}`}
-                    onClick={() => setTransactionType(typeOption.value)}
-                    aria-pressed={transactionType === typeOption.value}
-                  >
-                    <strong>{typeOption.label}</strong>
-                    <span>{typeOption.hint}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="transaction-entry-group transaction-entry-group--surface">
-              <label>
-                Merchant or source
-                <input
-                  type="text"
-                  value={formData.store_name}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, store_name: e.target.value }))}
-                  placeholder={transactionType === "deposit" ? "Paycheck" : "Target"}
-                  required
-                />
-              </label>
-
-              <div className="transaction-entry-row">
-                <label className="transaction-entry-field transaction-entry-field--amount">
-                  Amount
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={formData.cost}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, cost: e.target.value }))}
-                    placeholder="24.99"
-                    required
-                  />
-                </label>
-
-                <label className="transaction-entry-field">
-                  Date
-                  <input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, date: e.target.value }))}
-                    required
-                  />
-                </label>
-              </div>
-
-              <label>
-                Category
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
-                >
-                  {CATEGORY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="transaction-entry-advanced">
-              <span className="transaction-entry-group__label">Advanced options</span>
-              <label className="subpage-check-row transaction-entry-check">
-                <input
-                  type="checkbox"
-                  checked={isRecurring}
-                  onChange={(e) => setIsRecurring(e.target.checked)}
-                />
-                <span>Mark as recurring</span>
-              </label>
-
-              {isRecurring ? (
-                <label>
-                  Recurrence
-                  <select
-                    value={recurringFrequency}
-                    onChange={(e) => setRecurringFrequency(e.target.value)}
-                  >
-                    <option value="monthly">Monthly</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </label>
-              ) : null}
-            </div>
-
-            {submitError && <p className="subpage-error">{submitError}</p>}
-
-            <button className="subpage-submit" type="submit" disabled={loadingSim || saving}>
-              {loadingSim ? "Preparing preview..." : saving ? "Saving..." : "Preview Before Saving"}
-            </button>
-
-            {decisionSummary && (
-              <div className="subpage-metric-card transaction-entry-summary">
-                <h4>Last Preview</h4>
-                <p>{decisionSummary}</p>
-              </div>
-            )}
-          </form>
+        <section className="subpage-form-panel transaction-entry-panel" data-demo-tour="simulation-tools">
+          <TransactionEntryForm
+            controller={transactionEntry}
+            onPreview={transactionEntry.handlePreview}
+            onSubmit={transactionEntry.handleSave}
+            title="Add transaction"
+            description="Capture an expense or income quickly, or open the same form from the floating action button anywhere in Trace."
+            variant="page"
+          />
         </section>
 
         <section className="card-surface subpage-table-panel transaction-ledger-panel" data-demo-tour="transactions-ledger">
@@ -709,7 +408,7 @@ const TransactionPage = () => {
                             }))
                           )}
                         >
-                          {CATEGORY_OPTIONS.map((option) => (
+                          {editCategoryOptions.map((option) => (
                             <option key={option} value={option}>{option}</option>
                           ))}
                         </select>
@@ -818,37 +517,36 @@ const TransactionPage = () => {
       </div>
 
       <DecisionModal
-        open={modalOpen}
-        loading={loadingSim}
-        busy={saving}
+        open={transactionEntry.previewOpen}
+        loading={transactionEntry.loadingPreview}
+        busy={transactionEntry.saving}
         busyLabel="Saving transaction..."
-        error={simulationError}
-        simulation={simulation}
-        title={pendingTransaction?.store_name ? `Preview ${pendingTransaction.store_name}` : "Preview this decision"}
-        confirmLabel={simulationError ? "Save Anyway" : "Save Transaction"}
+        error={transactionEntry.simulationError}
+        simulation={transactionEntry.simulation}
+        title={transactionEntry.pendingTransaction?.store_name ? `Preview ${transactionEntry.pendingTransaction.store_name}` : "Preview this decision"}
+        confirmLabel={transactionEntry.simulationError ? "Save Anyway" : "Save Transaction"}
         cancelLabel="Close Preview"
         adjustLabel="Edit Details"
         onCancel={() => {
-          if (loadingSim || saving) {
+          if (transactionEntry.loadingPreview || transactionEntry.saving) {
             return;
           }
-          closePreview({ clearSummary: true });
+          transactionEntry.closePreview({ clearSummary: true });
         }}
         onAdjust={() => {
-          if (loadingSim || saving) {
+          if (transactionEntry.loadingPreview || transactionEntry.saving) {
             return;
           }
-          closePreview({ clearSummary: true });
+          transactionEntry.closePreview({ clearSummary: true });
         }}
         onConfirm={async () => {
-          if (loadingSim || saving || !pendingTransaction) {
+          if (transactionEntry.loadingPreview || transactionEntry.saving || !transactionEntry.pendingTransaction) {
             return;
           }
           try {
-            await submitTransaction();
-            setModalOpen(false);
+            await transactionEntry.confirmPreviewSave();
           } catch (error) {
-            setSubmitError(normalizeApiError(error, "Failed to submit transaction. Please try again."));
+            transactionEntry.setSubmitError(normalizeApiError(error, "Failed to submit transaction. Please try again."));
           }
         }}
       />
