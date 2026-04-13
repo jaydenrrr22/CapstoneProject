@@ -1,5 +1,6 @@
 import { startTransition, useId, useState } from "react";
 import {
+  Area,
   CartesianGrid,
   Line,
   LineChart,
@@ -51,6 +52,15 @@ function ForecastTooltip({ active, payload }) {
           )
           : "Historical period activity captured from recorded transactions in the selected budget period."}
       </p>
+      {isProjectedPoint ? (
+        <p>
+          Likely range:
+          {" "}
+          {formatCurrency(point.projectedLowerSpent, { precise: true })}
+          {" - "}
+          {formatCurrency(point.projectedUpperSpent, { precise: true })}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -61,6 +71,7 @@ function ForecastSkeleton({ compact }) {
       <div className="forecast-skeleton-bar" />
       <div className="forecast-skeleton-chart" />
       <div className="forecast-skeleton-stats">
+        <div className="forecast-skeleton-stat" />
         <div className="forecast-skeleton-stat" />
         <div className="forecast-skeleton-stat" />
         <div className="forecast-skeleton-stat" />
@@ -77,7 +88,7 @@ function ForecastChart({
   error = "",
   compact = false,
 }) {
-  const [horizon, setHorizon] = useState("3M");
+  const [horizon, setHorizon] = useState("1M");
   const gradientId = useId().replace(/:/g, "");
   const forecast = useForecastData({
     budgetLimit,
@@ -109,8 +120,8 @@ function ForecastChart({
   return (
     <InsightCard
       title="Forecast Outlook"
-      value={loading ? "Loading..." : error ? "Unavailable" : formatCurrencyDelta(forecast.projectedDelta)}
-      description="Historical period totals anchor the projection from the latest observed point."
+      value={loading ? "Loading..." : error ? "Unavailable" : formatCurrency(forecast.projectedEndValue, { precise: true })}
+      description="Projected trajectory, modeled range, and budget threshold for the selected horizon."
       status={forecastStatus}
       icon={<ForecastIcon />}
       collapsible={false}
@@ -148,10 +159,18 @@ function ForecastChart({
               <strong>{formatCurrency(forecast.currentValue, { precise: true })}</strong>
             </div>
             <div className="forecast-stat">
-              <span>Average daily change</span>
-              <strong>{formatCurrency(forecast.averageDailyChange, { precise: true })}</strong>
+              <span>Projected end value</span>
+              <strong>{formatCurrency(forecast.projectedEndValue, { precise: true })}</strong>
             </div>
             <div className="forecast-stat">
+              <span>Likely range</span>
+              <strong>
+                {formatCurrency(forecast.likelyRangeLow, { precise: true })}
+                {" - "}
+                {formatCurrency(forecast.likelyRangeHigh, { precise: true })}
+              </strong>
+            </div>
+            <div className="forecast-stat forecast-stat--delta">
               <span>{horizon} projection delta</span>
               <strong className={projectedDeltaClass}>{formatCurrencyDelta(forecast.projectedDelta)}</strong>
             </div>
@@ -197,6 +216,26 @@ function ForecastChart({
                     />
                   )}
 
+                  <Area
+                    type="monotone"
+                    dataKey="projectedLowerSpent"
+                    stackId="projection-band"
+                    stroke="none"
+                    fill="transparent"
+                    isAnimationActive={false}
+                    connectNulls
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="projectionRange"
+                    stackId="projection-band"
+                    stroke="none"
+                    fill="rgba(74, 78, 105, 0.16)"
+                    isAnimationActive
+                    animationDuration={650}
+                    connectNulls
+                  />
+
                   <Line
                     type="monotone"
                     dataKey="actualSpent"
@@ -227,6 +266,7 @@ function ForecastChart({
 
             <div className="forecast-legend" aria-label="Forecast legend">
               <span><i style={{ background: "#8b5e57" }} /> Historical total</span>
+              <span><i className="forecast-legend__band" /> Modeled range</span>
               <span><i style={{ background: "linear-gradient(90deg, #4a4e69, #22223b)" }} /> Projected total</span>
               {forecast.budgetReference !== null && <span><i style={{ background: "#b42318" }} /> Budget threshold</span>}
             </div>

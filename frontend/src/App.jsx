@@ -5,10 +5,13 @@ import { AuthProvider } from "./context/AuthProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicOnlyRoute from "./components/PublicOnlyRoute";
 import AppTopNav from "./components/AppTopNav";
+import FAB from "./components/FAB";
 import Footer from "./components/Footer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import GlobalErrorBanner from "./components/GlobalErrorBanner";
 import DemoWalkthrough from "./components/demo/DemoWalkthrough";
+import AddTransactionModal from "./components/AddTransactionModal";
+import { AddTransactionProvider } from "./context/AddTransactionContext";
 
 const Login = lazy(() => import("./pages/Login"));
 const CreateAccount = lazy(() => import("./pages/CreateAccount"));
@@ -133,6 +136,8 @@ function AppRoutes() {
       </Suspense>
 
       <DemoWalkthrough />
+      {!hideChrome && <FAB />}
+      {!hideChrome && <AddTransactionModal />}
       {!hideChrome && <Footer />}
     </ErrorBoundary>
   );
@@ -144,9 +149,11 @@ function App() {
     <BrowserRouter>
 
       <AuthProvider>
+        <AddTransactionProvider>
 
-        <AppRoutes />
+          <AppRoutes />
 
+        </AddTransactionProvider>
       </AuthProvider>
 
     </BrowserRouter>

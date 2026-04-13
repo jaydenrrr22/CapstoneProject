@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Itim&family=Nunito:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap');
 
 /* Container for the whole login form */
 .login-container {
@@ -23,7 +23,7 @@
   width: 100%;
   max-width: 360px;
   display: block;
-  margin: 0 auto 6px;
+  margin: 0 auto -60px;
   filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.4));
   animation: authFadeIn 460ms ease both;
   position: relative;
@@ -44,8 +44,9 @@
   text-align: center;
   margin-bottom: 20px;
 
-  font-family: 'Itim', cursive;
-  letter-spacing: 0.2px;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .auth-form-card {
@@ -179,6 +180,7 @@
   font-size: 0.85rem;
 }
 
+.password-rules li.requirement--met,
 .password-rules li.met {
   color: #146b4b;
   font-weight: 600;
@@ -200,7 +202,8 @@
 
 .auth-help-row {
   margin: 2px 0 0;
-  text-align: center;
+  display: grid;
+  gap: 4px;
   font-size: 0.9rem;
 }
 
@@ -209,6 +212,50 @@
   color: #22223b;
   font-weight: 700;
   text-decoration: underline;
+}
+
+.auth-help-button {
+  justify-self: start;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.auth-help-button:hover {
+  background: transparent;
+  transform: none;
+}
+
+.auth-muted-text,
+.auth-inline-error {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.auth-muted-text {
+  color: #4a4e69;
+}
+
+.auth-inline-error {
+  color: #6f0014;
+}
+
+.auth-submit-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.auth-submit-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  animation: authSpin 0.7s linear infinite;
 }
 
 .auth-demo-panel {
@@ -269,6 +316,16 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes authSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
   }
 }
 

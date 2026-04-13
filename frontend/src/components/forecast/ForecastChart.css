@@ -2,6 +2,7 @@
   display: grid;
   gap: 14px;
   min-width: 0;
+  height: 100%;
 }
 
 .forecast-header {
@@ -59,7 +60,7 @@
 
 .forecast-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   min-width: 0;
 }
@@ -82,6 +83,7 @@
 .forecast-stat strong {
   color: var(--ink);
   font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .forecast-stat strong.positive {
@@ -90,6 +92,10 @@
 
 .forecast-stat strong.negative {
   color: var(--danger);
+}
+
+.forecast-stat--delta strong {
+  white-space: nowrap;
 }
 
 .forecast-chart-shell {
@@ -139,6 +145,11 @@
   width: 20px;
   height: 3px;
   border-radius: 999px;
+}
+
+.forecast-legend .forecast-legend__band {
+  height: 8px;
+  background: rgba(74, 78, 105, 0.22);
 }
 
 .forecast-tooltip {
@@ -224,7 +235,7 @@
 
 .forecast-skeleton-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 

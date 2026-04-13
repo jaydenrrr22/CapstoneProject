@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito:200,300,400,500,600,700,800,900&display=swap');
+
 :root {
   --bg-1: #22223b;
   --bg-2: #4a4e69;
@@ -13,7 +15,7 @@
   --success: #1f7a3a;
   --shadow-soft: 0 10px 24px rgba(10, 10, 20, 0.14);
   --shadow-medium: 0 16px 34px rgba(10, 10, 20, 0.18);
-  font-family: "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
+  font-family: "Nunito", "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: var(--ink);
@@ -48,6 +50,22 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Nunito", "Segoe UI", sans-serif;
+}
+
+::view-transition-group(*),
+::view-transition-old(*),
+::view-transition-new(*) {
+  animation-duration: 0.25s;
+  animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .global-error-banner {

@@ -37,7 +37,6 @@ function DemoWalkthrough() {
 
   useEffect(() => {
     if (!isDemoMode || !isWalkthroughOpen || !walkthroughStep?.selector) {
-      setHighlightRect(null);
       return undefined;
     }
 
@@ -109,7 +108,7 @@ function DemoWalkthrough() {
     <div className="demo-tour" aria-live="polite">
       <div className="demo-tour__backdrop" />
 
-      {highlightRect ? (
+      {walkthroughStep?.selector && highlightRect ? (
         <div
           className="demo-tour__highlight"
           style={{
