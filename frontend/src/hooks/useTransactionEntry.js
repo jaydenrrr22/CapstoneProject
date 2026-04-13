@@ -8,14 +8,20 @@ import useDemoMode from "./useDemoMode";
 import { buildDemoSimulationResponse } from "../demo/demoUtils";
 
 export const CATEGORY_OPTIONS = [
-  "Groceries",
+  "Bills",
   "Dining",
-  "Transport",
-  "Subscriptions",
+  "Education",
+  "Entertainment",
+  "Gas",
+  "Groceries",
   "Health",
-  "Shopping",
   "Income",
   "Other",
+  "Shopping",
+  "Subscriptions",
+  "Transport",
+  "Travel",
+  "Utilities",
 ];
 
 export const TRANSACTION_TYPE_OPTIONS = [
@@ -100,8 +106,6 @@ export default function useTransactionEntry({
   const [transactionType, setTransactionType] = useState("spend");
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurringFrequency, setRecurringFrequency] = useState("monthly");
-  const [flagForReview, setFlagForReview] = useState(false);
-  const [splitTransaction, setSplitTransaction] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [decisionSummary, setDecisionSummary] = useState("");
   const [formData, setFormData] = useState(getEmptyFormData);
@@ -143,23 +147,15 @@ export default function useTransactionEntry({
     const storeLabel = payload.store_name || "this merchant";
     const categoryLabel = payload.category || "Uncategorized";
     const detail = simulationModel?.recommendation?.headline || "Saved to your ledger.";
-    const noteLabel = formData.note.trim() ? ` Note: ${formData.note.trim()}.` : "";
-    const toggles = [
-      flagForReview ? "flagged for review" : "",
-      splitTransaction ? "marked for split follow-up" : "",
-    ].filter(Boolean);
-    const toggleLabel = toggles.length ? ` ${toggles.join(" and ")}.` : "";
 
-    return `${amountLabel} ${cadence} ${action} at ${storeLabel} in ${categoryLabel}. ${detail}${toggleLabel}${noteLabel}`;
-  }, [flagForReview, formData.note, isRecurring, recurringFrequency, transactionType, splitTransaction]);
+    return `${amountLabel} ${cadence} ${action} at ${storeLabel} in ${categoryLabel}. ${detail}`;
+  }, [isRecurring, recurringFrequency, transactionType]);
 
   const resetFormState = useCallback(() => {
     setFormData(getEmptyFormData());
     setTransactionType("spend");
     setIsRecurring(false);
     setRecurringFrequency("monthly");
-    setFlagForReview(false);
-    setSplitTransaction(false);
     setFieldErrors({});
     setPendingTransaction(null);
     setSimulation(null);
@@ -459,7 +455,6 @@ export default function useTransactionEntry({
     confirmPreviewSave,
     decisionSummary,
     fieldErrors,
-    flagForReview,
     formData,
     handlePreview,
     handleSave,
@@ -472,16 +467,13 @@ export default function useTransactionEntry({
     recurrenceOptions: RECURRENCE_OPTIONS,
     resetFormState,
     saving,
-    setFlagForReview,
     setFormValue,
     setIsRecurring,
     setRecurringFrequency,
-    setSplitTransaction,
     setSubmitError,
     setTransactionType,
     simulation,
     simulationError,
-    splitTransaction,
     submitError,
     transactionType,
     transactionTypeOptions: TRANSACTION_TYPE_OPTIONS,

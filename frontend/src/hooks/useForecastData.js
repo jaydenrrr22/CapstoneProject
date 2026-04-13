@@ -19,6 +19,12 @@ const HORIZON_TO_MONTHS = {
   "1Y": 12,
 };
 
+// Scales the standard-deviation-based uncertainty band for projected spend.
+// A value of 1.0 would use the raw propagated standard deviation; 0.65 narrows
+// the band to reflect that daily spending is partially auto-correlated (e.g.
+// recurring charges reduce day-to-day variance over a horizon).
+const UNCERTAINTY_SCALE = 0.65;
+
 function roundCurrency(value) {
   return Math.round(value * 100) / 100;
 }
@@ -164,7 +170,7 @@ export default function useForecastData({
     while (cursor && cursor <= forecastEndDate) {
       projectionDay += 1;
       rollingProjection = roundCurrency(rollingProjection + averageDailyChange);
-      const uncertainty = roundCurrency(dailyChangeDeviation * Math.sqrt(projectionDay) * 0.65);
+      const uncertainty = roundCurrency(dailyChangeDeviation * Math.sqrt(projectionDay) * UNCERTAINTY_SCALE);
       likelyRangeLow = roundCurrency(rollingProjection - uncertainty);
       likelyRangeHigh = roundCurrency(rollingProjection + uncertainty);
 

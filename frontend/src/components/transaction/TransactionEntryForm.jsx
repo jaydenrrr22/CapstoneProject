@@ -22,7 +22,6 @@ function TransactionEntryForm({
     categoryOptions,
     decisionSummary,
     fieldErrors,
-    flagForReview,
     formData,
     isRecurring,
     loadingPreview,
@@ -30,13 +29,10 @@ function TransactionEntryForm({
     recurrenceOptions,
     recurringFrequency,
     saving,
-    setFlagForReview,
     setFormValue,
     setIsRecurring,
     setRecurringFrequency,
-    setSplitTransaction,
     setTransactionType,
-    splitTransaction,
     submitError,
     transactionType,
     transactionTypeOptions,
@@ -151,25 +147,6 @@ function TransactionEntryForm({
           >
             <span className="transaction-form__pill-dot" />
             <span>Mark as recurring</span>
-          </button>
-
-          <button
-            type="button"
-            className={`transaction-form__pill${flagForReview ? " is-active" : ""}`}
-            onClick={() => setFlagForReview(!flagForReview)}
-          >
-            <span className="transaction-form__pill-dot" />
-            <span>Flag for review</span>
-          </button>
-
-          <button
-            type="button"
-            className={`transaction-form__pill${splitTransaction ? " is-active" : ""}`}
-            onClick={() => setSplitTransaction(!splitTransaction)}
-          >
-            <span className="transaction-form__pill-dot" />
-            <span>Split transaction</span>
-            <small>new</small>
           </button>
         </div>
 

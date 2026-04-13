@@ -94,7 +94,7 @@ function DesktopDashboard({
   const netTone = netDelta.direction === "up" ? "positive" : netDelta.direction === "down" ? "negative" : "neutral";
   const budgetUsedTone = budgetProgress?.tone || "neutral";
   const feedTitle = anomalyError || subscriptionError || predictionError
-    ? "Insights Feed"
+    ? "Insights Feed (limited)"
     : "Insights Feed";
 
   return (

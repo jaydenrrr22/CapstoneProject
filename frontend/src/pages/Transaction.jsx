@@ -142,6 +142,14 @@ const TransactionPage = () => {
     return ["All", ...Array.from(categories).sort((a, b) => a.localeCompare(b))];
   }, [transactions]);
 
+  const editCategoryOptions = useMemo(() => {
+    const categories = new Set([
+      ...CATEGORY_OPTIONS,
+      ...transactions.map((transaction) => transaction.category || "Other"),
+    ]);
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
+  }, [transactions]);
+
   const availableMonths = useMemo(() => {
     const months = new Set(
       transactions
@@ -400,7 +408,7 @@ const TransactionPage = () => {
                             }))
                           )}
                         >
-                          {CATEGORY_OPTIONS.map((option) => (
+                          {editCategoryOptions.map((option) => (
                             <option key={option} value={option}>{option}</option>
                           ))}
                         </select>
