@@ -34,6 +34,13 @@ export const PRIMARY_NAV_ITEMS = [
     title: "Budgets",
     matchPrefix: "/budgets",
   },
+  {
+    key: "churn",
+    to: "/churn",
+    label: "Churn",
+    title: "Churn Prediction",
+    matchPrefix: "/churn",
+  },
 ];
 
 export const STATIC_TITLES = {

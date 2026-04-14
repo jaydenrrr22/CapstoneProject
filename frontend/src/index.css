@@ -1,9 +1,10 @@
 @import url('https://fonts.googleapis.com/css?family=Nunito:200,300,400,500,600,700,800,900&display=swap');
 
 :root {
+  --color-card-bg: #fdfbe2;
   --bg-1: #22223b;
   --bg-2: #4a4e69;
-  --surface: #c9ada7;
+  --surface: var(--color-card-bg);
   --surface-muted: #dcc3bc;
   --surface-soft: rgba(255, 255, 255, 0.34);
   --ink: #22223b;
@@ -133,7 +134,7 @@ button:focus-visible {
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
-    #c9ada7;
+    var(--color-card-bg);
   color: #22223b;
   box-shadow: var(--shadow-soft);
   padding: 14px 18px;

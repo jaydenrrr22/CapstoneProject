@@ -1,7 +1,7 @@
 .subpage-grid,
 .subpage-single-column {
-  --subpage-surface-top: #c9ada7;
-  --subpage-surface-bottom: #c9ada7;
+  --subpage-surface-top: var(--color-card-bg);
+  --subpage-surface-bottom: var(--color-card-bg);
   --subpage-inset: rgba(255, 255, 255, 0.3);
   --subpage-table-shell: rgba(255, 255, 255, 0.2);
   --subpage-table-head: rgba(255, 255, 255, 0.4);
@@ -30,7 +30,7 @@
   backdrop-filter: blur(2px);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
-    #c9ada7;
+    var(--color-card-bg);
   border-radius: 18px;
   border: 1px solid rgba(34, 34, 59, 0.12);
   box-shadow: 0 16px 34px rgba(10, 10, 20, 0.16);

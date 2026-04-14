@@ -36,7 +36,7 @@
   border: 1px solid rgba(34, 34, 59, 0.14);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
-    #c9ada7;
+    var(--color-card-bg);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.32);
   color: #22223b;
 }
