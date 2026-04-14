@@ -40,6 +40,8 @@ function DesktopDashboard({
   anomalyError,
   lastUpdatedAt,
 }) {
+  const safePredictedTransactions = predictedTransactions || [];
+
   const netDelta = useMemo(
     () => buildNetDelta(selectedPeriod, forecastTransactions),
     [forecastTransactions, selectedPeriod]
@@ -52,23 +54,23 @@ function DesktopDashboard({
     () => buildPulseBar({
       anomalies,
       budgetProgress,
-      predictionCount: predictedTransactions.length,
+      predictionCount: safePredictedTransactions.length,
       selectedPeriod,
       subscriptionCount: subscriptionInsight.count,
       subscriptionTotal: subscriptionInsight.totalMonthly,
     }),
-    [anomalies, budgetProgress, predictedTransactions.length, selectedPeriod, subscriptionInsight.count, subscriptionInsight.totalMonthly]
+    [anomalies, budgetProgress, safePredictedTransactions.length, selectedPeriod, subscriptionInsight.count, subscriptionInsight.totalMonthly]
   );
   const insightFeedItems = useMemo(
     () => buildInsightsFeed({
       anomalies,
       budgetProgress,
-      predictions: predictedTransactions,
+      predictions: safePredictedTransactions,
       selectedPeriod,
       subscriptionCount: subscriptionInsight.count,
       subscriptionTotal: subscriptionInsight.totalMonthly,
     }),
-    [anomalies, budgetProgress, predictedTransactions, selectedPeriod, subscriptionInsight.count, subscriptionInsight.totalMonthly]
+    [anomalies, budgetProgress, safePredictedTransactions, selectedPeriod, subscriptionInsight.count, subscriptionInsight.totalMonthly]
   );
   const annotatedTransactions = useMemo(
     () => buildTransactionAnnotations(transactions, anomalies)

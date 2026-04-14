@@ -13,13 +13,18 @@ from backend.api.schemas.intelligence import (
     IntelligenceHistoryResponse,
     IntelligenceResponse,
 )
-from backend.api.schemas.prediction import PredictionCreateResponse
+from backend.api.schemas.prediction import (
+    ChurnPredictionRequest,
+    ChurnPredictionResponse,
+    PredictionCreateResponse,
+)
 from backend.api.services.intelligence_service import (
     build_legacy_history_analysis,
     delete_history_records,
     list_history_records,
     save_history_record,
 )
+from backend.api.services.churn_model import predict_churn_from_input
 
 from collections import defaultdict
 from time import time
@@ -89,3 +94,27 @@ def delete_prediction_history(
         "message": "Prediction history deleted",
         "deleted_count": deleted_count,
     }
+
+
+@router.post("/churn", response_model=ChurnPredictionResponse)
+def predict_churn(
+        request: ChurnPredictionRequest,
+        current_user: User = Depends(get_current_user)
+):
+    _ = current_user
+
+    payload = request.model_dump()
+    churn_risk = predict_churn_from_input(payload)
+
+    if churn_risk > 80:
+        summary = "We have calculated a high risk of churn."
+    elif churn_risk >= 50:
+        summary = "This customer may be at moderate risk of churn."
+    else:
+        summary = "This customer currently appears to be at relatively low risk of churn."
+
+    return ChurnPredictionResponse(
+        churn_risk=churn_risk,
+        confidence_score=churn_risk,
+        summary=summary,
+    )
