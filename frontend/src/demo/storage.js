@@ -14,3 +14,4 @@ export const LEGACY_DEMO_KEYS = [
 export function isDemoModeEnabled() {
   return window.localStorage.getItem(DEMO_MODE_KEY) === "true";
 }
+

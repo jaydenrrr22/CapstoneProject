@@ -340,3 +340,4 @@ export function buildDemoBudgetProgress(period, budgets = [], transactions = [])
     total_spent: totalSpent,
   };
 }
+

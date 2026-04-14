@@ -28,3 +28,4 @@ export const IntelligenceProvider = ({ children }) => {
     </IntelligenceContext.Provider>
   );
 };
+

@@ -41,3 +41,4 @@ export const normalizeApiError = (error, fallbackMessage = "Something went wrong
   // Default fallback
   return error?.message || fallbackMessage;
 };
+

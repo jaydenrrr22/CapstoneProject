@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Itim&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap');
 
 /* Main Dashboard Container */
 .dashboard-container {
@@ -6,15 +6,17 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  font-family: Arial, sans-serif;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
 
-  background: linear-gradient(
-    135deg,
-    #22223b 0%,
-    #22223b 40%,
-    #4A4E69 60%,
-    #4A4E69 100%
-  );
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 28%),
+    linear-gradient(
+      135deg,
+      #22223b 0%,
+      #22223b 40%,
+      #4A4E69 60%,
+      #4A4E69 100%
+    );
 
   overflow-y: auto;
   padding-top: 20px;
@@ -40,23 +42,31 @@
 
 .dashboard-header h1 {
   flex: 1;
-  font-family: 'Itim', cursive;
-  background-color: #C9ADA7;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  font-weight: 800;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
+    #C9ADA7;
+  border: 1px solid rgba(34, 34, 59, 0.12);
   padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  border-radius: 16px;
+  box-shadow: 0 16px 34px rgba(10, 10, 20, 0.2);
   text-align: center;
   margin: 0;
   font-size: 18px;
+  color: #22223b;
 }
 
 /* Transactions Section */
 .transactions-section {
   width: 100%;
   padding: 20px;
-  border-radius: 12px;
-  background-color: #C9ADA7;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
+    #C9ADA7;
+  border: 1px solid rgba(34, 34, 59, 0.12);
+  box-shadow: 0 20px 40px rgba(10, 10, 20, 0.24);
   margin-bottom: 16px;
 }
 
@@ -151,3 +161,4 @@
 .bottom-nav button:hover {
   color: #C9ADA7;
 }
+

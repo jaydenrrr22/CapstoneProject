@@ -1,6 +1,6 @@
 .site-footer {
   border-top: 1px solid rgba(34, 34, 59, 0.16);
-  background: rgba(201, 173, 167, 0.94);
+  background: #C9ADA7;
   padding: 0;
 }
 
@@ -58,3 +58,4 @@
     padding-bottom: 94px;
   }
 }
+

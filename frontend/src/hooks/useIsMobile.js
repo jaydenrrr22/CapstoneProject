@@ -18,3 +18,4 @@ function useIsMobile(breakpoint = MOBILE_BREAKPOINT) {
 }
 
 export default useIsMobile;
+
