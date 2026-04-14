@@ -48,3 +48,9 @@ uvicorn backend.api.main:app --reload
 ```
 http://127.0.0.1:8000/docs#/
 ```
+
+### Pytest unit testing
+Run the following command in the root folder
+```
+pytest backend/api/unit_testing
+```
