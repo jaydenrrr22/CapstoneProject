@@ -1,4 +1,6 @@
 import { useState } from "react";
+import API from "../services/api";
+import { normalizeApiError } from "../utils/normalizeApiError";
 import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import "./ChurnPrediction.css";
@@ -16,26 +18,21 @@ function buildPredictionPayload({
   daysSinceLastInteraction,
 }) {
   return {
-    age,
+    age: Number(age),
     gender,
-    monthsSubscribed,
-    usageFrequency,
-    supportCalls,
-    paymentDelays,
-    subscriptionType,
-    contractLength,
-    totalSpend,
-    daysSinceLastInteraction,
+    months_subscribed: Number(monthsSubscribed),
+    usage_frequency: Number(usageFrequency),
+    support_calls: Number(supportCalls),
+    payment_delays: Number(paymentDelays),
+    subscription_type: subscriptionType,
+    contract_length: contractLength,
+    total_spend: Number(totalSpend),
+    days_since_last_interaction: Number(daysSinceLastInteraction),
   };
 }
 
-async function simulatePredictionRequest(payload) {
-  return {
-    churnRisk: "72%",
-    confidenceScore: "81%",
-    summary: "This customer may be at elevated risk of churn.",
-    payload,
-  };
+function formatPercent(value) {
+  return `${Math.round(Number(value) || 0)}%`;
 }
 
 function ChurnPrediction() {
@@ -50,6 +47,8 @@ function ChurnPrediction() {
   const [totalSpend, setTotalSpend] = useState("");
   const [daysSinceLastInteraction, setDaysSinceLastInteraction] = useState("");
   const [formError, setFormError] = useState("");
+  const [requestError, setRequestError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [predictionResult, setPredictionResult] = useState({
     churnRisk: "--%",
     confidenceScore: "--%",
@@ -80,6 +79,7 @@ function ChurnPrediction() {
     }
 
     setFormError("");
+    setRequestError("");
 
     const payload = buildPredictionPayload({
       age,
@@ -94,13 +94,22 @@ function ChurnPrediction() {
       daysSinceLastInteraction,
     });
 
-    const result = await simulatePredictionRequest(payload);
+    setIsSubmitting(true);
 
-    setPredictionResult({
-      churnRisk: result.churnRisk,
-      confidenceScore: result.confidenceScore,
-      summary: result.summary,
-    });
+    try {
+      const response = await API.post("/prediction/churn", payload);
+      const result = response.data;
+
+      setPredictionResult({
+        churnRisk: formatPercent(result.churn_risk),
+        confidenceScore: formatPercent(result.confidence_score),
+        summary: result.summary,
+      });
+    } catch (error) {
+      setRequestError(normalizeApiError(error, "Unable to run churn prediction right now."));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -145,7 +154,6 @@ function ChurnPrediction() {
                   <option value="">Select gender</option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
-                  <option value="Other">Other</option>
                 </select>
               </label>
 
@@ -198,7 +206,7 @@ function ChurnPrediction() {
                   <option value="">Select subscription type</option>
                   <option value="Standard">Standard</option>
                   <option value="Premium">Premium</option>
-                  <option value="Other">Other</option>
+                  <option value="Basic">Basic</option>
                 </select>
               </label>
 
@@ -212,7 +220,6 @@ function ChurnPrediction() {
                   <option value="Annual">Annual</option>
                   <option value="Quarterly">Quarterly</option>
                   <option value="Monthly">Monthly</option>
-                  <option value="Other">Other</option>
                 </select>
               </label>
 
@@ -237,9 +244,10 @@ function ChurnPrediction() {
               </label>
 
               {formError ? <p className="subpage-error">{formError}</p> : null}
+              {requestError ? <p className="subpage-error">{requestError}</p> : null}
 
-              <button className="subpage-submit" type="submit">
-                Run Prediction
+              <button className="subpage-submit" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Running prediction..." : "Run Prediction"}
               </button>
             </form>
           </section>
@@ -258,18 +266,17 @@ function ChurnPrediction() {
               <article className="subpage-metric-card churn-result-card">
                 <span className="churn-result-card__label">Churn Risk</span>
                 <strong>{predictionResult.churnRisk}</strong>
-                <p className="muted">Prediction output is currently generated locally for UI testing only.</p>
+                
               </article>
 
               <article className="subpage-metric-card churn-result-card">
                 <span className="churn-result-card__label">Confidence Score</span>
                 <strong>{predictionResult.confidenceScore}</strong>
-                <p className="muted">This area will display the model confidence or probability output.</p>
               </article>
 
               <article className="subpage-metric-card churn-result-card">
                 <span className="churn-result-card__label">Recommendation / Summary</span>
-                <strong>Awaiting prediction</strong>
+                <strong>{predictionResult.churnRisk === "--%" ? "Awaiting prediction" : "Prediction ready"}</strong>
                 <p className="muted">{predictionResult.summary}</p>
               </article>
             </div>
