@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, ForeignKey, DateTime, JSON, String, Float
+from sqlalchemy.orm import relationship
+
 from backend.api.dependencies.database import Base
 
 class AnomalyResult(Base):
@@ -16,3 +18,5 @@ class AnomalyResult(Base):
 
     anomaly_type = Column(String(50), nullable=False)
     created_at = Column(DateTime, default=lambda : datetime.now(timezone.utc))
+
+    transaction = relationship("Transaction", back_populates="anomaly_results")

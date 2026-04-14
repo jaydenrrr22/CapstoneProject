@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, Float, Date, String, ForeignKey
+from sqlalchemy.orm import relationship
+
 from backend.api.dependencies.database import Base
 
 
@@ -13,3 +15,7 @@ class Transaction(Base):
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     # category = Column(Integer, ForeignKey("categories.id"), nullable=False)
+    anomaly_results = relationship(
+        "AnomalyResult",
+        cascade="all, delete",
+    )
