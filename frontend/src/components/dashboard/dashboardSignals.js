@@ -418,3 +418,4 @@ export function buildSpendTimeline(period, transactions = []) {
     spend: bucket.spend,
   }));
 }
+

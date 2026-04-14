@@ -278,3 +278,4 @@ function ForecastChart({
 }
 
 export default ForecastChart;
+

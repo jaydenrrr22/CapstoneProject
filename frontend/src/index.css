@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Nunito:200,300,400,500,600,700,800,900&display=swap');
 
 :root {
-  --color-card-bg: #fdfbe2;
+  --color-card-bg: #C9ADA7;
   --bg-1: #22223b;
   --bg-2: #4a4e69;
   --surface: var(--color-card-bg);
@@ -140,3 +140,4 @@ button:focus-visible {
   padding: 14px 18px;
   font-weight: 800;
 }
+

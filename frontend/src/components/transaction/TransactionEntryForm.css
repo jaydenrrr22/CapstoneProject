@@ -1,5 +1,5 @@
 .transaction-form {
-  --transaction-surface: #c9ada7;
+  --transaction-surface: #C9ADA7;
   --transaction-surface-strong: rgba(255, 255, 255, 0.34);
   --transaction-surface-soft: rgba(255, 255, 255, 0.22);
   --transaction-ink: #22223b;
@@ -320,7 +320,7 @@
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.32), transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
-    rgba(201, 173, 167, 0.92);
+    rgba(253, 251, 226, 0.92);
   box-shadow: 0 18px 34px rgba(10, 10, 20, 0.16);
 }
 
@@ -338,3 +338,4 @@
     max-width: none;
   }
 }
+

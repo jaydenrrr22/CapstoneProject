@@ -90,3 +90,4 @@ function TeamCard({ initials, name, role, color, bio, stack, linkedin, github })
 }
 
 export default TeamCard;
+

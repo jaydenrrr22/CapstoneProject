@@ -13,3 +13,4 @@ export function emitGlobalApiError(error, fallbackMessage = "Something went wron
     },
   }));
 }
+

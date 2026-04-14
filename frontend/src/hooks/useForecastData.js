@@ -220,3 +220,4 @@ export default function useForecastData({
     };
   }, [budgetLimit, horizon, selectedPeriod, transactions]);
 }
+
