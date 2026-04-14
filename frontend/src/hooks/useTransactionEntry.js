@@ -479,3 +479,4 @@ export default function useTransactionEntry({
     transactionTypeOptions: TRANSACTION_TYPE_OPTIONS,
   };
 }
+

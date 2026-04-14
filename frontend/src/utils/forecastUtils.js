@@ -191,3 +191,4 @@ export function toDate(value) {
   date.setHours(0, 0, 0, 0);
   return date;
 }
+

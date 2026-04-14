@@ -5,3 +5,4 @@ function IntelligenceGrid({ children }) {
 }
 
 export default IntelligenceGrid;
+

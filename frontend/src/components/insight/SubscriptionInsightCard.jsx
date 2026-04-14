@@ -60,3 +60,4 @@ function SubscriptionInsightCard({
 }
 
 export default SubscriptionInsightCard;
+

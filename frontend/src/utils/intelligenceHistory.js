@@ -34,3 +34,4 @@ export function mapIntelligenceHistoryRecord(record, index = 0) {
 export function mapIntelligenceHistoryRecords(records = []) {
   return (records || []).map((record, index) => mapIntelligenceHistoryRecord(record, index));
 }
+

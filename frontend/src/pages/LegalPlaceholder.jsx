@@ -21,3 +21,4 @@ function LegalPlaceholder({ title, summary }) {
 }
 
 export default LegalPlaceholder;
+

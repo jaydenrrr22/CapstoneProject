@@ -103,3 +103,4 @@ function PredictedTransactionsInsight({
 }
 
 export default PredictedTransactionsInsight;
+

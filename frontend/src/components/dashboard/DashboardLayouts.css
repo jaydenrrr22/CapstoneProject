@@ -3,7 +3,7 @@
 :root {
   --bg-1: #1f2436;
   --bg-2: #36415f;
-  --surface: #c9ada7;
+  --surface: #C9ADA7;
   --ink: #22223b;
   --ink-soft: #41435f;
   --brand: #22223b;
@@ -667,3 +667,4 @@ h3 {
     grid-template-columns: 1fr;
   }
 }
+

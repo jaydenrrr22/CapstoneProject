@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(240, 238, 217, 0.94);
+  background: #C9ADA7;
   border-bottom: 1px solid rgba(34, 34, 59, 0.15);
   box-shadow: 0 10px 24px rgba(10, 10, 20, 0.16);
   backdrop-filter: blur(12px);
@@ -159,3 +159,4 @@
     flex-wrap: wrap;
   }
 }
+

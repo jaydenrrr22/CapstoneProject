@@ -174,3 +174,4 @@ function AddTransactionModal() {
 }
 
 export default AddTransactionModal;
+
