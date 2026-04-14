@@ -10,7 +10,7 @@
   border: 1px solid rgba(34, 34, 59, 0.12);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent),
-    #c9ada7;
+    var(--color-card-bg);
   box-shadow: 0 16px 30px rgba(10, 10, 20, 0.16);
   overflow: hidden;
 }

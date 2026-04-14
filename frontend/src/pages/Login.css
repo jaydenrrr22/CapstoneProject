@@ -36,7 +36,7 @@
   padding: 14px 20px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent),
-    #c9ada7;
+    #fdfbe2;
   border: 1px solid rgba(34, 34, 59, 0.12);
   border-radius: 16px;
   box-shadow: 0 16px 34px rgba(10, 10, 20, 0.2);
@@ -57,7 +57,7 @@
   padding: 28px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent),
-    #c9ada7;
+    var(--color-card-bg);
   border: 1px solid rgba(34, 34, 59, 0.12);
   border-radius: 18px;
   box-shadow: 0 20px 40px rgba(10, 10, 20, 0.24);
@@ -284,7 +284,7 @@
   border: 1px solid rgba(255, 255, 255, 0.24);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent),
-    #f3e9e4;
+    var(--color-card-bg);
   color: #22223b;
   font-size: 1rem;
   font-weight: 800;

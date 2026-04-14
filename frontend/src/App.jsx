@@ -19,6 +19,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const IntelligenceDashboard = lazy(() => import("./pages/IntelligenceDashboard"));
 const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const Budgets = lazy(() => import("./pages/Budgets"));
+const ChurnPrediction = lazy(() => import("./pages/ChurnPrediction"));
 const MeetTheTeam = lazy(() => import("./pages/MeetTheTeam"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -116,6 +117,14 @@ function AppRoutes() {
             element={(
               <ProtectedRoute>
                 <Budgets />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/churn"
+            element={(
+              <ProtectedRoute>
+                <ChurnPrediction />
               </ProtectedRoute>
             )}
           />

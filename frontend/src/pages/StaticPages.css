@@ -247,7 +247,7 @@
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 28%),
-    #c9ada7;
+    var(--color-card-bg);
   box-shadow: 0 22px 46px rgba(10, 10, 20, 0.28);
   padding: clamp(26px, 5vw, 58px);
   animation: staticFadeUp 240ms ease both;
