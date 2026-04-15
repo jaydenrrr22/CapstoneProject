@@ -873,6 +873,7 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
                 "Failed to generate derived prediction records for user %s: %s",
                 user_id,
                 exc,
+                exc_info=True,
             )
 
     combined.sort(
