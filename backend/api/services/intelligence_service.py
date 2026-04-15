@@ -111,6 +111,35 @@ def _coerce_date_like(value: Any) -> Optional[date]:
     return None
 
 
+def safe_parse_details(details: Any, *, record_id: Any = "unknown") -> Optional[IntelligenceAnalysisDetails]:
+    if not details:
+        return None
+
+    try:
+        return IntelligenceAnalysisDetails.model_validate(details)
+    except (ValidationError, TypeError, ValueError) as exc:
+        logger.warning(
+            "Failed to parse history details for record %s: %s",
+            record_id,
+            exc,
+            exc_info=True,
+        )
+        return None
+
+
+def safe_parse_target(target_data: Any, *, record_id: Any = "unknown") -> Optional[date]:
+    try:
+        return _coerce_date_like(target_data)
+    except (TypeError, ValueError) as exc:
+        logger.warning(
+            "Failed to parse target_data for legacy record %s: %s",
+            record_id,
+            exc,
+            exc_info=True,
+        )
+        return None
+
+
 def _period_key(target_date: date) -> str:
     return target_date.strftime("%Y-%m")
 
@@ -749,17 +778,7 @@ def build_legacy_history_analysis(
 
 
 def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistoryResponse:
-    details = None
-    if record.details:
-        try:
-            details = IntelligenceAnalysisDetails.model_validate(record.details)
-        except (ValidationError, TypeError, ValueError) as exc:
-            logger.warning(
-                "Skipping invalid intelligence history details for record %s: %s",
-                record.id,
-                exc,
-                exc_info=True,
-            )
+    details = safe_parse_details(record.details, record_id=record.id)
 
     return IntelligenceHistoryResponse(
         id=record.id,
@@ -780,8 +799,7 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
 
 def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistoryResponse:
     confidence = _round_score(record.confidence_level)
-
-    target_date = _coerce_date_like(record.target_data)
+    target_date = safe_parse_target(record.target_data, record_id=record.id)
 
     return IntelligenceHistoryResponse(
         id=record.id,
@@ -803,6 +821,8 @@ def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistor
 
 
 def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[IntelligenceHistoryResponse]:
+    skipped_count = 0
+
     new_records = db.query(IntelligenceHistory).filter(
         IntelligenceHistory.user_id == user_id,
     ).order_by(IntelligenceHistory.created_at.desc()).limit(limit).all()
@@ -817,6 +837,7 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
         try:
             combined.append(serialize_history_record(record))
         except Exception as exc:
+            skipped_count += 1
             logger.warning(
                 "Skipping malformed intelligence history record %s: %s",
                 getattr(record, "id", "unknown"),
@@ -828,6 +849,7 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
         try:
             combined.append(map_legacy_prediction_record(record))
         except Exception as exc:
+            skipped_count += 1
             logger.warning(
                 "Skipping malformed legacy prediction record %s: %s",
                 getattr(record, "id", "unknown"),
@@ -838,18 +860,30 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
     remaining_slots = max(0, limit - len(combined))
 
     if remaining_slots > 0:
-        combined.extend(
-            _generate_derived_prediction_records(
-                db=db,
-                user_id=user_id,
-                limit=remaining_slots,
+        try:
+            combined.extend(
+                _generate_derived_prediction_records(
+                    db=db,
+                    user_id=user_id,
+                    limit=remaining_slots,
+                )
             )
-        )
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate derived prediction records for user %s: %s",
+                user_id,
+                exc,
+                exc_info=True,
+            )
 
     combined.sort(
         key=lambda item: _normalize_timestamp_value(item.timestamp),
         reverse=True,
     )
+
+    if skipped_count > 0:
+        logger.warning("Skipped %s invalid prediction history records for user %s", skipped_count, user_id)
+
     return combined[:limit]
 
 

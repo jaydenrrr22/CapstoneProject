@@ -7,7 +7,7 @@ import pytest
 
 from backend.api.models.user import User
 from backend.api.schemas.intelligence import IntelligenceHistoryResponse
-from backend.api.unit_testing.conftest import make_test_client, minimal_intelligence_response
+from backend.api.unit_testing.conftest import make_test_client, minimal_intelligence_response, override_db
 
 # `backend.api.routers.prediction` imports churn_model at module import time.
 # Stub it so tests don't require heavy optional ML deps (e.g. pandas).
@@ -30,12 +30,37 @@ def client(mock_db: MagicMock, sample_user: User):
         current_user=sample_user,
     )
 
+@pytest.fixture
+def lenient_client(mock_db: MagicMock, sample_user: User):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from backend.api.dependencies.auth import get_current_user
+    from backend.api.dependencies.database import get_db
+
+    app = FastAPI()
+    app.include_router(prediction_router.router)
+    app.dependency_overrides[get_db] = override_db(mock_db)
+    app.dependency_overrides[get_current_user] = lambda: sample_user
+    return TestClient(app, raise_server_exceptions=False)
+
 @patch("backend.api.routers.prediction.list_history_records")
 def test_get_prediction_history(mock_list: MagicMock, client: MagicMock) -> None:
     mock_list.return_value = []
     response = client.get("/prediction/history")
     assert response.status_code == 200
     assert response.json() == []
+
+
+@patch("backend.api.routers.prediction.list_history_records")
+def test_get_prediction_history_returns_500_on_unexpected_error(
+    mock_list: MagicMock,
+    lenient_client: MagicMock,
+) -> None:
+    mock_list.side_effect = RuntimeError("boom")
+
+    response = lenient_client.get("/prediction/history")
+
+    assert response.status_code == 500
 
 @patch("backend.api.routers.prediction.save_history_record")
 def test_create_prediction_history(mock_save: MagicMock, client: MagicMock) -> None:
