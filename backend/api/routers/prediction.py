@@ -28,14 +28,12 @@ from backend.api.services.churn_model import predict_churn_from_input
 
 from collections import defaultdict
 from time import time
-import logging
 
 REQUEST_TRACKER = defaultdict(list)
 REQUEST_LIMIT = 20
 REQUEST_WINDOW = 10  # seconds
 
 router = APIRouter(prefix="/prediction", tags=["Prediction"])
-logger = logging.getLogger(__name__)
 
 PredictionHistoryCreatePayload = Union[IntelligenceHistoryCreateRequest, PredictionCreateResponse]
 
@@ -46,16 +44,7 @@ def get_prediction_history(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user)
 ):
-    try:
-        return list_history_records(db=db, user_id=current_user.id, limit=limit)
-    except Exception as exc:
-        logger.error(
-            "Unexpected /prediction/history failure for user %s: %s",
-            current_user.id,
-            exc,
-            exc_info=True,
-        )
-        return []
+    return list_history_records(db=db, user_id=current_user.id, limit=limit)
 
 
 @router.post(

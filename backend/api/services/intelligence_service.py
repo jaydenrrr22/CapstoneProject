@@ -117,11 +117,12 @@ def safe_parse_details(details: Any, *, record_id: Any = "unknown") -> Optional[
 
     try:
         return IntelligenceAnalysisDetails.model_validate(details)
-    except Exception as exc:
+    except (ValidationError, TypeError, ValueError) as exc:
         logger.warning(
             "Failed to parse history details for record %s: %s",
             record_id,
             exc,
+            exc_info=True,
         )
         return None
 
@@ -129,11 +130,12 @@ def safe_parse_details(details: Any, *, record_id: Any = "unknown") -> Optional[
 def safe_parse_target(target_data: Any, *, record_id: Any = "unknown") -> Optional[date]:
     try:
         return _coerce_date_like(target_data)
-    except Exception as exc:
+    except (TypeError, ValueError) as exc:
         logger.warning(
             "Failed to parse target_data for legacy record %s: %s",
             record_id,
             exc,
+            exc_info=True,
         )
         return None
 
@@ -821,74 +823,67 @@ def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistor
 def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[IntelligenceHistoryResponse]:
     skipped_count = 0
 
-    try:
-        new_records = db.query(IntelligenceHistory).filter(
-            IntelligenceHistory.user_id == user_id,
-        ).order_by(IntelligenceHistory.created_at.desc()).limit(limit).all()
+    new_records = db.query(IntelligenceHistory).filter(
+        IntelligenceHistory.user_id == user_id,
+    ).order_by(IntelligenceHistory.created_at.desc()).limit(limit).all()
 
-        legacy_records = db.query(PredictionResult).filter(
-            PredictionResult.user_id == user_id,
-        ).order_by(PredictionResult.created_at.desc()).limit(limit).all()
+    legacy_records = db.query(PredictionResult).filter(
+        PredictionResult.user_id == user_id,
+    ).order_by(PredictionResult.created_at.desc()).limit(limit).all()
 
-        combined: list[IntelligenceHistoryResponse] = []
+    combined: list[IntelligenceHistoryResponse] = []
 
-        for record in new_records:
-            try:
-                combined.append(serialize_history_record(record))
-            except Exception as exc:
-                skipped_count += 1
-                logger.warning(
-                    "Skipping malformed intelligence history record %s: %s",
-                    getattr(record, "id", "unknown"),
-                    exc,
+    for record in new_records:
+        try:
+            combined.append(serialize_history_record(record))
+        except Exception as exc:
+            skipped_count += 1
+            logger.warning(
+                "Skipping malformed intelligence history record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+                exc_info=True,
+            )
+
+    for record in legacy_records:
+        try:
+            combined.append(map_legacy_prediction_record(record))
+        except Exception as exc:
+            skipped_count += 1
+            logger.warning(
+                "Skipping malformed legacy prediction record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+                exc_info=True,
+            )
+
+    remaining_slots = max(0, limit - len(combined))
+
+    if remaining_slots > 0:
+        try:
+            combined.extend(
+                _generate_derived_prediction_records(
+                    db=db,
+                    user_id=user_id,
+                    limit=remaining_slots,
                 )
+            )
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate derived prediction records for user %s: %s",
+                user_id,
+                exc,
+            )
 
-        for record in legacy_records:
-            try:
-                combined.append(map_legacy_prediction_record(record))
-            except Exception as exc:
-                skipped_count += 1
-                logger.warning(
-                    "Skipping malformed legacy prediction record %s: %s",
-                    getattr(record, "id", "unknown"),
-                    exc,
-                )
+    combined.sort(
+        key=lambda item: _normalize_timestamp_value(item.timestamp),
+        reverse=True,
+    )
 
-        remaining_slots = max(0, limit - len(combined))
+    if skipped_count > 0:
+        logger.warning("Skipped %s invalid prediction history records for user %s", skipped_count, user_id)
 
-        if remaining_slots > 0:
-            try:
-                combined.extend(
-                    _generate_derived_prediction_records(
-                        db=db,
-                        user_id=user_id,
-                        limit=remaining_slots,
-                    )
-                )
-            except Exception as exc:
-                logger.warning(
-                    "Failed to generate derived prediction records for user %s: %s",
-                    user_id,
-                    exc,
-                )
-
-        combined.sort(
-            key=lambda item: _normalize_timestamp_value(item.timestamp),
-            reverse=True,
-        )
-
-        if skipped_count > 0:
-            logger.warning("Skipped %s invalid prediction history records for user %s", skipped_count, user_id)
-
-        return combined[:limit]
-    except Exception as exc:
-        logger.error(
-            "Unexpected error loading prediction history for user %s: %s",
-            user_id,
-            exc,
-            exc_info=True,
-        )
-        return []
+    return combined[:limit]
 
 
 def delete_history_records(
