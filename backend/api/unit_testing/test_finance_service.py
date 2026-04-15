@@ -298,6 +298,8 @@ def test_list_history_records_skips_malformed_legacy_rows() -> None:
                 bad_legacy_record,
                 good_legacy_record,
             ]
+        elif model is Transaction:
+            query.filter.return_value.order_by.return_value.all.return_value = []
         else:
             query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
         return query

@@ -92,11 +92,9 @@ function InsightCard({
             className={`insight-card__details${expanded ? " is-open" : ""}`}
             style={{ height: expanded ? (contentHeight > 0 ? `${contentHeight}px` : "auto") : "0px" }}
           >
-            {expanded ? (
-              <div ref={detailsRef} className="insight-card__details-inner">
-                {children}
-              </div>
-            ) : null}
+            <div ref={detailsRef} className="insight-card__details-inner">
+              {children}
+            </div>
           </div>
         ) : (
           <div id={detailsId} className="insight-card__details-inner">

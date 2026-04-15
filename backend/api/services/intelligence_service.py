@@ -753,11 +753,12 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
     if record.details:
         try:
             details = IntelligenceAnalysisDetails.model_validate(record.details)
-        except Exception as exc:
+        except (ValidationError, TypeError, ValueError) as exc:
             logger.warning(
                 "Skipping invalid intelligence history details for record %s: %s",
                 record.id,
                 exc,
+                exc_info=True,
             )
 
     return IntelligenceHistoryResponse(
@@ -780,15 +781,7 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
 def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistoryResponse:
     confidence = _round_score(record.confidence_level)
 
-    try:
-        target_date = _coerce_date_like(record.target_data)
-    except Exception as exc:
-        logger.warning(
-            "Invalid target_data for legacy prediction record %s: %s",
-            record.id,
-            exc,
-        )
-        target_date = None
+    target_date = _coerce_date_like(record.target_data)
 
     return IntelligenceHistoryResponse(
         id=record.id,
@@ -828,6 +821,7 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
                 "Skipping malformed intelligence history record %s: %s",
                 getattr(record, "id", "unknown"),
                 exc,
+                exc_info=True,
             )
 
     for record in legacy_records:
@@ -838,6 +832,7 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
                 "Skipping malformed legacy prediction record %s: %s",
                 getattr(record, "id", "unknown"),
                 exc,
+                exc_info=True,
             )
 
     remaining_slots = max(0, limit - len(combined))

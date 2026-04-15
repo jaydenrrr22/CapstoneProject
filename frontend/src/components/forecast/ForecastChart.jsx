@@ -193,9 +193,8 @@ function ForecastChart({
             <div className="forecast-chart">
               <ResponsiveContainer
                 width="100%"
-                height={compact ? 220 : 250}
+                height="100%"
                 minWidth={280}
-                minHeight={compact ? 220 : 250}
               >
                 <LineChart data={forecast.data} margin={{ top: 12, right: 12, bottom: 8, left: 0 }}>
                   <defs>
