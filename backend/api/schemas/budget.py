@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class BudgetBase(BaseModel):
-    amount: float
+    amount: float = Field(..., ge=0)
     period: str = Field(..., pattern=r"^\d{4}-(0[1-9]|1[0-2])$", examples=["2026-03"])
 
 class BudgetCreate(BudgetBase):

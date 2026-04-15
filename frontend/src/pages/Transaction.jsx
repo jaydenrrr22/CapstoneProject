@@ -8,6 +8,7 @@ import "../components/dashboard/DashboardLayouts.css";
 import "./Subpages.css";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import { getExpenseAmount, getIncomeAmount, isIncomeAmount } from "../utils/finance";
+import { toDate } from "../utils/forecastUtils";
 import useDemoMode from "../hooks/useDemoMode";
 import useTransactionEntry, {
   CATEGORY_OPTIONS,
@@ -271,9 +272,9 @@ const TransactionPage = () => {
   };
 
   const formatLedgerDate = (value) => {
-    const date = new Date(value);
+    const date = toDate(value);
 
-    if (Number.isNaN(date.getTime())) {
+    if (!date) {
       return String(value).slice(0, 10);
     }
 

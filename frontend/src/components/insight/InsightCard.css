@@ -162,6 +162,18 @@
   overflow-wrap: anywhere;
 }
 
+.insight-card--positive .insight-card__value {
+  color: #125f2d;
+}
+
+.insight-card--warning .insight-card__value {
+  color: #7a4a00;
+}
+
+.insight-card--negative .insight-card__value {
+  color: #7a1510;
+}
+
 .insight-card__details {
   height: 0;
   opacity: 0;

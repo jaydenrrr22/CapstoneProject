@@ -10,7 +10,7 @@ import {
   toDate,
   toISODate,
 } from "../utils/forecastUtils";
-import { getBudgetPressureAmount } from "../utils/finance";
+import { getBudgetPressureAmount, getNetCashFlowAmount } from "../utils/finance";
 
 const HORIZON_TO_MONTHS = {
   "1M": 1,
@@ -43,7 +43,10 @@ function getStandardDeviation(values = [], mean = 0) {
 }
 
 function toTransactionAmount(transaction) {
-  return getBudgetPressureAmount(transaction?.cost ?? transaction?.amount ?? 0);
+  return getBudgetPressureAmount(
+    transaction?.cost ?? transaction?.amount ?? 0,
+    transaction?.category
+  );
 }
 
 export default function useForecastData({
@@ -51,12 +54,17 @@ export default function useForecastData({
   selectedPeriod,
   budgetLimit,
   horizon = FORECAST_HORIZONS[1],
+  metric = "expense",
 }) {
   return useMemo(() => {
+    const budgetReference = metric === "expense" && Number.isFinite(Number(budgetLimit))
+      ? Number(budgetLimit)
+      : null;
+
     if (!selectedPeriod) {
       return {
         averageDailyChange: 0,
-        budgetReference: Number.isFinite(Number(budgetLimit)) ? Number(budgetLimit) : null,
+        budgetReference,
         currentValue: 0,
         data: [],
         domain: [0, 100],
@@ -74,7 +82,7 @@ export default function useForecastData({
     if (!periodStart) {
       return {
         averageDailyChange: 0,
-        budgetReference: null,
+        budgetReference,
         currentValue: 0,
         data: [],
         domain: [0, 100],
@@ -89,7 +97,9 @@ export default function useForecastData({
 
     const filteredTransactions = transactions
       .map((transaction) => ({
-        amount: toTransactionAmount(transaction),
+        amount: metric === "net"
+          ? getNetCashFlowAmount(transaction?.cost ?? transaction?.amount ?? 0)
+          : toTransactionAmount(transaction),
         date: toDate(transaction?.date),
       }))
       .filter((transaction) => transaction.date && getPeriodKey(transaction.date) === selectedPeriod)
@@ -98,10 +108,10 @@ export default function useForecastData({
     if (filteredTransactions.length === 0) {
       return {
         averageDailyChange: 0,
-        budgetReference: Number.isFinite(Number(budgetLimit)) ? Number(budgetLimit) : null,
+        budgetReference,
         currentValue: 0,
         data: [],
-        domain: [0, Number(budgetLimit) || 100],
+        domain: [0, budgetReference || 100],
         emptyMessage: "No transactions are available for this period yet.",
         isEmpty: true,
         likelyRangeHigh: 0,
@@ -188,7 +198,6 @@ export default function useForecastData({
       cursor = addDays(cursor, 1);
     }
 
-    const budgetReference = Number.isFinite(Number(budgetLimit)) ? Number(budgetLimit) : null;
     const numericValues = chartData.flatMap((point) => [
       point.actualSpent,
       point.projectedLowerSpent,
@@ -218,6 +227,6 @@ export default function useForecastData({
       projectedDelta: roundCurrency(rollingProjection - currentValue),
       projectedEndValue: rollingProjection,
     };
-  }, [budgetLimit, horizon, selectedPeriod, transactions]);
+  }, [budgetLimit, horizon, metric, selectedPeriod, transactions]);
 }
 
