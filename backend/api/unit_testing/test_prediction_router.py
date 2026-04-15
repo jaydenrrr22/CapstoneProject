@@ -37,6 +37,19 @@ def test_get_prediction_history(mock_list: MagicMock, client: MagicMock) -> None
     assert response.status_code == 200
     assert response.json() == []
 
+
+@patch("backend.api.routers.prediction.list_history_records")
+def test_get_prediction_history_returns_empty_list_on_unexpected_error(
+    mock_list: MagicMock,
+    client: MagicMock,
+) -> None:
+    mock_list.side_effect = RuntimeError("boom")
+
+    response = client.get("/prediction/history")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
 @patch("backend.api.routers.prediction.save_history_record")
 def test_create_prediction_history(mock_save: MagicMock, client: MagicMock) -> None:
     base = minimal_intelligence_response()

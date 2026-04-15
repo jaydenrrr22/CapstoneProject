@@ -9,6 +9,8 @@ from backend.api.services.intelligence_service import (
     analyze_transaction_decision,
     calculate_financial_health,
     list_history_records,
+    safe_parse_details,
+    safe_parse_target,
     serialize_history_record,
 )
 from backend.api.models.prediction import PredictionResult
@@ -224,6 +226,38 @@ def test_serialize_history_record_tolerates_invalid_details_payload() -> None:
     assert serialized.projected_impact.balance_change == -24.99
 
 
+def test_serialize_history_record_tolerates_invalid_json_like_details_string() -> None:
+    record = IntelligenceHistory(
+        id=8,
+        user_id=42,
+        source="intelligence.analyze",
+        risk_score=0.2,
+        recommendation="Within budget",
+        explanation="Corrupted details payload.",
+        balance_change=-24.99,
+        budget_impact=1.5,
+        category_effect="Groceries",
+        confidence=0.9,
+        details="{invalid-json}",
+        created_at=datetime(2026, 4, 15, 12, 0, tzinfo=timezone.utc),
+    )
+
+    serialized = serialize_history_record(record)
+
+    assert serialized.id == 8
+    assert serialized.details is None
+
+
+def test_safe_parse_details_returns_none_for_bad_payload() -> None:
+    parsed = safe_parse_details("not-json", record_id=99)
+    assert parsed is None
+
+
+def test_safe_parse_target_returns_none_for_bad_value() -> None:
+    parsed = safe_parse_target("not-a-date", record_id=77)
+    assert parsed is None
+
+
 def test_calculate_financial_health_zero_budget_marks_risk_when_spend_exists() -> None:
     user_id = 42
     budget = Budget(id=1, amount=0.0, period="2026-03", user_id=user_id)
@@ -308,3 +342,19 @@ def test_list_history_records_skips_malformed_legacy_rows() -> None:
 
     assert len(records) == 1
     assert records[0].id == 11
+
+
+def test_list_history_records_returns_empty_list_for_empty_db() -> None:
+    user_id = 42
+    mock_db = MagicMock()
+
+    def _query(model, *args, **kwargs):
+        query = MagicMock()
+        query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+        return query
+
+    mock_db.query.side_effect = _query
+
+    records = list_history_records(mock_db, user_id=user_id, limit=10)
+
+    assert records == []
