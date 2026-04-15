@@ -11,6 +11,9 @@ from backend.api.models.subscription import Subscription
 from backend.api.models.transaction import Transaction
 from backend.api.services.finance_logic import expense_amount, is_subscription_category, is_income_category, is_budget_excluded_category
 
+# ~13 months to reliably detect monthly subscription patterns
+_SUBSCRIPTION_LOOKBACK_DAYS = 395
+
 
 def _normalize_merchant(value: Any) -> str:
     return str(value or "").strip().lower()
@@ -100,7 +103,7 @@ def sync_user_subscriptions(
     transactions: Optional[list[Transaction]] = None,
 ) -> list[dict[str, Any]]:
     if transactions is None:
-        cutoff_date = date.today() - timedelta(days=395)
+        cutoff_date = date.today() - timedelta(days=_SUBSCRIPTION_LOOKBACK_DAYS)
         transactions = (
             db.query(Transaction)
             .filter(
