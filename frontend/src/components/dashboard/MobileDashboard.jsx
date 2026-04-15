@@ -84,6 +84,14 @@ function MobileDashboard({
     () => buildFreshnessLabel(lastUpdatedAt),
     [lastUpdatedAt]
   );
+  const netTone = netDelta.currentNet < 0 ? "negative" : netDelta.currentNet > 0 ? "positive" : "neutral";
+  const netValueClass = netTone === "negative" ? "tx-negative" : netTone === "positive" ? "tx-positive" : "";
+  const budgetTotalLabel = selectedBudgetLimit || selectedBudgetLimit === 0
+    ? formatCurrency(selectedBudgetLimit, { precise: true })
+    : "--";
+  const totalSpentLabel = budgetProgress
+    ? formatCurrency(budgetProgress.spent, { precise: true })
+    : "--";
 
   return (
     <div className="dashboard-shell mobile-shell">
@@ -108,11 +116,11 @@ function MobileDashboard({
             <p>Total Budget</p>
             <span className="budget-stat__chip">Budget</span>
           </div>
-          <strong>{selectedBudgetLimit ? formatCurrency(selectedBudgetLimit, { precise: true }) : "--"}</strong>
+          <strong>{budgetTotalLabel}</strong>
           <span>For the selected month</span>
         </article>
 
-        <article className={`dashboard-summary-card card-surface dashboard-summary-card--${netDelta.direction === "up" ? "positive" : netDelta.direction === "down" ? "negative" : "neutral"}`}>
+        <article className={`dashboard-summary-card card-surface dashboard-summary-card--${netTone}`}>
           <div className="dashboard-summary-card__header">
             <p>Net This Period</p>
             <span className="budget-stat__chip">Trend</span>
@@ -124,25 +132,30 @@ function MobileDashboard({
         <article className={`dashboard-summary-card card-surface dashboard-summary-card--${budgetProgress?.tone || "neutral"}`}>
           <div className="dashboard-summary-card__header">
             <p>Budget Used</p>
-            <span className="budget-stat__chip">Pace</span>
+            <span className="budget-stat__chip">Month</span>
           </div>
           {budgetProgress ? (
             <>
               <strong>{budgetProgress.percentageUsed.toFixed(0)}%</strong>
               <div className="dashboard-progress">
                 <div
-                  className="dashboard-progress__fill"
-                  style={{ width: `${Math.min(100, budgetProgress.percentageUsed)}%` }}
+                  className={`dashboard-progress__fill${budgetProgress.isOverBudget ? " is-over-budget" : ""}`}
+                  style={{ width: `${budgetProgress.fillPercentage}%` }}
                 />
                 <div
                   className="dashboard-progress__marker"
                   style={{ left: `${budgetProgress.dayProgress}%` }}
                 />
               </div>
-              <span>{budgetProgress.paceStatus}</span>
+              <span>Spent {totalSpentLabel} of {budgetTotalLabel}</span>
+              <span>
+                {budgetProgress.isOverBudget
+                  ? `Over by ${formatCurrency(budgetProgress.overBudgetAmount, { precise: true })} | ${budgetProgress.dayLabel}`
+                  : `${budgetProgress.paceStatus} | ${budgetProgress.dayLabel}`}
+              </span>
             </>
           ) : (
-            <span className="muted">Set a budget to unlock pacing guidance.</span>
+            <span className="muted">Set a budget to unlock full-month guidance.</span>
           )}
         </article>
       </section>
@@ -186,8 +199,12 @@ function MobileDashboard({
 
             <div className="health-metrics-grid">
               <div>
+                <p>Total spent</p>
+                <h4>{formatCurrency(health.total_spent, { precise: true })}</h4>
+              </div>
+              <div>
                 <p>Net total</p>
-                <h4>{formatSignedCurrency(netDelta.currentNet)}</h4>
+                <h4 className={netValueClass}>{formatSignedCurrency(netDelta.currentNet)}</h4>
               </div>
               <div>
                 <p>Remaining</p>

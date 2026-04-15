@@ -219,6 +219,7 @@ export default function useTransactionEntry({
     const trimmedName = formData.store_name.trim();
     const enteredCost = Number(formData.cost);
     const trimmedNote = formData.note.trim();
+    const selectedCategory = String(formData.category || "").trim();
 
     if (!trimmedName) {
       nextErrors.store_name = "Add a merchant or income source.";
@@ -230,6 +231,10 @@ export default function useTransactionEntry({
 
     if (!formData.date) {
       nextErrors.date = "Choose a transaction date.";
+    }
+
+    if (transactionType === "spend" && selectedCategory.toLowerCase() === "income") {
+      nextErrors.category = "Choose an expense category for expenses.";
     }
 
     if (trimmedNote.length > NOTE_LIMIT) {
@@ -246,8 +251,8 @@ export default function useTransactionEntry({
     setSubmitError("");
 
     const normalizedCategory = transactionType === "deposit"
-      ? (formData.category === "Other" ? "Income" : formData.category)
-      : formData.category;
+      ? "Income"
+      : (selectedCategory || "Other");
 
     const mappedCategory = isRecurring && transactionType === "spend"
       ? `Subscription - ${normalizedCategory}`
@@ -255,7 +260,7 @@ export default function useTransactionEntry({
 
     return {
       store_name: trimmedName,
-      cost: transactionType === "deposit" ? Math.abs(enteredCost) : -Math.abs(enteredCost),
+      cost: Math.abs(enteredCost),
       date: formData.date,
       category: mappedCategory,
     };
@@ -302,6 +307,7 @@ export default function useTransactionEntry({
           onTransactionsChange(nextTransactions);
         }
       } else {
+        console.log("Sending transaction:", payload);
         await API.post("/transaction/create", payload);
         nextTransactions = await syncTransactions({ preserveLoadingState: true });
 

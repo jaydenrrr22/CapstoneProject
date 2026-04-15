@@ -1,5 +1,6 @@
-import { formatCurrency } from "../../utils/forecastUtils";
+import { formatCurrency, toDate } from "../../utils/forecastUtils";
 import {
+  calculateBudgetUsagePercentage,
   getBudgetPressureAmount,
   getExpenseAmount,
   isIncomeAmount,
@@ -30,11 +31,6 @@ function getPreviousPeriod(period) {
   return `${previous.getFullYear()}-${String(previous.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getCurrentPeriodKey() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
 function toMonthDayLabel(date) {
   return date.toLocaleDateString("en-US", {
     day: "numeric",
@@ -44,6 +40,10 @@ function toMonthDayLabel(date) {
 
 function clampPercentage(value) {
   return Math.max(0, Math.min(100, Number(value || 0)));
+}
+
+function normalizePercentage(value) {
+  return Math.max(0, Number(value || 0));
 }
 
 export function formatSignedCurrency(value) {
@@ -92,7 +92,7 @@ export function buildNetDelta(period, transactions = []) {
 }
 
 export function buildBudgetProgress(period, budgetLimit, health, transactions = []) {
-  if (!period || !Number.isFinite(Number(budgetLimit)) || Number(budgetLimit) <= 0) {
+  if (!period || !Number.isFinite(Number(budgetLimit)) || Number(budgetLimit) < 0) {
     return null;
   }
 
@@ -105,34 +105,43 @@ export function buildBudgetProgress(period, budgetLimit, health, transactions = 
   const totalSpent = health
     ? Number(health.total_spent || 0)
     : getPeriodTransactions(transactions, period).reduce(
-      (sum, transaction) => sum + getBudgetPressureAmount(transaction?.cost),
+      (sum, transaction) => sum + getBudgetPressureAmount(
+        transaction?.cost ?? transaction?.amount ?? 0,
+        transaction?.category
+      ),
       0
     );
   const percentageUsed = health
-    ? clampPercentage(health.percentage_used)
-    : clampPercentage((Math.max(totalSpent, 0) / Number(budgetLimit)) * 100);
-  const now = new Date();
+    ? normalizePercentage(health.percentage_used)
+    : normalizePercentage(calculateBudgetUsagePercentage(totalSpent, Number(budgetLimit)));
+  const fillPercentage = clampPercentage(percentageUsed);
   const daysInMonth = getDaysInMonth(periodDate);
-  const isCurrentPeriod = period === getCurrentPeriodKey();
-  const daysElapsed = isCurrentPeriod ? Math.min(now.getDate(), daysInMonth) : daysInMonth;
-  const dayProgress = clampPercentage((daysElapsed / daysInMonth) * 100);
+  const dayProgress = 100;
   const remaining = Number(budgetLimit) - totalSpent;
-  const paceDelta = percentageUsed - dayProgress;
+  const isOverBudget = remaining < 0 || percentageUsed > 100;
+  const overBudgetAmount = isOverBudget ? Math.abs(Math.min(remaining, 0)) : 0;
+  const paceDelta = percentageUsed - 100;
 
-  let paceStatus = "On pace";
-  let tone = "neutral";
+  let paceStatus = "Within budget";
+  let tone = "positive";
 
-  if (paceDelta >= 8) {
-    paceStatus = "Ahead of pace";
+  if (isOverBudget) {
+    paceStatus = "Over budget";
     tone = "negative";
-  } else if (paceDelta <= -8) {
-    paceStatus = "Under pace";
-    tone = "positive";
+  } else if (percentageUsed >= 90) {
+    paceStatus = "Near budget limit";
+    tone = "negative";
+  } else if (percentageUsed >= 70) {
+    paceStatus = "Tracking to budget";
+    tone = "neutral";
   }
 
   return {
-    dayLabel: `Day ${daysElapsed}/${daysInMonth}`,
+    dayLabel: `Full month (${daysInMonth} days)`,
     dayProgress,
+    fillPercentage,
+    isOverBudget,
+    overBudgetAmount,
     paceDelta,
     paceStatus,
     percentageUsed,
@@ -181,21 +190,35 @@ export function buildPulseBar({
   }
 
   if (budgetProgress) {
-    if (budgetProgress.paceDelta <= -8) {
+    if (budgetProgress.isOverBudget) {
       return {
-        tone: "positive",
-        title: "On track",
-        message: `You're ${Math.abs(Math.round(budgetProgress.paceDelta))}% under budget pace for ${selectedPeriod}. ${formatCurrency(budgetProgress.remaining, { precise: true })} is still available this period.`,
+        tone: "warning",
+        title: "Budget exceeded",
+        message: `You're over budget by ${formatCurrency(budgetProgress.overBudgetAmount, { precise: true })} in ${selectedPeriod}. Pause new discretionary spend until the month resets.`,
       };
     }
 
-    if (budgetProgress.paceDelta >= 8) {
+    if (budgetProgress.percentageUsed >= 90) {
       return {
         tone: "warning",
-        title: "Spending is running hot",
-        message: `You're ${Math.round(budgetProgress.paceDelta)}% ahead of pace for ${selectedPeriod}. Review the latest charges before the month closes.`,
+        title: "Budget is nearly tapped",
+        message: `${budgetProgress.percentageUsed.toFixed(0)}% of ${selectedPeriod} is allocated across the full month. ${formatCurrency(budgetProgress.remaining, { precise: true })} remains.`,
       };
     }
+
+    if (budgetProgress.percentageUsed <= 70) {
+      return {
+        tone: "positive",
+        title: "Budget has room",
+        message: `${budgetProgress.percentageUsed.toFixed(0)}% of ${selectedPeriod} is allocated across the full month. ${formatCurrency(budgetProgress.remaining, { precise: true })} remains.`,
+      };
+    }
+
+    return {
+      tone: "neutral",
+      title: "Budget is in range",
+      message: `${budgetProgress.percentageUsed.toFixed(0)}% of ${selectedPeriod} is allocated across the full month. ${formatCurrency(budgetProgress.remaining, { precise: true })} remains.`,
+    };
   }
 
   if (predictionCount > 0) {
@@ -231,11 +254,20 @@ function buildNextBestAction({ anomalies = [], budgetProgress, selectedPeriod = 
     };
   }
 
-  if (budgetProgress?.paceDelta >= 8) {
+  if (budgetProgress?.isOverBudget) {
     return {
       tone: "warning",
       title: "Rebalance this month's budget",
-      detail: `Current spend is ahead of pace for ${selectedPeriod}. Tighten variable categories before the next round of charges lands.`,
+      detail: `You're already over budget by ${formatCurrency(budgetProgress.overBudgetAmount, { precise: true })} for ${selectedPeriod}. Prioritize trimming the next outgoing charges.`,
+      kind: "action",
+    };
+  }
+
+  if (budgetProgress?.percentageUsed >= 90) {
+    return {
+      tone: "warning",
+      title: "Protect the remaining budget",
+      detail: `Only ${formatCurrency(budgetProgress.remaining, { precise: true })} remains across the full ${selectedPeriod} month. Review non-essential charges before adding more spend.`,
       kind: "action",
     };
   }
@@ -302,8 +334,10 @@ export function buildInsightsFeed({
   if (budgetProgress) {
     items.push({
       tone: budgetProgress.tone,
-      title: `Budget pace is ${budgetProgress.paceStatus.toLowerCase()}`,
-      detail: `${budgetProgress.dayLabel}. ${budgetProgress.percentageUsed.toFixed(0)}% of the budget is used for ${selectedPeriod}.`,
+      title: `Budget status is ${budgetProgress.paceStatus.toLowerCase()}`,
+      detail: budgetProgress.isOverBudget
+        ? `${budgetProgress.dayLabel}. ${budgetProgress.percentageUsed.toFixed(0)}% of the budget is used for ${selectedPeriod}, which is ${formatCurrency(budgetProgress.overBudgetAmount, { precise: true })} over budget.`
+        : `${budgetProgress.dayLabel}. ${budgetProgress.percentageUsed.toFixed(0)}% of the budget is used for ${selectedPeriod}, leaving ${formatCurrency(budgetProgress.remaining, { precise: true })} for the rest of the month.`,
       kind: "budget",
     });
   }
@@ -359,27 +393,22 @@ export function buildSpendTimeline(period, transactions = []) {
     return [];
   }
 
-  const today = new Date();
-  const isCurrentPeriod = period === getCurrentPeriodKey();
   const monthEnd = new Date(periodDate.getFullYear(), periodDate.getMonth() + 1, 0);
-  const effectiveEnd = isCurrentPeriod
-    ? new Date(Math.min(monthEnd.getTime(), today.getTime()))
-    : monthEnd;
 
-  if (effectiveEnd < periodDate) {
+  if (monthEnd < periodDate) {
     return [];
   }
 
   const buckets = [];
   let cursor = new Date(periodDate);
 
-  while (cursor <= effectiveEnd) {
+  while (cursor <= monthEnd) {
     const bucketStart = new Date(cursor);
     const bucketEnd = new Date(cursor);
     bucketEnd.setDate(bucketEnd.getDate() + 6);
 
-    if (bucketEnd > effectiveEnd) {
-      bucketEnd.setTime(effectiveEnd.getTime());
+    if (bucketEnd > monthEnd) {
+      bucketEnd.setTime(monthEnd.getTime());
     }
 
     buckets.push({
@@ -394,9 +423,9 @@ export function buildSpendTimeline(period, transactions = []) {
   }
 
   getPeriodTransactions(transactions, period).forEach((transaction) => {
-    const dateValue = new Date(transaction.date);
+    const dateValue = toDate(transaction.date);
 
-    if (Number.isNaN(dateValue.getTime())) {
+    if (!dateValue) {
       return;
     }
 
@@ -409,7 +438,10 @@ export function buildSpendTimeline(period, transactions = []) {
     }
 
     matchingBucket.spend = Number(
-      (matchingBucket.spend + getBudgetPressureAmount(transaction.cost)).toFixed(2)
+      (
+        matchingBucket.spend
+        + getBudgetPressureAmount(transaction?.cost ?? transaction?.amount ?? 0, transaction?.category)
+      ).toFixed(2)
     );
   });
 

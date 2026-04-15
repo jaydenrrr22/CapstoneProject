@@ -119,6 +119,7 @@ function TransactionEntryForm({
               <option key={option} value={option}>{option}</option>
             ))}
           </select>
+          <FieldError error={fieldErrors.category} />
         </label>
 
         <label className="transaction-form__field">

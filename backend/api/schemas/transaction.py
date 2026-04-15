@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import date
 from typing import Optional
 
@@ -9,7 +9,7 @@ class TransactionBase(BaseModel):
     category: Optional[str] = None
 
 class TransactionCreate(TransactionBase):
-    cost: float
+    cost: float = Field(..., gt=0)
     date: date
     store_name: str
 

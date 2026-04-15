@@ -5,15 +5,21 @@ import {
   toDate,
   toISODate,
 } from "./forecastUtils";
-import { getExpenseAmount, toSignedAmount } from "./finance";
+import {
+  getBudgetPressureAmount as getBudgetPressureValue,
+  getExpenseAmount,
+  toSignedAmount,
+} from "./finance";
 
 function roundCurrency(value) {
   return Math.round(Number(value || 0) * 100) / 100;
 }
 
 function getBudgetPressureAmount(transaction) {
-  const amount = toSignedAmount(transaction?.cost ?? transaction?.amount ?? 0);
-  return amount < 0 ? Math.abs(amount) : -amount;
+  return getBudgetPressureValue(
+    transaction?.cost ?? transaction?.amount ?? 0,
+    transaction?.category
+  );
 }
 
 function getMonthEnd(date) {
@@ -136,7 +142,7 @@ export function buildDecisionSimulationModel({
   );
   const projectedValue = toFiniteNumber(
     details.projected_spent_this_period,
-    currentValue + (pendingAmount > 0 ? -pendingAmount : getExpenseAmount(pendingTransaction?.cost || 0)),
+    currentValue + (pendingAmount > 0 ? 0 : getExpenseAmount(pendingTransaction?.cost || 0)),
   );
   const decisionDelta = roundCurrency(projectedValue - currentValue);
   const observedDays = Math.max(1, actionDate.getDate());
