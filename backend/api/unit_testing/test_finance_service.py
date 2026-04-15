@@ -8,8 +8,10 @@ from backend.api.schemas.intelligence import IntelligenceAnalyzeRequest
 from backend.api.services.intelligence_service import (
     analyze_transaction_decision,
     calculate_financial_health,
+    list_history_records,
     serialize_history_record,
 )
+from backend.api.models.prediction import PredictionResult
 from backend.api.services.finance_logic import (
     budget_pressure_amount,
     normalize_transaction_amount,
@@ -262,3 +264,49 @@ def test_budget_pressure_amount_excludes_non_budget_categories() -> None:
     assert budget_pressure_amount(-300.0, "Investment") == 0.0
     assert budget_pressure_amount(-0.01, "System") == 0.0
     assert budget_pressure_amount(-98.99, "Groceries") == 98.99
+
+
+def test_list_history_records_skips_malformed_legacy_rows() -> None:
+    user_id = 42
+    mock_db = MagicMock()
+
+    bad_legacy_record = PredictionResult(
+        id=10,
+        user_id=user_id,
+        created_at=datetime(2026, 4, 15, 9, 0, tzinfo=timezone.utc),
+        target_data="not-a-date",
+        predicted_spending=123.45,
+        expected_savings=67.89,
+        confidence_level="not-a-number",
+    )
+    good_legacy_record = PredictionResult(
+        id=11,
+        user_id=user_id,
+        created_at=datetime(2026, 4, 15, 10, 0, tzinfo=timezone.utc),
+        target_data=date(2026, 4, 30),
+        predicted_spending=150.0,
+        expected_savings=25.0,
+        confidence_level=0.8,
+    )
+
+    def _query(model, *args, **kwargs):
+        query = MagicMock()
+        if model is IntelligenceHistory:
+            query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+        elif model is PredictionResult:
+            query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = [
+                bad_legacy_record,
+                good_legacy_record,
+            ]
+        elif model is Transaction:
+            query.filter.return_value.order_by.return_value.all.return_value = []
+        else:
+            query.filter.return_value.order_by.return_value.limit.return_value.all.return_value = []
+        return query
+
+    mock_db.query.side_effect = _query
+
+    records = list_history_records(mock_db, user_id=user_id, limit=10)
+
+    assert len(records) == 1
+    assert records[0].id == 11

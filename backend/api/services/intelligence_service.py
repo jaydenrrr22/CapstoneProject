@@ -83,10 +83,13 @@ def _round_score(value: Any) -> float:
     return round(float(value or 0.0), 4)
 
 
-def _normalize_timestamp_value(value: datetime) -> datetime:
-    if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+def _normalize_timestamp_value(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
+    return datetime.min.replace(tzinfo=timezone.utc)
 
 
 def _coerce_date_like(value: Any) -> Optional[date]:
@@ -755,6 +758,7 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
                 "Skipping invalid intelligence history details for record %s: %s",
                 record.id,
                 exc,
+                exc_info=True,
             )
 
     return IntelligenceHistoryResponse(
@@ -776,6 +780,7 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
 
 def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistoryResponse:
     confidence = _round_score(record.confidence_level)
+
     target_date = _coerce_date_like(record.target_data)
 
     return IntelligenceHistoryResponse(
@@ -806,10 +811,29 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
         PredictionResult.user_id == user_id,
     ).order_by(PredictionResult.created_at.desc()).limit(limit).all()
 
-    combined = [
-        *[serialize_history_record(record) for record in new_records],
-        *[map_legacy_prediction_record(record) for record in legacy_records],
-    ]
+    combined: list[IntelligenceHistoryResponse] = []
+
+    for record in new_records:
+        try:
+            combined.append(serialize_history_record(record))
+        except Exception as exc:
+            logger.warning(
+                "Skipping malformed intelligence history record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+                exc_info=True,
+            )
+
+    for record in legacy_records:
+        try:
+            combined.append(map_legacy_prediction_record(record))
+        except Exception as exc:
+            logger.warning(
+                "Skipping malformed legacy prediction record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+                exc_info=True,
+            )
 
     remaining_slots = max(0, limit - len(combined))
 

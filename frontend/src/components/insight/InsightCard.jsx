@@ -20,7 +20,7 @@ function InsightCard({
   const [contentHeight, setContentHeight] = useState(0);
 
   useEffect(() => {
-    if (!isCollapsible || !detailsRef.current) {
+    if (!isCollapsible || !expanded || !detailsRef.current) {
       return;
     }
 
@@ -45,7 +45,7 @@ function InsightCard({
     return () => {
       observer.disconnect();
     };
-  }, [children, expanded]);
+  }, [children, expanded, isCollapsible]);
 
   const resolvedStatus = ["positive", "warning", "negative", "neutral"].includes(status)
     ? status
@@ -90,7 +90,7 @@ function InsightCard({
           <div
             id={detailsId}
             className={`insight-card__details${expanded ? " is-open" : ""}`}
-            style={{ height: expanded ? `${contentHeight}px` : "0px" }}
+            style={{ height: expanded ? (contentHeight > 0 ? `${contentHeight}px` : "auto") : "0px" }}
           >
             <div ref={detailsRef} className="insight-card__details-inner">
               {children}
