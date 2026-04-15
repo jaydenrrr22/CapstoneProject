@@ -7,8 +7,7 @@ import {
 } from "./forecastUtils";
 import {
   getBudgetPressureAmount as getBudgetPressureValue,
-  getExpenseAmount,
-  toSignedAmount,
+  isBudgetExcludedCategory,
 } from "./finance";
 
 function roundCurrency(value) {
@@ -122,8 +121,10 @@ export function buildDecisionSimulationModel({
   apiSimulation,
 }) {
   const actionDate = toDate(pendingTransaction?.date) || new Date();
-  const pendingAmount = toSignedAmount(pendingTransaction?.cost || 0);
-  const isDeposit = pendingAmount > 0;
+  const pendingCost = Math.abs(Number(pendingTransaction?.cost || 0));
+  const pendingCategory = pendingTransaction?.category;
+  const isDeposit = String(pendingCategory || "").trim().toLowerCase().startsWith("income");
+  const pendingBudgetImpact = (isDeposit || isBudgetExcludedCategory(pendingCategory)) ? 0 : pendingCost;
   const periodKey = getPeriodKey(actionDate);
   const periodStart = parsePeriodStart(periodKey) || new Date(actionDate.getFullYear(), actionDate.getMonth(), 1);
   const periodEnd = getMonthEnd(actionDate);
@@ -142,7 +143,7 @@ export function buildDecisionSimulationModel({
   );
   const projectedValue = toFiniteNumber(
     details.projected_spent_this_period,
-    currentValue + (pendingAmount > 0 ? 0 : getExpenseAmount(pendingTransaction?.cost || 0)),
+    currentValue + pendingBudgetImpact,
   );
   const decisionDelta = roundCurrency(projectedValue - currentValue);
   const observedDays = Math.max(1, actionDate.getDate());

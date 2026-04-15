@@ -307,7 +307,6 @@ export default function useTransactionEntry({
           onTransactionsChange(nextTransactions);
         }
       } else {
-        console.log("Sending transaction:", payload);
         await API.post("/transaction/create", payload);
         nextTransactions = await syncTransactions({ preserveLoadingState: true });
 

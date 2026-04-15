@@ -1,4 +1,6 @@
+import logging
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from starlette import status
@@ -13,6 +15,8 @@ from backend.api.services.subscription_service import sync_user_subscriptions
 
 #  cache invalidation import
 from backend.api.cache import clear_prediction_cache
+
+logger = logging.getLogger(__name__)
 
 
 MERCHANT_CATEGORIES = {
@@ -111,7 +115,11 @@ def create_transaction(
     db.add(new_transaction)
     db.commit()
     db.refresh(new_transaction)
-    sync_user_subscriptions(db, current_user.id)
+
+    try:
+        sync_user_subscriptions(db, current_user.id)
+    except Exception:
+        logger.exception("Subscription sync failed after transaction create (user=%s)", current_user.id)
 
     # *** - invalidate prediction cache
     clear_prediction_cache()
@@ -145,7 +153,11 @@ def delete_transaction(
 
     db.delete(transaction)
     db.commit()
-    sync_user_subscriptions(db, current_user.id)
+
+    try:
+        sync_user_subscriptions(db, current_user.id)
+    except Exception:
+        logger.exception("Subscription sync failed after transaction delete (user=%s)", current_user.id)
 
     # invalidate cache
     clear_prediction_cache()
@@ -190,7 +202,11 @@ def update_transaction(
 
     db.commit()
     db.refresh(transaction)
-    sync_user_subscriptions(db, current_user.id)
+
+    try:
+        sync_user_subscriptions(db, current_user.id)
+    except Exception:
+        logger.exception("Subscription sync failed after transaction update (user=%s)", current_user.id)
 
     clear_prediction_cache()
 

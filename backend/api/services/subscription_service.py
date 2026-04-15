@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from datetime import date, timedelta
 from typing import Any, Optional
 
 from sqlalchemy import asc
@@ -8,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from backend.api.models.subscription import Subscription
 from backend.api.models.transaction import Transaction
-from backend.api.services.finance_logic import expense_amount, is_subscription_category
+from backend.api.services.finance_logic import expense_amount, is_subscription_category, is_income_category, is_budget_excluded_category
 
 
 def _normalize_merchant(value: Any) -> str:
@@ -99,12 +100,20 @@ def sync_user_subscriptions(
     transactions: Optional[list[Transaction]] = None,
 ) -> list[dict[str, Any]]:
     if transactions is None:
+        cutoff_date = date.today() - timedelta(days=395)
         transactions = (
             db.query(Transaction)
-            .filter(Transaction.user_id == user_id)
+            .filter(
+                Transaction.user_id == user_id,
+                Transaction.date >= cutoff_date,
+            )
             .order_by(asc(Transaction.date), asc(Transaction.id))
             .all()
         )
+        transactions = [
+            t for t in transactions
+            if not is_income_category(t.category) and not is_budget_excluded_category(t.category)
+        ]
     else:
         transactions = sorted(transactions, key=lambda item: (item.date, item.id))
 
