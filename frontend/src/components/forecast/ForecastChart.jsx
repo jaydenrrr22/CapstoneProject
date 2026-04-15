@@ -191,7 +191,12 @@ function ForecastChart({
 
           <div className={`forecast-chart-shell${compact ? " compact" : ""}`}>
             <div className="forecast-chart">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height={compact ? 220 : 250}
+                minWidth={280}
+                minHeight={compact ? 220 : 250}
+              >
                 <LineChart data={forecast.data} margin={{ top: 12, right: 12, bottom: 8, left: 0 }}>
                   <defs>
                     <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">

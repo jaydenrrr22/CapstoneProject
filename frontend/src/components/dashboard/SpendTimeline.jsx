@@ -43,7 +43,7 @@ function SpendTimeline({
         <p className="muted">Weekly spend will appear here once this period has transaction activity.</p>
       ) : (
         <div className="spend-timeline__chart">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={300} minWidth={280} minHeight={300}>
             <BarChart data={data} margin={{ top: 10, right: 6, left: -10, bottom: 0 }}>
               <CartesianGrid stroke="rgba(34, 34, 59, 0.08)" vertical={false} />
               <XAxis

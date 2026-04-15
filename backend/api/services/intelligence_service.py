@@ -83,10 +83,13 @@ def _round_score(value: Any) -> float:
     return round(float(value or 0.0), 4)
 
 
-def _normalize_timestamp_value(value: datetime) -> datetime:
-    if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+def _normalize_timestamp_value(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
+    return datetime.min.replace(tzinfo=timezone.utc)
 
 
 def _coerce_date_like(value: Any) -> Optional[date]:
@@ -750,7 +753,7 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
     if record.details:
         try:
             details = IntelligenceAnalysisDetails.model_validate(record.details)
-        except (ValidationError, TypeError, ValueError) as exc:
+        except Exception as exc:
             logger.warning(
                 "Skipping invalid intelligence history details for record %s: %s",
                 record.id,
@@ -776,7 +779,16 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
 
 def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistoryResponse:
     confidence = _round_score(record.confidence_level)
-    target_date = _coerce_date_like(record.target_data)
+
+    try:
+        target_date = _coerce_date_like(record.target_data)
+    except Exception as exc:
+        logger.warning(
+            "Invalid target_data for legacy prediction record %s: %s",
+            record.id,
+            exc,
+        )
+        target_date = None
 
     return IntelligenceHistoryResponse(
         id=record.id,
@@ -806,10 +818,27 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
         PredictionResult.user_id == user_id,
     ).order_by(PredictionResult.created_at.desc()).limit(limit).all()
 
-    combined = [
-        *[serialize_history_record(record) for record in new_records],
-        *[map_legacy_prediction_record(record) for record in legacy_records],
-    ]
+    combined: list[IntelligenceHistoryResponse] = []
+
+    for record in new_records:
+        try:
+            combined.append(serialize_history_record(record))
+        except Exception as exc:
+            logger.warning(
+                "Skipping malformed intelligence history record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+            )
+
+    for record in legacy_records:
+        try:
+            combined.append(map_legacy_prediction_record(record))
+        except Exception as exc:
+            logger.warning(
+                "Skipping malformed legacy prediction record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+            )
 
     remaining_slots = max(0, limit - len(combined))
 
