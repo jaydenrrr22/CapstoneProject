@@ -24,12 +24,13 @@ const DEFAULT_SORT = {
 
 function escapeCsvValue(value) {
   const stringValue = String(value ?? "");
+  const safeValue = /^[=+\-@]/.test(stringValue) ? `'${stringValue}` : stringValue;
 
-  if (/[",\n]/.test(stringValue)) {
-    return `"${stringValue.replace(/"/g, "\"\"")}"`;
+  if (/[",\n]/.test(safeValue)) {
+    return `"${safeValue.replace(/"/g, "\"\"")}"`;
   }
 
-  return stringValue;
+  return safeValue;
 }
 
 function triggerCsvDownload(filename, content) {
