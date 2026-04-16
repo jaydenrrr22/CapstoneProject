@@ -9,6 +9,32 @@ import useDemoMode from "../hooks/useDemoMode";
 import { buildDemoBudgetProgress } from "../demo/demoUtils";
 
 function Budgets() {
+  const formatCurrency = (value) => {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return "--";
+    }
+
+    return numericValue.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+  };
+
+  const formatBudgetPeriod = (value) => {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(value || ""))) {
+      return String(value || "--");
+    }
+
+    const [year, month] = String(value).split("-");
+
+    return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+  };
+
   const formatSignedCurrency = (value) => {
     const numericValue = Number(value);
 
@@ -16,7 +42,12 @@ function Budgets() {
       return "--";
     }
 
-    return `${numericValue < 0 ? "-" : ""}$${Math.abs(numericValue).toFixed(2)}`;
+    const formattedValue = Math.abs(numericValue).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+
+    return `${numericValue < 0 ? "-" : ""}${formattedValue}`;
   };
 
   const {
@@ -272,19 +303,22 @@ function Budgets() {
             {error && <p className="subpage-error">{error}</p>}
 
             {isDemoMode && (
-              <p className="muted">
+              <p className="muted budgets-demo-note">
                 Demo mode edits update this session only and never write to the backend.
               </p>
             )}
 
-            <button className="subpage-submit" type="submit" disabled={saving}>
+            <button className="subpage-submit budgets-create-button" type="submit" disabled={saving}>
               {saving ? "Saving..." : "Create Budget"}
             </button>
           </form>
 
           {progress && (
-            <div className="subpage-metric-card">
-              <h4>Budget Progress ({progress.month})</h4>
+            <div className="subpage-metric-card budget-progress-card">
+              <div className="budget-progress-card__header">
+                <h4>Budget Progress</h4>
+                <span className="budget-progress-card__period">{formatBudgetPeriod(progress.month)}</span>
+              </div>
               <div className={`budget-progress-track${isOverBudget ? " is-over-budget" : ""}`} aria-label="Budget used">
                 <div
                   className={`budget-progress-fill ${progress.status.toLowerCase()}`}
@@ -293,13 +327,31 @@ function Budgets() {
               </div>
               <div className="budget-progress-labels">
                 <span>Used: {progressUsed.toFixed(1)}%</span>
-                <span>{isOverBudget ? `Over by: $${overBudgetAmount.toFixed(2)}` : `Remaining: ${progressRemainingRatio.toFixed(1)}%`}</span>
+                <span>{isOverBudget ? `Over by: ${formatCurrency(overBudgetAmount)}` : `Remaining: ${progressRemainingRatio.toFixed(1)}%`}</span>
               </div>
-              <p>Budget Limit: ${progress.budget_limit.toFixed(2)}</p>
-              <p>Period Total: {formatSignedCurrency(progress.total_spent)}</p>
-              <p>Remaining: {formatSignedCurrency(progress.remaining_balance)}</p>
-              <p>Status: {progress.status}</p>
-              {isOverBudget ? <p className="budget-progress-overrun">You are over budget by ${overBudgetAmount.toFixed(2)}.</p> : null}
+              <div className="budget-progress-card__stats">
+                <div className="budget-progress-card__stat">
+                  <span>Budget Limit</span>
+                  <strong>{formatCurrency(progress.budget_limit)}</strong>
+                </div>
+                <div className="budget-progress-card__stat">
+                  <span>Period Total</span>
+                  <strong>{formatSignedCurrency(progress.total_spent)}</strong>
+                </div>
+                <div className="budget-progress-card__stat">
+                  <span>Remaining</span>
+                  <strong>{formatSignedCurrency(progress.remaining_balance)}</strong>
+                </div>
+                <div className="budget-progress-card__stat">
+                  <span>Status</span>
+                  <strong>
+                    <span className={`budget-progress-status is-${String(progress.status || "").toLowerCase()}`}>
+                      {progress.status}
+                    </span>
+                  </strong>
+                </div>
+              </div>
+              {isOverBudget ? <p className="budget-progress-overrun">You are over budget by {formatCurrency(overBudgetAmount)}.</p> : null}
             </div>
           )}
         </section>
@@ -310,16 +362,18 @@ function Budgets() {
           </div>
 
           {budgets.length > 0 && (
-            <div className="subpage-filter-row">
-              <label>Progress Month:</label>
-              <select
-                value={progressPeriod || budgets[0].period}
-                onChange={(event) => loadProgressForPeriod(event.target.value)}
-              >
-                {budgets.map((budget) => (
-                  <option key={budget.id} value={budget.period}>{budget.period}</option>
-                ))}
-              </select>
+            <div className="subpage-filter-row budgets-filter-row">
+              <label className="transaction-ledger-filter budgets-progress-filter">
+                <span>Progress Month</span>
+                <select
+                  value={progressPeriod || budgets[0].period}
+                  onChange={(event) => loadProgressForPeriod(event.target.value)}
+                >
+                  {budgets.map((budget) => (
+                    <option key={budget.id} value={budget.period}>{formatBudgetPeriod(budget.period)}</option>
+                  ))}
+                </select>
+              </label>
             </div>
           )}
 
@@ -337,9 +391,9 @@ function Budgets() {
                 <span>Actions</span>
               </div>
 
-              {budgets.map((budget) => (
-                <div key={budget.id} className="subpage-table-row budgets-table-row">
-                  <span>{budget.period}</span>
+              {budgets.map((budget, index) => (
+                <div key={budget.id} className={`subpage-table-row budgets-table-row${index % 2 === 1 ? " is-alt" : ""}`}>
+                  <span>{formatBudgetPeriod(budget.period)}</span>
                   <span>
                     {editingBudgetId === budget.id ? (
                       <input
@@ -351,7 +405,7 @@ function Budgets() {
                         onChange={(event) => setEditingAmount(event.target.value)}
                       />
                     ) : (
-                      `$${Number(budget.amount).toFixed(2)}`
+                      formatCurrency(budget.amount)
                     )}
                   </span>
                   <div className="subpage-actions">

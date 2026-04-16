@@ -10,7 +10,7 @@
 .intelligence-hero {
   display: grid;
   gap: 14px;
-  padding: clamp(18px, 2vw, 24px);
+  padding: 20px 24px;
   border-radius: 20px;
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 34%),
@@ -28,25 +28,26 @@
 
 .intelligence-hero__copy p {
   color: #393a56;
-  line-height: 1.6;
-  font-size: 0.98rem;
+  line-height: 1.55;
+  font-size: 13px;
 }
 
 .intelligence-hero h2 {
   margin: 0;
   color: #22223b;
-  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-size: 18px;
   font-family: "Nunito", "Segoe UI", sans-serif;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .intelligence-hero__eyebrow {
   margin: 0;
   color: #4a4e69;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
-  font-size: 0.74rem;
+  letter-spacing: 0.07em;
+  font-weight: 600;
+  font-size: 11px;
+  opacity: 0.6;
 }
 
 .intelligence-hero__stats {
@@ -65,8 +66,12 @@
 .intelligence-hero__stat span {
   display: block;
   color: #4a4e69;
-  font-size: 0.8rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   margin-bottom: 6px;
+  opacity: 0.6;
+  text-transform: uppercase;
 }
 
 .intelligence-hero__stat strong {
@@ -84,6 +89,13 @@
 .intelligence-stack {
   display: grid;
   gap: 14px;
+}
+
+.intelligence-panel--forecast .insight-card,
+.intelligence-panel--anomalies .insight-card,
+.intelligence-panel--subscriptions .insight-card {
+  min-height: 110px;
+  padding: 16px 20px;
 }
 
 .intelligence-alert-list,

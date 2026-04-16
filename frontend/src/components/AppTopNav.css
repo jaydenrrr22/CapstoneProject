@@ -82,16 +82,20 @@
 .app-top-nav-links a {
   text-decoration: none;
   color: #22223b;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 0.9rem;
-  padding: 8px 12px;
-  border-radius: 10px;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
-.app-top-nav-links a:hover,
+.app-top-nav-links a:hover {
+  background: rgba(34, 34, 59, 0.08);
+}
+
 .app-top-nav-links a.active {
   background: rgba(34, 34, 59, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .app-top-nav-logout {

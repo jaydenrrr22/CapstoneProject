@@ -46,10 +46,11 @@
 .eyebrow {
   margin: 0;
   color: rgba(65, 67, 95, 0.92);
-  font-size: 0.74rem;
-  letter-spacing: 0.09em;
+  font-size: 11px;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  font-weight: 800;
+  font-weight: 600;
+  opacity: 0.6;
 }
 
 h1,
@@ -140,8 +141,8 @@ h3 {
   display: flex;
   gap: 16px;
   margin-bottom: 18px;
-  padding: 18px 22px;
-  border-radius: 22px;
+  padding: 14px 20px;
+  border-radius: var(--border-radius-lg);
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 18px 34px rgba(10, 10, 20, 0.2);
@@ -154,10 +155,11 @@ h3 {
 
 .dashboard-pulse__label {
   margin-bottom: 6px;
-  font-size: 0.74rem;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
+  opacity: 0.6;
 }
 
 .dashboard-pulse--positive {
@@ -202,11 +204,12 @@ h3 {
 }
 
 .dashboard-summary-card {
-  min-height: 162px;
-  padding: 18px;
-  display: grid;
-  gap: 10px;
-  align-content: start;
+  min-height: 138px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: flex-start;
 }
 
 .dashboard-summary-card__header {
@@ -310,6 +313,11 @@ h3 {
   min-width: 0;
 }
 
+.desktop-transactions-panel,
+.dashboard-feed {
+  padding: 16px 20px;
+}
+
 .desktop-health-panel {
   grid-area: health;
   display: grid;
@@ -365,6 +373,11 @@ h3 {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.section-heading h3 {
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .health-period-select {
@@ -425,16 +438,23 @@ h3 {
 
 .health-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(34, 34, 59, 0.13);
+  background: rgba(255, 255, 255, 0.38);
 }
 
 .health-metrics-grid div {
   min-width: 0;
-  padding: 12px 13px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.38);
-  border: 1px solid rgba(34, 34, 59, 0.13);
+  padding: 10px 14px;
+  background: transparent;
+  border-right: 1px solid rgba(34, 34, 59, 0.13);
+}
+
+.health-metrics-grid div:last-child {
+  border-right: none;
 }
 
 .health-metrics-grid p {
@@ -479,6 +499,12 @@ h3 {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.28);
   border: 1px solid rgba(34, 34, 59, 0.1);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dashboard-transaction-row:hover {
+  background: rgba(255, 255, 255, 0.36);
+  border-color: rgba(34, 34, 59, 0.16);
 }
 
 .dashboard-transaction-row.is-flagged {
@@ -558,6 +584,23 @@ h3 {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.3);
   border: 1px solid rgba(34, 34, 59, 0.1);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.dashboard-feed__item:hover {
+  background: rgba(255, 255, 255, 0.36);
+  border-color: rgba(34, 34, 59, 0.16);
+}
+
+.desktop-transactions-panel .section-heading h3,
+.dashboard-feed__heading h3 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.desktop-transactions-panel .section-heading,
+.dashboard-feed__heading {
+  margin-bottom: 16px;
 }
 
 .dashboard-feed__item--warning {
@@ -668,6 +711,15 @@ h3 {
 
   .health-metrics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .health-metrics-grid div {
+    border-right: none;
+    border-bottom: 1px solid rgba(34, 34, 59, 0.13);
+  }
+
+  .health-metrics-grid div:last-child {
+    border-bottom: none;
   }
 }
 

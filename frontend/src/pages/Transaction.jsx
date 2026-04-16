@@ -145,6 +145,7 @@ const TransactionPage = () => {
   const [selectedTransactionIds, setSelectedTransactionIds] = useState([]);
   const [deletingTransactionId, setDeletingTransactionId] = useState(null);
   const [editingTransactionId, setEditingTransactionId] = useState(null);
+  const [bankLinkModalOpen, setBankLinkModalOpen] = useState(false);
   const [editingTransactionData, setEditingTransactionData] = useState({
     store_name: "",
     cost: "",
@@ -268,6 +269,28 @@ const TransactionPage = () => {
     const visibleIds = new Set(sortedTransactions.map((transaction) => transaction.id));
     setSelectedTransactionIds((previous) => previous.filter((id) => visibleIds.has(id)));
   }, [sortedTransactions]);
+
+  useEffect(() => {
+    if (!bankLinkModalOpen) {
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setBankLinkModalOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [bankLinkModalOpen]);
 
   const availableCategories = useMemo(() => {
     const categories = new Set(transactions.map((transaction) => transaction.category || "Other"));
@@ -580,7 +603,7 @@ const TransactionPage = () => {
   };
 
   const handleBankLinkClick = () => {
-    window.alert("to be implemented with future release");
+    setBankLinkModalOpen(true);
   };
 
   return (
@@ -611,7 +634,7 @@ const TransactionPage = () => {
               type="button"
               onClick={handleBankLinkClick}
             >
-              Link you Bank Account
+              Link your Bank Account
             </button>
           </div>
         </section>
@@ -946,6 +969,57 @@ const TransactionPage = () => {
           ) : null}
         </section>
       </div>
+
+      {bankLinkModalOpen ? (
+        <div
+          className="transaction-bank-link-modal__overlay"
+          role="presentation"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setBankLinkModalOpen(false);
+            }
+          }}
+        >
+          <section
+            className="transaction-bank-link-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="transaction-bank-link-modal-title"
+          >
+            <button
+              type="button"
+              className="transaction-bank-link-modal__close"
+              aria-label="Close bank account link dialog"
+              onClick={() => setBankLinkModalOpen(false)}
+            >
+              {"\u00D7"}
+            </button>
+
+            <h3 id="transaction-bank-link-modal-title">Link your Bank Account</h3>
+            <p className="muted">
+              Secure bank linking is not available in this release yet. You can keep adding entries
+              manually while this integration is being prepared.
+            </p>
+
+            <div className="transaction-bank-link-modal__actions">
+              <button
+                className="subpage-inline-btn ghost"
+                type="button"
+                onClick={() => setBankLinkModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="subpage-inline-btn"
+                type="button"
+                onClick={() => setBankLinkModalOpen(false)}
+              >
+                Okay
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       <DecisionModal
         open={transactionEntry.previewOpen}

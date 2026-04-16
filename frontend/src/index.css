@@ -1,6 +1,7 @@
 
 :root {
   --color-card-bg: #C9ADA7;
+  --border-radius-lg: 18px;
   --bg-1: #22223b;
   --bg-2: #4a4e69;
   --surface: var(--color-card-bg);
