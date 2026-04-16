@@ -11,7 +11,10 @@ from backend.api.models.budget import Budget
 from backend.api.models.transaction import Transaction
 from backend.api.models.user import User
 from backend.api.schemas.budget import BudgetResponse, BudgetCreate, MonthlyProgressResponse
-from backend.api.services.finance_logic import budget_pressure_amount
+from backend.api.services.finance_logic import (
+    budget_pressure_amount,
+    calculate_budget_usage_percentage,
+)
 
 router = APIRouter(prefix="/budget", tags=["Budget"])
 
@@ -114,7 +117,7 @@ def get_monthly_progress(
 
     remaining_balance = budget.amount - total_spent
     effective_spend = max(total_spent, 0)
-    percentage_used = (effective_spend / budget.amount) * 100 if budget.amount > 0 else 0
+    percentage_used = calculate_budget_usage_percentage(effective_spend, budget.amount)
 
     if percentage_used >= 90:
         status = "Risk"

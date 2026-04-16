@@ -3,6 +3,17 @@ export function toSignedAmount(value) {
   return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
+function normalizeCategory(category) {
+  return String(category || "").trim().toLowerCase();
+}
+
+export function isBudgetExcludedCategory(category) {
+  const normalized = normalizeCategory(category);
+  return normalized.startsWith("transfer")
+    || normalized.startsWith("investment")
+    || normalized.startsWith("system");
+}
+
 export function isIncomeAmount(value) {
   return toSignedAmount(value) > 0;
 }
@@ -21,17 +32,26 @@ export function getExpenseAmount(value) {
   return amount < 0 ? Math.abs(amount) : 0;
 }
 
-export function getBudgetPressureAmount(value) {
-  const amount = toSignedAmount(value);
+export function getNetCashFlowAmount(value) {
+  return toSignedAmount(value);
+}
 
-  if (amount < 0) {
-    return Math.abs(amount);
+export function getBudgetPressureAmount(value, category) {
+  if (isBudgetExcludedCategory(category)) {
+    return 0;
   }
 
-  if (amount > 0) {
-    return -amount;
+  return getExpenseAmount(value);
+}
+
+export function calculateBudgetUsagePercentage(totalSpent, budgetLimit) {
+  const normalizedSpent = Math.max(Number(totalSpent) || 0, 0);
+  const normalizedBudget = Number(budgetLimit) || 0;
+
+  if (normalizedBudget > 0) {
+    return (normalizedSpent / normalizedBudget) * 100;
   }
 
-  return 0;
+  return normalizedSpent > 0 ? 100 : 0;
 }
 

@@ -57,9 +57,11 @@ def test_get_transactions_forbidden_other_user(
     response = client.get(f"/transaction/get/{sample_user.id + 1}")
     assert response.status_code == 403
 
+@patch("backend.api.routers.transaction.sync_user_subscriptions")
 @patch("backend.api.routers.transaction.clear_prediction_cache")
 def test_create_transaction_resolves_category_from_merchant(
     _clear_cache: MagicMock,
+    mock_sync_subscriptions: MagicMock,
     client: TestClient,
     mock_db: MagicMock,
     sample_user: User,
@@ -82,6 +84,7 @@ def test_create_transaction_resolves_category_from_merchant(
     assert response.status_code == 201
     body = response.json()
     assert body["category"] == "Dining"
+    mock_sync_subscriptions.assert_called_once_with(mock_db, sample_user.id)
     _clear_cache.assert_called_once()
 
 def test_delete_transaction_not_found(client: TestClient, mock_db: MagicMock) -> None:
@@ -105,3 +108,16 @@ def test_delete_transaction_forbidden_other_user(
     mock_db.query.return_value.filter.return_value.first.return_value = other_tx
     response = client.delete("/transaction/delete/1")
     assert response.status_code == 403
+
+def test_create_transaction_rejects_negative_cost(client: TestClient) -> None:
+    response = client.post(
+        "/transaction/create",
+        json={
+            "cost": -5.0,
+            "date": "2026-03-15",
+            "store_name": "Target",
+            "category": "Groceries",
+        },
+    )
+
+    assert response.status_code == 422

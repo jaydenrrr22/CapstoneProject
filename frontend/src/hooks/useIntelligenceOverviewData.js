@@ -4,16 +4,16 @@ import useAuth from "./useAuth";
 import useForecastData from "./useForecastData";
 import useIntelligence from "./useIntelligence";
 import useDemoMode from "./useDemoMode";
-import { resolveDefaultPeriod } from "../utils/forecastUtils";
+import { resolveDefaultPeriod, toDate } from "../utils/forecastUtils";
 import { normalizeApiError } from "../utils/normalizeApiError";
 import { detectDemoSubscriptions, getAvailablePeriods, getBudgetLimitMap } from "../demo/demoUtils";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
 
 function toMonthPeriod(dateValue) {
-  const date = new Date(dateValue);
+  const date = toDate(dateValue);
 
-  if (Number.isNaN(date.getTime())) {
+  if (!date) {
     return "";
   }
 
@@ -190,9 +190,10 @@ export default function useIntelligenceOverviewData() {
     selectedPeriod,
     budgetLimit: selectedBudgetLimit,
     horizon: "1M",
+    metric: "expense",
   });
 
-  const projectedMonthlySpend = forecast.currentValue + forecast.projectedDelta;
+  const projectedMonthlySpend = forecast.projectedEndValue;
   const projectedSavingsOrDeficit = selectedBudgetLimit !== null
     ? selectedBudgetLimit - projectedMonthlySpend
     : null;

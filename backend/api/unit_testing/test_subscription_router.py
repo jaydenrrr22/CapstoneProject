@@ -1,3 +1,4 @@
+from datetime import date
 from unittest.mock import MagicMock
 
 import pytest
@@ -37,3 +38,46 @@ def test_detect_subscriptions_empty_transactions(
     response = client.get("/subscription/detect")
     assert response.status_code == 200
     assert response.json() == []
+
+def test_detect_subscriptions_returns_existing_marked_subscription(
+    client: MagicMock,
+    mock_db: MagicMock,
+    sample_user: User,
+) -> None:
+    existing_subscription = Subscription(
+        id=1,
+        user_id=sample_user.id,
+        merchant="Netflix",
+        amount=15.99,
+        frequency="Marked",
+        is_duplicate=False,
+        is_active=True,
+        transaction_id=[101],
+    )
+    marked_transaction = Transaction(
+        id=101,
+        cost=15.99,
+        date=date(2026, 3, 10),
+        store_name="Netflix",
+        category="Subscription - Entertainment",
+        user_id=sample_user.id,
+    )
+
+    def _query(model, *a, **kw):
+        m = MagicMock()
+        if model is Transaction:
+            m.filter.return_value.order_by.return_value.all.return_value = [marked_transaction]
+        elif model is Subscription:
+            m.filter.return_value.all.return_value = [existing_subscription]
+        return m
+
+    mock_db.query.side_effect = _query
+
+    response = client.get("/subscription/detect")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["id"] == 1
+    assert body[0]["merchant"] == "Netflix"
+    assert body[0]["frequency"] == "Marked"
+    assert body[0]["transaction_ids"] == [101]

@@ -6,7 +6,7 @@ import MobileDashboard from "../components/dashboard/MobileDashboard";
 import DesktopDashboard from "../components/dashboard/DesktopDashboard";
 import { DASHBOARD_REFRESH_EVENT } from "../constants/events";
 import { normalizeApiError } from "../utils/normalizeApiError";
-import { resolveDefaultPeriod } from "../utils/forecastUtils";
+import { resolveDefaultPeriod, toDate } from "../utils/forecastUtils";
 import useIntelligence from "../hooks/useIntelligence";
 import useDemoMode from "../hooks/useDemoMode";
 import {
@@ -17,6 +17,16 @@ import {
   getSubscriptionInsight,
 } from "../demo/demoUtils";
 import { mapIntelligenceHistoryRecords } from "../utils/intelligenceHistory";
+
+function toMonthPeriod(dateValue) {
+  const date = toDate(dateValue);
+
+  if (!date) {
+    return "";
+  }
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
 
 function Dashboard() {
   const { token } = useAuth();
@@ -354,6 +364,10 @@ function Dashboard() {
   const selectedBudgetLimit = selectedPeriod
     ? (isDemoMode ? demoBudgetMap[selectedPeriod] : budgetLimitsByPeriod[selectedPeriod]) ?? null
     : null;
+  const selectedPeriodAnomalies = useMemo(
+    () => anomalies.filter((anomaly) => toMonthPeriod(anomaly.date) === selectedPeriod),
+    [anomalies, selectedPeriod]
+  );
 
   const forecastError = isDemoMode ? "" : !loadingBaseData ? baseDataError : "";
 
@@ -380,7 +394,7 @@ function Dashboard() {
         onRetryPredictions={loadPredictions}
         loadingBaseData={loadingBaseData}
         baseDataError={baseDataError}
-        anomalies={anomalies}
+        anomalies={selectedPeriodAnomalies}
         loadingAnomalies={loadingAnomalies}
         anomalyError={anomalyError}
         lastUpdatedAt={lastUpdatedAt}
@@ -410,7 +424,7 @@ function Dashboard() {
       onRetryPredictions={loadPredictions}
       loadingBaseData={loadingBaseData}
       baseDataError={baseDataError}
-      anomalies={anomalies}
+      anomalies={selectedPeriodAnomalies}
       loadingAnomalies={loadingAnomalies}
       anomalyError={anomalyError}
       lastUpdatedAt={lastUpdatedAt}

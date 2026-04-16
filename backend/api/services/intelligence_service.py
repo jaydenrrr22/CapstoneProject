@@ -22,10 +22,12 @@ from backend.api.schemas.intelligence import (
     IntelligenceResponse,
     IntelligenceScenario,
 )
+from pydantic import ValidationError
 from backend.api.schemas.summary import ForecastDetail, HealthScoreDetail
 from backend.api.services.cloudwatch_service import safe_put_metric
 from backend.api.services.finance_logic import (
     budget_pressure_amount,
+    calculate_budget_usage_percentage,
     expense_amount,
     is_subscription_category,
 )
@@ -81,10 +83,61 @@ def _round_score(value: Any) -> float:
     return round(float(value or 0.0), 4)
 
 
-def _normalize_timestamp_value(value: datetime) -> datetime:
-    if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+def _normalize_timestamp_value(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc)
+
+    return datetime.min.replace(tzinfo=timezone.utc)
+
+
+def _coerce_date_like(value: Any) -> Optional[date]:
+    if value is None:
+        return None
+
+    if isinstance(value, datetime):
+        return value.date()
+
+    if isinstance(value, date):
+        return value
+
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError:
+            return None
+
+    return None
+
+
+def safe_parse_details(details: Any, *, record_id: Any = "unknown") -> Optional[IntelligenceAnalysisDetails]:
+    if not details:
+        return None
+
+    try:
+        return IntelligenceAnalysisDetails.model_validate(details)
+    except (ValidationError, TypeError, ValueError) as exc:
+        logger.warning(
+            "Failed to parse history details for record %s: %s",
+            record_id,
+            exc,
+            exc_info=True,
+        )
+        return None
+
+
+def safe_parse_target(target_data: Any, *, record_id: Any = "unknown") -> Optional[date]:
+    try:
+        return _coerce_date_like(target_data)
+    except (TypeError, ValueError) as exc:
+        logger.warning(
+            "Failed to parse target_data for legacy record %s: %s",
+            record_id,
+            exc,
+            exc_info=True,
+        )
+        return None
 
 
 def _period_key(target_date: date) -> str:
@@ -420,7 +473,7 @@ def _build_transaction_recommendation(
         recommendation = "Improves cash position"
         explanation = (
             f"This deposit improves projected cash by ${_round_money(balance_change):.2f}, "
-            f"reduces current-period budget pressure to {_round_money(projected_percentage_used)}%, "
+            f"keeps current-period budget use at {_round_money(projected_percentage_used)}%, "
             f"and leaves ${_round_money(remaining_budget):.2f} remaining in the current period."
         )
         return recommendation, explanation, 0.9
@@ -511,16 +564,17 @@ def analyze_transaction_decision(
     monthly_multiplier, yearly_multiplier = _resolve_frequency_multipliers(request.frequency)
     transaction_amount = float(request.amount)
     is_deposit = transaction_type == "deposit"
+    budget_spend_amount = budget_pressure_amount(transaction_amount, request.category)
 
     projected_monthly_spend_delta = (
-        -(transaction_amount * monthly_multiplier)
+        0.0
         if is_deposit
-        else transaction_amount * monthly_multiplier
+        else budget_spend_amount * monthly_multiplier
     )
     projected_yearly_spend_delta = (
-        -(transaction_amount * yearly_multiplier)
+        0.0
         if is_deposit
-        else transaction_amount * yearly_multiplier
+        else budget_spend_amount * yearly_multiplier
     )
     balance_change = (
         transaction_amount * monthly_multiplier
@@ -531,12 +585,8 @@ def analyze_transaction_decision(
     projected_spent = current_spent + projected_monthly_spend_delta
     remaining_budget = current_budget_limit - projected_spent
 
-    current_percentage_used = (
-        (max(current_spent, 0.0) / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
-    )
-    projected_percentage_used = (
-        (max(projected_spent, 0.0) / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
-    )
+    current_percentage_used = calculate_budget_usage_percentage(current_spent, current_budget_limit)
+    projected_percentage_used = calculate_budget_usage_percentage(projected_spent, current_budget_limit)
 
     risk_level = _resolve_risk_level(projected_percentage_used)
 
@@ -553,8 +603,9 @@ def analyze_transaction_decision(
         scenario_balance_change = balance_change * multiplier
         scenario_projected_spent = current_spent + scenario_spend_delta
         scenario_remaining_budget = current_budget_limit - scenario_projected_spent
-        scenario_percentage = (
-            (max(scenario_projected_spent, 0.0) / current_budget_limit) * 100 if current_budget_limit > 0 else 0.0
+        scenario_percentage = calculate_budget_usage_percentage(
+            scenario_projected_spent,
+            current_budget_limit,
         )
         worst_percentage = max(worst_percentage, scenario_percentage)
 
@@ -727,9 +778,7 @@ def build_legacy_history_analysis(
 
 
 def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistoryResponse:
-    details = None
-    if record.details:
-        details = IntelligenceAnalysisDetails.model_validate(record.details)
+    details = safe_parse_details(record.details, record_id=record.id)
 
     return IntelligenceHistoryResponse(
         id=record.id,
@@ -750,6 +799,7 @@ def serialize_history_record(record: IntelligenceHistory) -> IntelligenceHistory
 
 def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistoryResponse:
     confidence = _round_score(record.confidence_level)
+    target_date = safe_parse_target(record.target_data, record_id=record.id)
 
     return IntelligenceHistoryResponse(
         id=record.id,
@@ -757,7 +807,7 @@ def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistor
         risk_score=_round_score(_clamp(1.0 - confidence, 0.0, 1.0)),
         recommendation="Legacy prediction history",
         explanation=(
-            f"Imported legacy prediction for {record.target_data.isoformat() if record.target_data else 'an unspecified date'}."
+            f"Imported legacy prediction for {target_date.isoformat() if target_date else 'an unspecified date'}."
         ),
         projected_impact=IntelligenceProjectedImpact(
             balance_change=_round_money(-(record.predicted_spending or 0.0)),
@@ -771,6 +821,8 @@ def map_legacy_prediction_record(record: PredictionResult) -> IntelligenceHistor
 
 
 def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[IntelligenceHistoryResponse]:
+    skipped_count = 0
+
     new_records = db.query(IntelligenceHistory).filter(
         IntelligenceHistory.user_id == user_id,
     ).order_by(IntelligenceHistory.created_at.desc()).limit(limit).all()
@@ -779,26 +831,59 @@ def list_history_records(db: Session, user_id: int, limit: int = 12) -> list[Int
         PredictionResult.user_id == user_id,
     ).order_by(PredictionResult.created_at.desc()).limit(limit).all()
 
-    combined = [
-        *[serialize_history_record(record) for record in new_records],
-        *[map_legacy_prediction_record(record) for record in legacy_records],
-    ]
+    combined: list[IntelligenceHistoryResponse] = []
+
+    for record in new_records:
+        try:
+            combined.append(serialize_history_record(record))
+        except Exception as exc:
+            skipped_count += 1
+            logger.warning(
+                "Skipping malformed intelligence history record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+                exc_info=True,
+            )
+
+    for record in legacy_records:
+        try:
+            combined.append(map_legacy_prediction_record(record))
+        except Exception as exc:
+            skipped_count += 1
+            logger.warning(
+                "Skipping malformed legacy prediction record %s: %s",
+                getattr(record, "id", "unknown"),
+                exc,
+                exc_info=True,
+            )
 
     remaining_slots = max(0, limit - len(combined))
 
     if remaining_slots > 0:
-        combined.extend(
-            _generate_derived_prediction_records(
-                db=db,
-                user_id=user_id,
-                limit=remaining_slots,
+        try:
+            combined.extend(
+                _generate_derived_prediction_records(
+                    db=db,
+                    user_id=user_id,
+                    limit=remaining_slots,
+                )
             )
-        )
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate derived prediction records for user %s: %s",
+                user_id,
+                exc,
+                exc_info=True,
+            )
 
     combined.sort(
         key=lambda item: _normalize_timestamp_value(item.timestamp),
         reverse=True,
     )
+
+    if skipped_count > 0:
+        logger.warning("Skipped %s invalid prediction history records for user %s", skipped_count, user_id)
+
     return combined[:limit]
 
 
@@ -839,11 +924,7 @@ def calculate_financial_health(db: Session, user_id: int, period: str) -> dict[s
     effective_spend = max(total_spent, 0.0)
 
     remaining_balance = float(budget.amount) - total_spent
-    percentage_used = (
-        (effective_spend / float(budget.amount)) * 100
-        if float(budget.amount) > 0
-        else 0.0
-    )
+    percentage_used = calculate_budget_usage_percentage(effective_spend, budget.amount)
 
     raw_score = 100 - percentage_used
     if float(budget.amount) > 0:

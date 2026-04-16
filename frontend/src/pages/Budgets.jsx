@@ -227,10 +227,13 @@ function Budgets() {
     }
   };
 
-  const progressUsed = progress ? Math.max(0, Math.min(100, Number(progress.percentage_used) || 0)) : 0;
+  const progressUsed = progress ? Math.max(0, Number(progress.percentage_used) || 0) : 0;
+  const progressFillWidth = Math.min(100, progressUsed);
   const progressRemainingRatio = progress
     ? Math.max(0, Math.min(100, Number((progress.remaining_balance / progress.budget_limit) * 100) || 0))
     : 0;
+  const isOverBudget = progress ? Number(progress.remaining_balance) < 0 || progressUsed > 100 : false;
+  const overBudgetAmount = isOverBudget ? Math.abs(Math.min(Number(progress?.remaining_balance || 0), 0)) : 0;
 
   return (
     <div className="dashboard-shell desktop-shell">
@@ -282,20 +285,21 @@ function Budgets() {
           {progress && (
             <div className="subpage-metric-card">
               <h4>Budget Progress ({progress.month})</h4>
-              <div className="budget-progress-track" aria-label="Budget used">
+              <div className={`budget-progress-track${isOverBudget ? " is-over-budget" : ""}`} aria-label="Budget used">
                 <div
                   className={`budget-progress-fill ${progress.status.toLowerCase()}`}
-                  style={{ width: `${progressUsed}%` }}
+                  style={{ width: `${progressFillWidth}%` }}
                 />
               </div>
               <div className="budget-progress-labels">
                 <span>Used: {progressUsed.toFixed(1)}%</span>
-                <span>Remaining: {progressRemainingRatio.toFixed(1)}%</span>
+                <span>{isOverBudget ? `Over by: $${overBudgetAmount.toFixed(2)}` : `Remaining: ${progressRemainingRatio.toFixed(1)}%`}</span>
               </div>
               <p>Budget Limit: ${progress.budget_limit.toFixed(2)}</p>
               <p>Period Total: {formatSignedCurrency(progress.total_spent)}</p>
               <p>Remaining: {formatSignedCurrency(progress.remaining_balance)}</p>
               <p>Status: {progress.status}</p>
+              {isOverBudget ? <p className="budget-progress-overrun">You are over budget by ${overBudgetAmount.toFixed(2)}.</p> : null}
             </div>
           )}
         </section>

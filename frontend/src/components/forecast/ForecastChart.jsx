@@ -50,7 +50,7 @@ function ForecastTooltip({ active, payload }) {
               <span className={deltaTone}>{formatCurrencyDelta(point.deltaFromCurrent)}</span>
             </>
           )
-          : "Historical period activity captured from recorded transactions in the selected budget period."}
+          : "Historical net activity captured from recorded transactions in the selected period."}
       </p>
       {isProjectedPoint ? (
         <p>
@@ -93,6 +93,7 @@ function ForecastChart({
   const forecast = useForecastData({
     budgetLimit,
     horizon,
+    metric: "net",
     selectedPeriod,
     transactions,
   });
@@ -100,6 +101,16 @@ function ForecastChart({
   const projectedDeltaClass = forecast.projectedDelta > 0
     ? "positive"
     : forecast.projectedDelta < 0
+      ? "negative"
+      : "";
+  const currentValueClass = forecast.currentValue > 0
+    ? "positive"
+    : forecast.currentValue < 0
+      ? "negative"
+      : "";
+  const projectedEndValueClass = forecast.projectedEndValue > 0
+    ? "positive"
+    : forecast.projectedEndValue < 0
       ? "negative"
       : "";
 
@@ -111,17 +122,19 @@ function ForecastChart({
 
   const forecastStatus = error
     ? "negative"
-    : forecast.projectedDelta > 0
-      ? "warning"
-      : forecast.projectedDelta < 0
+    : forecast.projectedEndValue < 0
+      ? "negative"
+      : forecast.projectedEndValue > 0
         ? "positive"
-        : "neutral";
+        : forecast.projectedDelta < 0
+          ? "warning"
+          : "neutral";
 
   return (
     <InsightCard
       title="Forecast Outlook"
       value={loading ? "Loading..." : error ? "Unavailable" : formatCurrency(forecast.projectedEndValue, { precise: true })}
-      description="Projected trajectory, modeled range, and budget threshold for the selected horizon."
+      description="Projected net cash-flow trajectory and modeled range for the selected horizon."
       status={forecastStatus}
       icon={<ForecastIcon />}
       collapsible={false}
@@ -155,12 +168,12 @@ function ForecastChart({
         <>
           <div className="forecast-summary" aria-label="Forecast summary">
             <div className="forecast-stat">
-              <span>Current net spend</span>
-              <strong>{formatCurrency(forecast.currentValue, { precise: true })}</strong>
+              <span>Current net total</span>
+              <strong className={currentValueClass}>{formatCurrency(forecast.currentValue, { precise: true })}</strong>
             </div>
             <div className="forecast-stat">
-              <span>Projected end value</span>
-              <strong>{formatCurrency(forecast.projectedEndValue, { precise: true })}</strong>
+              <span>Projected end total</span>
+              <strong className={projectedEndValueClass}>{formatCurrency(forecast.projectedEndValue, { precise: true })}</strong>
             </div>
             <div className="forecast-stat">
               <span>Likely range</span>
@@ -171,14 +184,18 @@ function ForecastChart({
               </strong>
             </div>
             <div className="forecast-stat forecast-stat--delta">
-              <span>{horizon} projection delta</span>
+              <span>{horizon} net change</span>
               <strong className={projectedDeltaClass}>{formatCurrencyDelta(forecast.projectedDelta)}</strong>
             </div>
           </div>
 
           <div className={`forecast-chart-shell${compact ? " compact" : ""}`}>
             <div className="forecast-chart">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+                minWidth={280}
+              >
                 <LineChart data={forecast.data} margin={{ top: 12, right: 12, bottom: 8, left: 0 }}>
                   <defs>
                     <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="0">
