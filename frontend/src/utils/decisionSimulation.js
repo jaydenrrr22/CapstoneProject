@@ -224,12 +224,12 @@ export function buildDecisionSimulationModel({
       projectedMetric: "After this action",
       impactMetric: "Decision impact",
       statusMetric: "Risk level",
-      secondaryDescription: "Preview how this action changes your period trajectory before you commit it.",
+      secondaryDescription: "Preview how this transaction changes your period trajectory before you save it.",
     },
     projectedMetricValue: roundCurrency(projectedValue),
     rawAnalysis: apiSimulation,
     recommendation: {
-      headline: apiSimulation?.recommendation || "Preview generated successfully.",
+      headline: apiSimulation?.recommendation || "Prediction generated successfully.",
       detail: apiSimulation?.explanation || "Review the projected impact before saving.",
       status: resolveRecommendationStatus({
         decisionDelta,

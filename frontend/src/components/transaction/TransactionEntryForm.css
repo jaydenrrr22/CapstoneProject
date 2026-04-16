@@ -33,6 +33,16 @@
   line-height: 1.5;
 }
 
+.transaction-form__section {
+  display: grid;
+  gap: 16px;
+}
+
+.transaction-form__section + .transaction-form__section {
+  padding-top: 18px;
+  border-top: 1px solid var(--transaction-line);
+}
+
 .transaction-form__type-selector {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -86,20 +96,6 @@
   color: #3b6d11;
 }
 
-.transaction-form__card {
-  display: grid;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 16px;
-  background: var(--transaction-surface-soft);
-  border: 1px solid var(--transaction-line);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
-}
-
-.transaction-form__card--options {
-  gap: 12px;
-}
-
 .transaction-form__row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -108,11 +104,11 @@
 
 .transaction-form__field {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .transaction-form__field--inline {
-  max-width: 220px;
+  max-width: none;
 }
 
 .transaction-form__label {
@@ -210,52 +206,73 @@
   background: rgba(216, 90, 48, 0.12);
 }
 
-.transaction-form__pill-row {
+.transaction-form__toggle-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
 }
 
-.transaction-form__pill {
+.transaction-form__toggle-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.transaction-form__toggle-copy strong {
+  color: var(--transaction-ink);
+  font-size: 0.96rem;
+}
+
+.transaction-form__toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid var(--transaction-line);
-  background: rgba(255, 255, 255, 0.36);
-  color: var(--transaction-ink);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.transaction-form__pill:hover {
-  transform: none;
-  background: rgba(255, 255, 255, 0.48);
-}
-
-.transaction-form__pill.is-active {
-  border-color: rgba(34, 34, 59, 0.24);
-  background: rgba(34, 34, 59, 0.12);
-  color: var(--transaction-ink);
-}
-
-.transaction-form__pill-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: currentColor;
+  justify-content: flex-end;
   flex: 0 0 auto;
 }
 
-.transaction-form__pill small {
-  padding: 2px 6px;
+.transaction-form__toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.transaction-form__toggle-track {
+  position: relative;
+  width: 52px;
+  height: 30px;
   border-radius: 999px;
-  background: rgba(108, 191, 60, 0.2);
-  color: #a9ef7d;
-  font-size: 0.68rem;
-  text-transform: lowercase;
+  border: 1px solid var(--transaction-line);
+  background: rgba(255, 255, 255, 0.44);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transaction-form__toggle-track::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 4px 10px rgba(10, 10, 20, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.transaction-form__toggle input:checked + .transaction-form__toggle-track {
+  border-color: rgba(34, 34, 59, 0.24);
+  background: rgba(34, 34, 59, 0.14);
+}
+
+.transaction-form__toggle input:checked + .transaction-form__toggle-track::after {
+  transform: translateX(22px);
+}
+
+.transaction-form__toggle input:focus-visible + .transaction-form__toggle-track {
+  box-shadow: 0 0 0 3px var(--transaction-focus);
 }
 
 .transaction-form__actions {
@@ -308,6 +325,21 @@
   color: var(--transaction-ink);
 }
 
+.transaction-form__summary-shell {
+  display: grid;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--transaction-line);
+}
+
+.transaction-form__summary-label {
+  color: var(--transaction-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .transaction-form__summary strong {
   display: block;
   margin-bottom: 6px;
@@ -330,6 +362,7 @@
     grid-template-columns: 1fr;
   }
 
+  .transaction-form__toggle-row,
   .transaction-form__actions {
     flex-direction: column;
   }
