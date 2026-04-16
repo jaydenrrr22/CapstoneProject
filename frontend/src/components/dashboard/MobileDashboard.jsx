@@ -37,7 +37,10 @@ function MobileDashboard({
   anomalies,
   lastUpdatedAt,
 }) {
-  const safePredictedTransactions = predictedTransactions || [];
+  const safePredictedTransactions = useMemo(
+    () => predictedTransactions || [],
+    [predictedTransactions]
+  );
 
   const netDelta = useMemo(
     () => buildNetDelta(selectedPeriod, forecastTransactions),

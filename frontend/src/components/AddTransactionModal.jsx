@@ -124,7 +124,7 @@ function AddTransactionModal() {
               }
             }}
             title="Add transaction"
-            description="Capture an expense or income in a few fields."
+            description="Capture an expense or income and predict the impact before you save it."
             variant="modal"
             headingId="add-transaction-modal-title"
           />
@@ -138,23 +138,23 @@ function AddTransactionModal() {
         busyLabel="Saving transaction..."
         error={controller.simulationError}
         simulation={controller.simulation}
-        title={controller.pendingTransaction?.store_name ? `Preview ${controller.pendingTransaction.store_name}` : "Preview this decision"}
-        confirmLabel={controller.simulationError ? "Save Anyway" : "Save transaction"}
-        cancelLabel="Close Preview"
+        title={controller.pendingTransaction?.store_name ? `Prediction for ${controller.pendingTransaction.store_name}` : "Prediction before saving"}
+        confirmLabel={controller.simulationError ? "Save without prediction" : "Save transaction"}
+        cancelLabel="Close prediction"
         adjustLabel="Edit Details"
         onCancel={() => {
           if (controller.loadingPreview || controller.saving) {
             return;
           }
 
-          controller.closePreview({ clearSummary: true });
+          controller.closePreview();
         }}
         onAdjust={() => {
           if (controller.loadingPreview || controller.saving) {
             return;
           }
 
-          controller.closePreview({ clearSummary: true });
+          controller.closePreview();
         }}
         onConfirm={async () => {
           if (controller.loadingPreview || controller.saving) {

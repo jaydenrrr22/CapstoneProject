@@ -69,7 +69,7 @@ function DecisionLoadingState() {
 
 export default function DecisionModal({
   open,
-  title = "Decision Intelligence",
+  title = "Transaction Prediction",
   loading = false,
   busy = false,
   busyLabel = "Working...",
@@ -179,10 +179,10 @@ export default function DecisionModal({
       >
         <div className="decision-modal__header">
           <div>
-            <p className="decision-modal__eyebrow">Decision-Time Intelligence</p>
+            <p className="decision-modal__eyebrow">Prediction Before Saving</p>
             <h2 id="decision-modal-title">{title}</h2>
             <p id="decision-modal-description">
-              {labels.secondaryDescription || "Preview how this action changes your spending path before you commit it."}
+              {labels.secondaryDescription || "Preview how this transaction changes your spending path before you save it."}
             </p>
           </div>
 
@@ -201,9 +201,9 @@ export default function DecisionModal({
           <DecisionLoadingState />
         ) : error && !simulation ? (
           <div className="decision-modal__error" role="alert">
-            <strong>Simulation unavailable</strong>
+            <strong>Prediction unavailable</strong>
             <p>{error}</p>
-            <p>You can still continue with the transaction, but this preview could not be generated.</p>
+            <p>You can still continue with the transaction, but this prediction could not be generated.</p>
           </div>
         ) : simulation ? (
           <div className="decision-modal__content">
@@ -308,7 +308,7 @@ export default function DecisionModal({
 
             <section className={`decision-modal__recommendation decision-modal__recommendation--${recommendationStatus}`}>
               <span className="decision-modal__recommendation-label">Recommendation</span>
-              <strong>{simulation.recommendation?.headline || "Preview generated successfully."}</strong>
+              <strong>{simulation.recommendation?.headline || "Prediction generated successfully."}</strong>
               <p>{simulation.recommendation?.detail || "Review the chart and confirm when you are ready."}</p>
             </section>
 
@@ -350,8 +350,8 @@ export default function DecisionModal({
           </div>
         ) : (
           <div className="decision-modal__error" role="alert">
-            <strong>Preview unavailable</strong>
-            <p>We could not build a simulation for this decision.</p>
+            <strong>Prediction unavailable</strong>
+            <p>We could not build a prediction for this transaction.</p>
           </div>
         )}
 

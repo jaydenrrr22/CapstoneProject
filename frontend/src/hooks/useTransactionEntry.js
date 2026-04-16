@@ -393,17 +393,14 @@ export default function useTransactionEntry({
       });
 
       setSimulation(simulationModel);
-      setDecisionSummary(buildDecisionSummary(payload, simulationModel));
       return true;
     } catch (error) {
-      setSimulationError(normalizeApiError(error, "Could not simulate impact. You can still continue."));
-      setDecisionSummary(buildDecisionSummary(payload));
+      setSimulationError(normalizeApiError(error, "Could not generate a prediction. You can still continue."));
       return false;
     } finally {
       setLoadingPreview(false);
     }
   }, [
-    buildDecisionSummary,
     currentDataset,
     ensureTransactions,
     isDemoMode,

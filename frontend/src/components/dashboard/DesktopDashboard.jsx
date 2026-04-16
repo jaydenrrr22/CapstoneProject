@@ -40,7 +40,10 @@ function DesktopDashboard({
   anomalyError,
   lastUpdatedAt,
 }) {
-  const safePredictedTransactions = predictedTransactions || [];
+  const safePredictedTransactions = useMemo(
+    () => predictedTransactions || [],
+    [predictedTransactions]
+  );
 
   const netDelta = useMemo(
     () => buildNetDelta(selectedPeriod, forecastTransactions),
