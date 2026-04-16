@@ -580,7 +580,7 @@
 
 .transaction-ledger-search__clear:hover {
   background: rgba(34, 34, 59, 0.16);
-  transform: none;
+  transform: translateY(-50%);
 }
 
 .transactions-table {
