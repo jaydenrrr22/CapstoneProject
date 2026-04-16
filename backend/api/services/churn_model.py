@@ -88,6 +88,7 @@ def _load_trained_model():
 
     for path in candidate_paths:
         if path.exists():
+            print(f"Loading churn model from: {path}")
             with path.open("rb") as model_file:
                 return pickle.load(model_file)
 
