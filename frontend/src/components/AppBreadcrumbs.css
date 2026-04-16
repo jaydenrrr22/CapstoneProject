@@ -17,13 +17,13 @@
   align-items: center;
   gap: 8px;
   color: rgba(220, 195, 188, 0.88);
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .app-breadcrumbs__item:not(:last-child)::after {
   content: "/";
-  color: rgba(220, 195, 188, 0.62);
+  color: rgba(220, 195, 188, 0.78);
 }
 
 .app-breadcrumbs__link {
@@ -37,5 +37,6 @@
 
 .app-breadcrumbs__current {
   color: #f7f2ef;
+  font-weight: 500;
 }
 

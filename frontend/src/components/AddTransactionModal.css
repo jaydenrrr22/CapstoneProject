@@ -3,17 +3,17 @@
   right: 24px;
   bottom: 24px;
   z-index: 9999;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   border: none;
   background: #22223b;
   color: #ffffff;
-  box-shadow: 0 18px 32px rgba(10, 10, 20, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .add-transaction-fab:hover {
@@ -26,7 +26,7 @@
 }
 
 .add-transaction-fab__icon {
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
 }
 
@@ -87,7 +87,7 @@
 @media (max-width: 639px) {
   .add-transaction-fab {
     width: auto;
-    min-width: 52px;
+    min-width: 44px;
     padding: 0 16px;
   }
 
