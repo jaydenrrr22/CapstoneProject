@@ -37,8 +37,8 @@ export const PRIMARY_NAV_ITEMS = [
   {
     key: "churn",
     to: "/churn",
-    label: "Churn",
-    title: "Churn Prediction",
+    label: "Risk Assessment",
+    title: "Risk Assessment",
     matchPrefix: "/churn",
   },
 ];

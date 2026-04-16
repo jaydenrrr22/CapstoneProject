@@ -118,9 +118,9 @@ function ChurnPrediction() {
         <section className="card-surface subpage-table-panel churn-header-panel">
           <div className="section-heading">
             <div>
-              <h3>Churn Prediction</h3>
+              <h3>Risk Assessment</h3>
               <p className="muted churn-page-description">
-                Enter customer and activity information to estimate churn risk.
+                Enter customer and activity information to estimate risk.
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ function ChurnPrediction() {
               <div>
                 <h3>Prediction Inputs</h3>
                 <p className="muted transaction-entry-copy">
-                  Fill in the available customer and activity fields below to simulate a churn prediction.
+                  Fill in the available customer and activity fields below to run a prediction.
                 </p>
               </div>
             </div>
@@ -168,7 +168,7 @@ function ChurnPrediction() {
               </label>
 
               <label>
-                Usage Frequency
+                Average uses per week
                 <input
                   type="number"
                   value={usageFrequency}
@@ -178,7 +178,7 @@ function ChurnPrediction() {
               </label>
 
               <label>
-                Support Calls
+                How many times have you contacted support in the last month?
                 <input
                   type="number"
                   value={supportCalls}
@@ -256,23 +256,17 @@ function ChurnPrediction() {
             <div className="section-heading">
               <div>
                 <h3>Prediction Result</h3>
-                <p className="muted transaction-entry-copy">
-                  This section will display the churn risk prediction once the model is connected.
-                </p>
               </div>
             </div>
 
             <div className="churn-results-stack">
               <article className="subpage-metric-card churn-result-card">
-                <span className="churn-result-card__label">Churn Risk</span>
+                <span className="churn-result-card__label">Risk</span>
                 <strong>{predictionResult.churnRisk}</strong>
                 
               </article>
 
-              <article className="subpage-metric-card churn-result-card">
-                <span className="churn-result-card__label">Confidence Score</span>
-                <strong>{predictionResult.confidenceScore}</strong>
-              </article>
+              
 
               <article className="subpage-metric-card churn-result-card">
                 <span className="churn-result-card__label">Recommendation / Summary</span>
