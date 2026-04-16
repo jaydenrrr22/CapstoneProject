@@ -411,9 +411,9 @@ const TransactionPage = () => {
 
         setTransactions(sortTransactionsByDate(nextTransactions));
       } else {
-        await Promise.all(
-          selectedTransactionIds.map((transactionId) => API.delete(`/transaction/delete/${transactionId}`))
-        );
+        for (const transactionId of selectedTransactionIds) {
+          await API.delete(`/transaction/delete/${transactionId}`);
+        }
         await loadTransactions();
       }
 
