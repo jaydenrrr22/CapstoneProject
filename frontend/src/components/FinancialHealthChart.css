@@ -17,8 +17,10 @@
   align-items: flex-start;
   border-radius: 16px;
   overflow: hidden;
-  background: rgba(247, 244, 213, 0.94);
-  border: 1px solid rgba(34, 34, 59, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.34), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.18));
+  border: 1px solid rgba(34, 34, 59, 0.12);
 }
 
 .health-gauge-canvas .recharts-wrapper {

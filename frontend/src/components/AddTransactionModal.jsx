@@ -19,17 +19,39 @@ function AddTransactionModal() {
   const modalRef = useRef(null);
   const { closeAddTransaction, isOpen } = useAddTransaction();
   const controller = useTransactionEntry({ active: isOpen });
+  const previewOpenRef = useRef(controller.previewOpen);
+  const handleCloseRef = useRef(() => {});
+
+  const {
+    closePreview,
+    confirmPreviewSave,
+    handlePreview,
+    handleSave,
+    loadingPreview,
+    pendingTransaction,
+    previewOpen,
+    resetFormState,
+    saving,
+    setSubmitError,
+    simulation,
+    simulationError,
+  } = controller;
 
   const handleClose = useCallback(() => {
-    if (!isOpen || controller.loadingPreview || controller.saving) {
+    if (!isOpen || loadingPreview || saving) {
       return;
     }
 
-    controller.setSubmitError("");
-    controller.resetFormState();
-    controller.closePreview({ clearSummary: true });
+    setSubmitError("");
+    resetFormState();
+    closePreview({ clearSummary: true });
     closeAddTransaction();
-  }, [closeAddTransaction, controller, isOpen]);
+  }, [closeAddTransaction, closePreview, isOpen, loadingPreview, resetFormState, saving, setSubmitError]);
+
+  useEffect(() => {
+    previewOpenRef.current = previewOpen;
+    handleCloseRef.current = handleClose;
+  }, [handleClose, previewOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -40,14 +62,29 @@ function AddTransactionModal() {
     document.body.style.overflow = "hidden";
 
     const modalNode = modalRef.current;
-    const focusable = modalNode?.querySelectorAll(FOCUSABLE_SELECTORS);
-    const firstFocusable = focusable?.[0];
+    const preferredFocusTarget = modalNode?.querySelector(
+      "input:not([disabled]), select:not([disabled]), textarea:not([disabled])"
+    );
+    const fallbackFocusTarget = modalNode?.querySelector(FOCUSABLE_SELECTORS);
+    const focusTarget = preferredFocusTarget || fallbackFocusTarget;
 
-    firstFocusable?.focus();
+    focusTarget?.focus();
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
 
     const handleKeyDown = (event) => {
-      if (event.key === "Escape" && !controller.previewOpen) {
-        handleClose();
+      const modalNode = modalRef.current;
+
+      if (event.key === "Escape" && !previewOpenRef.current) {
+        handleCloseRef.current();
         return;
       }
 
@@ -76,10 +113,9 @@ function AddTransactionModal() {
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [controller.previewOpen, handleClose, isOpen]);
+  }, [isOpen]);
 
   if (!isOpen || typeof document === "undefined") {
     return null;
@@ -115,9 +151,9 @@ function AddTransactionModal() {
 
           <TransactionEntryForm
             controller={controller}
-            onPreview={controller.handlePreview}
+            onPreview={handlePreview}
             onSubmit={async (event) => {
-              const saved = await controller.handleSave(event);
+              const saved = await handleSave(event);
 
               if (saved) {
                 handleClose();
@@ -132,36 +168,36 @@ function AddTransactionModal() {
       </div>
 
       <DecisionModal
-        open={controller.previewOpen}
-        loading={controller.loadingPreview}
-        busy={controller.saving}
+        open={previewOpen}
+        loading={loadingPreview}
+        busy={saving}
         busyLabel="Saving transaction..."
-        error={controller.simulationError}
-        simulation={controller.simulation}
-        title={controller.pendingTransaction?.store_name ? `Prediction for ${controller.pendingTransaction.store_name}` : "Prediction before saving"}
-        confirmLabel={controller.simulationError ? "Save without prediction" : "Save transaction"}
+        error={simulationError}
+        simulation={simulation}
+        title={pendingTransaction?.store_name ? `Prediction for ${pendingTransaction.store_name}` : "Prediction before saving"}
+        confirmLabel={simulationError ? "Save without prediction" : "Save transaction"}
         cancelLabel="Close prediction"
         adjustLabel="Edit Details"
         onCancel={() => {
-          if (controller.loadingPreview || controller.saving) {
+          if (loadingPreview || saving) {
             return;
           }
 
-          controller.closePreview();
+          closePreview();
         }}
         onAdjust={() => {
-          if (controller.loadingPreview || controller.saving) {
+          if (loadingPreview || saving) {
             return;
           }
 
-          controller.closePreview();
+          closePreview();
         }}
         onConfirm={async () => {
-          if (controller.loadingPreview || controller.saving) {
+          if (loadingPreview || saving) {
             return;
           }
 
-          const saved = await controller.confirmPreviewSave();
+          const saved = await confirmPreviewSave();
 
           if (saved) {
             handleClose();
