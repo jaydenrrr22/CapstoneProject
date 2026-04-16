@@ -107,11 +107,11 @@ def predict_churn(
     churn_risk = predict_churn_from_input(payload)
 
     if churn_risk > 80:
-        summary = "We have calculated a high risk of churn."
+        summary = "You may be at risk of leaving soon. Consider reaching out to support"
     elif churn_risk >= 50:
-        summary = "This customer may be at moderate risk of churn."
+        summary = "Your activity shows some risk."
     else:
-        summary = "This customer currently appears to be at relatively low risk of churn."
+        summary = "You're in a good place — your activity looks consistent and stable."
 
     return ChurnPredictionResponse(
         churn_risk=churn_risk,

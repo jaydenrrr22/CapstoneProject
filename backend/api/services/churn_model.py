@@ -80,14 +80,14 @@ def _build_prediction_frame(data: dict) -> pd.DataFrame:
 def _load_trained_model():
     project_root = Path(__file__).resolve().parents[3]
     candidate_paths = [
-        Path(__file__).with_name("churn_model.pkl"),
+        project_root / "data_analysis" / "churn_model.pkl",
         project_root / "backend" / "api" / "services" / "churn_model.pkl",
         project_root / "backend" / "models" / "churn_model.pkl",
-        project_root / "data_analysis" / "churn_model.pkl",
     ]
 
     for path in candidate_paths:
         if path.exists():
+            print(f"Loading churn model from: {path}")
             with path.open("rb") as model_file:
                 return pickle.load(model_file)
 
