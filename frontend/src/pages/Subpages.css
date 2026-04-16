@@ -319,6 +319,26 @@
   backdrop-filter: none;
 }
 
+.transaction-bank-link-panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.transaction-bank-link-panel__copy {
+  display: grid;
+  gap: 8px;
+}
+
+.transaction-bank-link-panel__copy p {
+  line-height: 1.55;
+}
+
+.transaction-bank-link-panel__button {
+  width: 100%;
+  min-height: 44px;
+}
+
 .transaction-entry-group {
   display: grid;
   gap: 10px;

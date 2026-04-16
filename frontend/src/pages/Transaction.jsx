@@ -579,6 +579,10 @@ const TransactionPage = () => {
     triggerCsvDownload("transactions-export.csv", csvContent);
   };
 
+  const handleBankLinkClick = () => {
+    window.alert("to be implemented with future release");
+  };
+
   return (
     <div className="dashboard-shell desktop-shell">
       <AppBreadcrumbs />
@@ -593,6 +597,23 @@ const TransactionPage = () => {
             description="Capture an expense or income, run a prediction before saving, or skip the prediction when you need a quick entry."
             variant="page"
           />
+
+          <div className="card-surface transaction-bank-link-panel">
+            <div className="transaction-bank-link-panel__copy">
+              <h3>Connect Your Banking</h3>
+              <p className="muted">
+                Secure bank linking will be added in a future release. For now, you can keep using manual transaction entry.
+              </p>
+            </div>
+
+            <button
+              className="subpage-inline-btn transaction-bank-link-panel__button"
+              type="button"
+              onClick={handleBankLinkClick}
+            >
+              Link you Bank Account
+            </button>
+          </div>
         </section>
 
         <section className="card-surface subpage-table-panel transaction-ledger-panel" data-demo-tour="transactions-ledger">
